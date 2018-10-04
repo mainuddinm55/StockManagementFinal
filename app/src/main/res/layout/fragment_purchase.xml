@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <LinearLayout
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/root_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        tools:context=".Fragment.PurchaseFragment">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="5dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/product_name_text"
+                        android:textColor="@color/colorAccent"
+                        android:textSize="16sp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal">
+
+                        <AutoCompleteTextView
+                            android:id="@+id/product_name_act"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="5dp"
+                            android:layout_weight="6"
+                            android:drawableStart="@drawable/ic_product"
+                            android:drawableLeft="@drawable/ic_product"
+                            android:drawablePadding="10dp"
+                            android:gravity="start"
+                            android:hint="@string/product_name_text"
+                            android:inputType="text"
+                            android:textSize="16sp" />
+                    </LinearLayout>
+
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="5dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/product_company_name_text"
+                        android:textColor="@color/colorAccent"
+                        android:textSize="16sp" />
+
+                    <EditText
+                        android:id="@+id/company_name_edittext"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5dp"
+                        android:drawableStart="@drawable/ic_company"
+                        android:drawableLeft="@drawable/ic_company"
+                        android:drawablePadding="10dp"
+                        android:gravity="start"
+                        android:hint="@string/product_company_name_text"
+                        android:inputType="text"
+                        android:textSize="16sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="5dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/purchase_quantity_text"
+                        android:textColor="@color/colorAccent"
+                        android:textSize="16sp" />
+
+                    <EditText
+                        android:id="@+id/quantity_edittext"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5dp"
+                        android:drawableStart="@drawable/ic_quantity"
+                        android:drawableLeft="@drawable/ic_quantity"
+                        android:drawablePadding="10dp"
+                        android:gravity="start"
+                        android:hint="@string/purchase_quantity_text"
+                        android:inputType="numberDecimal"
+                        android:textSize="16sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="5dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/purchase_buy_price_text"
+                        android:textColor="@color/colorAccent"
+                        android:textSize="16sp" />
+
+                    <EditText
+                        android:id="@+id/buy_price_edittext"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5dp"
+                        android:drawableStart="@drawable/ic_price"
+                        android:drawableLeft="@drawable/ic_price"
+                        android:drawablePadding="10dp"
+                        android:gravity="start"
+                        android:hint="@string/purchase_buy_price_text"
+                        android:inputType="numberDecimal"
+                        android:textSize="16sp" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="5dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/purchase_sell_price_text"
+                        android:textColor="@color/colorAccent"
+                        android:textSize="16sp" />
+
+                    <EditText
+                        android:id="@+id/sell_price_edittext"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5dp"
+                        android:drawableStart="@drawable/ic_price"
+                        android:drawableLeft="@drawable/ic_price"
+                        android:drawablePadding="10dp"
+                        android:gravity="start"
+                        android:hint="@string/purchase_sell_price_text"
+                        android:inputType="numberDecimal"
+                        android:textSize="16sp" />
+
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="5dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/purchase_date_text"
+                        android:textColor="@color/colorAccent"
+                        android:textSize="16sp" />
+
+                    <EditText
+                        android:id="@+id/purchase_date_edittext"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5dp"
+                        android:drawableStart="@drawable/ic_calendar"
+                        android:drawableLeft="@drawable/ic_calendar"
+                        android:drawablePadding="10dp"
+                        android:gravity="start"
+                        android:hint="@string/purchase_date_text"
+                        android:inputType="date"
+                        android:textSize="16sp" />
+
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="5dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/total_amount_text"
+                        android:textColor="@color/colorAccent"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:id="@+id/total_amount_textview"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5dp"
+                        android:drawableStart="@drawable/ic_amount"
+                        android:drawableLeft="@drawable/ic_amount"
+                        android:drawablePadding="10dp"
+                        android:gravity="start"
+                        android:hint="@string/total_amount_text"
+                        android:textSize="16sp" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:orientation="vertical"
+                    android:padding="5dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/paid_amount_text"
+                        android:textColor="@color/colorAccent"
+                        android:textSize="16sp" />
+
+                    <EditText
+                        android:id="@+id/paid_amount_edittext"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5dp"
+                        android:drawableStart="@drawable/ic_amount"
+                        android:drawableLeft="@drawable/ic_amount"
+                        android:drawablePadding="10dp"
+                        android:gravity="start"
+                        android:hint="@string/paid_amount_text"
+                        android:inputType="numberDecimal"
+                        android:textSize="16sp" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="5dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/due_amount_text"
+                        android:textColor="@color/colorAccent"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:id="@+id/due_amount_textview"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="5dp"
+                        android:drawableStart="@drawable/ic_amount"
+                        android:drawableLeft="@drawable/ic_amount"
+                        android:drawablePadding="10dp"
+                        android:gravity="start"
+                        android:hint="@string/due_amount_text"
+                        android:textSize="16sp" />
+
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/add_purchase_btn"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="20dp"
+                    android:background="@color/colorPrimary"
+                    android:text="@string/add_btn_text"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Headline"
+                    android:textColor="@android:color/white" />
+            </LinearLayout>
+        </ScrollView>
+
+    </LinearLayout>
+</layout>

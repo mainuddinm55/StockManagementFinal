@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:layout_margin="20dp"
+    android:background="#fafafa"
+    android:padding="10dp"
+    android:orientation="vertical">
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/add_new_expense_text"
+        android:textStyle="bold"
+        android:textSize="22sp"
+        android:textAlignment="viewStart"
+        android:gravity="center"
+        android:layout_marginBottom="10dp"
+        android:textColor="@android:color/black"
+        tools:ignore="RtlCompat" />
+
+    <EditText
+        android:id="@+id/expenseNameET"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/expense_name_text"
+        android:layout_gravity="center"
+        android:textSize="18sp"/>
+    <EditText
+        android:id="@+id/expenseAmountET"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/amount_text"
+        android:textSize="18sp"
+        android:inputType="numberDecimal"
+        android:layout_gravity="center"
+        />
+
+    <EditText
+        android:id="@+id/expenseCommentET"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/comment_optional_text"
+        android:textSize="18sp"
+        android:layout_gravity="center"
+        />
+
+
+    <TextView
+        android:id="@+id/expenseDateTV"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/select_date_text"
+        android:textSize="18sp"
+        android:inputType="date"
+        android:layout_gravity="center"
+        android:layout_marginTop="5dp"
+        android:layout_marginLeft="3dp"
+        android:layout_marginBottom="5dp"
+        android:layout_marginStart="3dp" />
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/cancelBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginEnd="90dp"
+            android:background="#fafafa"
+            android:text="@string/cancel_text"
+            android:textAllCaps="false"
+            android:textColor="#ea528a"
+            android:textSize="20sp"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="102dp" />
+
+        <Button
+            android:id="@+id/saveBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:background="#fafafa"
+            android:textSize="20sp"
+            android:text="Save"
+            android:textAllCaps="false"
+            android:textColor="#ea528a" />
+
+    </RelativeLayout>
+
+</LinearLayout>
