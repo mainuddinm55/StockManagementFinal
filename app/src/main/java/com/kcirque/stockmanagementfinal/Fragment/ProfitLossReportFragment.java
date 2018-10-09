@@ -13,6 +13,8 @@ import android.view.ViewGroup;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -20,10 +22,12 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.kcirque.stockmanagementfinal.Common.Constant;
 import com.kcirque.stockmanagementfinal.Common.DateConverter;
+import com.kcirque.stockmanagementfinal.Common.SharedPref;
 import com.kcirque.stockmanagementfinal.Database.Model.Expense;
 import com.kcirque.stockmanagementfinal.Database.Model.ProductSell;
 import com.kcirque.stockmanagementfinal.Database.Model.Purchase;
 import com.kcirque.stockmanagementfinal.Database.Model.Sales;
+import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.Database.Model.StockHand;
 import com.kcirque.stockmanagementfinal.R;
 import com.kcirque.stockmanagementfinal.databinding.FragmentProfitLossReportBinding;
@@ -39,6 +43,11 @@ public class ProfitLossReportFragment extends Fragment {
 
     private static final String TAG = "Profit Activity";
     private FragmentProfitLossReportBinding mBinding;
+
+    private FirebaseUser mUser;
+    private FirebaseAuth mAuth;
+    private SharedPref mSharedPref;
+    private DatabaseReference mAdminRef;
     private DatabaseReference mPurchaseRef;
     private DatabaseReference mSalesRef;
     private DatabaseReference mStockRef;
@@ -79,12 +88,21 @@ public class ProfitLossReportFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable final Bundle savedInstanceState) {
+        mSharedPref = new SharedPref(getContext());
+        Seller seller = mSharedPref.getSeller();
+        mAuth = FirebaseAuth.getInstance();
+        mUser = mAuth.getCurrentUser();
         mDateConverter = new DateConverter();
         DatabaseReference mRootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
-        mPurchaseRef = mRootRef.child(Constant.PURCHASE_REF);
-        mSalesRef = mRootRef.child(Constant.SALES_REF);
-        mStockRef = mRootRef.child(Constant.STOCK_HAND_REF);
-        mExpenseRef = mRootRef.child(Constant.EXPENSE_REF);
+        if (mUser != null) {
+            mAdminRef = mRootRef.child(mUser.getUid());
+        } else {
+            mAdminRef = mRootRef.child(seller.getAdminUid());
+        }
+        mPurchaseRef = mAdminRef.child(Constant.PURCHASE_REF);
+        mSalesRef = mAdminRef.child(Constant.SALES_REF);
+        mStockRef = mAdminRef.child(Constant.STOCK_HAND_REF);
+        mExpenseRef = mAdminRef.child(Constant.EXPENSE_REF);
         mBinding.linearLayout.setVisibility(View.GONE);
         mBinding.progressBar.setVisibility(View.VISIBLE);
         Bundle bundle = getArguments();
@@ -115,26 +133,31 @@ public class ProfitLossReportFragment extends Fragment {
                                 switch (mProfitType) {
                                     case ProfitLossFragment.DAY_7_TYPE:
                                         if (mDateConverter.getDayCount(purchaseDate) <= 7) {
+                                            mTotalPurchase = mTotalPurchase + purchase.getTotalPrice();
                                             getStockHand(purchase);
                                         }
                                         break;
                                     case ProfitLossFragment.WEEK_TYPE:
                                         if (mDateConverter.isLastWeek(purchaseDate)) {
+                                            mTotalPurchase = mTotalPurchase + purchase.getTotalPrice();
                                             getStockHand(purchase);
                                         }
                                         break;
                                     case ProfitLossFragment.DAY_30_TYPE:
                                         if (mDateConverter.getDayCount(purchaseDate) <= 30) {
+                                            mTotalPurchase = mTotalPurchase + purchase.getTotalPrice();
                                             getStockHand(purchase);
                                         }
                                         break;
                                     case ProfitLossFragment.MONTH_TYPE:
                                         if (mDateConverter.isLastMonth(purchaseDate)) {
+                                            mTotalPurchase = mTotalPurchase + purchase.getTotalPrice();
                                             getStockHand(purchase);
                                         }
                                         break;
                                     case ProfitLossFragment.YEAR_TYPE:
                                         if (mDateConverter.isLastYear(purchaseDate)) {
+                                            mTotalPurchase = mTotalPurchase + purchase.getTotalPrice();
                                             getStockHand(purchase);
                                         }
                                         break;
@@ -284,13 +307,11 @@ public class ProfitLossReportFragment extends Fragment {
             void getStockHand(Purchase purchase) {
                 if (productId == purchase.getProductId()) {
                     mStockList.remove(stockHand);
-                    mTotalPurchase = mTotalPurchase + purchase.getTotalPrice();
                     totalPurchaseQuantity = totalPurchaseQuantity + purchase.getQuantity();
                     buyPrice = purchase.getActualPrice();
                     stockHand = new StockHand(productId, totalPurchaseQuantity, buyPrice, sellQuantity);
 
                 } else {
-                    mTotalPurchase = mTotalPurchase + purchase.getTotalPrice();
                     productId = purchase.getProductId();
                     totalPurchaseQuantity = totalPurchaseQuantity + purchase.getQuantity();
                     buyPrice = purchase.getActualPrice();

@@ -23,7 +23,7 @@ public class CustomerDialogAdapter extends RecyclerView.Adapter<CustomerDialogAd
     private static final String TAG = "Customer List";
     private Context mContext;
     private List<Customer> mCustomerList = new ArrayList<>();
-    private DatabaseReference mSalesRef;
+
 
     private RecyclerItemClickListener itemClickListener;
 
@@ -34,8 +34,6 @@ public class CustomerDialogAdapter extends RecyclerView.Adapter<CustomerDialogAd
     public CustomerDialogAdapter(Context context, List<Customer> customerList) {
         this.mContext = context;
         this.mCustomerList = customerList;
-        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
-        mSalesRef = rootRef.child(Constant.SALES_REF);
     }
 
     @NonNull

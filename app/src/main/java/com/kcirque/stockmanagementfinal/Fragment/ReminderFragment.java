@@ -14,6 +14,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -21,7 +23,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.kcirque.stockmanagementfinal.Adapter.StockWarningAdapter;
 import com.kcirque.stockmanagementfinal.Common.Constant;
+import com.kcirque.stockmanagementfinal.Common.SharedPref;
 import com.kcirque.stockmanagementfinal.Database.Model.Product;
+import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.Database.Model.StockHand;
 import com.kcirque.stockmanagementfinal.Interface.FragmentLoader;
 import com.kcirque.stockmanagementfinal.Interface.RecyclerItemClickListener;
@@ -41,6 +45,10 @@ public class ReminderFragment extends Fragment {
     private FragmentReminderBinding mBinding;
 
     private static final String TAG = "Reminder Hock";
+    private FirebaseUser mUser;
+    private FirebaseAuth mAuth;
+    private SharedPref mSharedPref;
+    private DatabaseReference mAdminRef;
     private DatabaseReference mProductRef;
     private List<Product> mProductList = new ArrayList<>();
     private Context mContext;
@@ -69,6 +77,11 @@ public class ReminderFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        mSharedPref = new SharedPref(mContext);
+        Seller seller = mSharedPref.getSeller();
+        mAuth = FirebaseAuth.getInstance();
+        mUser = mAuth.getCurrentUser();
+
         mBinding.stockWarningList.setHasFixedSize(true);
         mBinding.stockWarningList.setLayoutManager(new LinearLayoutManager(mContext));
 
@@ -79,7 +92,12 @@ public class ReminderFragment extends Fragment {
             final List<StockHand> stockHandList = (List<StockHand>) bundle.getSerializable(Constant.EXTRA_STOCK_WARNING);
             Log.e(TAG, "Stock Hand Warning List Size " + stockHandList.size());
             DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
-            mProductRef = rootRef.child(Constant.PRODUCT_REF);
+            if (mUser != null) {
+                mAdminRef = rootRef.child(mUser.getUid());
+            } else {
+                mAdminRef = rootRef.child(seller.getAdminUid());
+            }
+            mProductRef = mAdminRef.child(Constant.PRODUCT_REF);
             mProductRef.addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
@@ -107,7 +125,7 @@ public class ReminderFragment extends Fragment {
                                 bundle.putSerializable(Constant.EXTRA_PURCHASE_PRODUCT, product);
                                 PurchaseFragment fragment = PurchaseFragment.getInstance();
                                 fragment.setArguments(bundle);
-                                mFragmentLoader.loadFragment(fragment, true);
+                                mFragmentLoader.loadFragment(fragment, true,Constant.PURCHASE_FRAGMENT_TAG);
                             }
                         });
                     }

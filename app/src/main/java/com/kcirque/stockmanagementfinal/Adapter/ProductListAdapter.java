@@ -34,12 +34,8 @@ public class ProductListAdapter extends RecyclerView.Adapter<ProductListAdapter.
 
     private Context mContext;
     private List<Product> mProductList = new ArrayList<>();
-    private DatabaseReference mPurchaseRef;
-    private Purchase mPurchase = null;
-
 
     private RecyclerItemClickListener recyclerItemClickListener;
-    private Purchase purchaseForClick;
 
     public void setRecyclerItemClickListener(RecyclerItemClickListener recyclerItemClickListener) {
         this.recyclerItemClickListener = recyclerItemClickListener;
@@ -59,28 +55,22 @@ public class ProductListAdapter extends RecyclerView.Adapter<ProductListAdapter.
 
     @Override
     public void onBindViewHolder(@NonNull final ProductListHolder productListHolder, final int i) {
-
-        DatabaseReference mRootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
-        mRootRef.keepSynced(true);
-        mPurchaseRef = mRootRef.child(Constant.PURCHASE_REF);
-        mPurchaseRef.keepSynced(true);
-
         final Product product = mProductList.get(i);
         Log.e(TAG, "onBindViewHolder: Product Id " + product.getProductId());
 
         Log.e(TAG, "onBindViewHolder: " + mProductList.size());
         if (product.getCompany() != null) {
-            productListHolder.productCompanyTextView.setText(mProductList.get(i).getCompany());
+            productListHolder.productCompanyTextView.setText("Brand : " + mProductList.get(i).getCompany());
         }
         if (product.getSellPrice() > 0) {
-            productListHolder.productPriceTextView.setText(String.valueOf(mProductList.get(i).getSellPrice()));
+            productListHolder.productPriceTextView.setText("Price : " + String.valueOf(mProductList.get(i).getSellPrice()) + " BDT");
         } else {
             productListHolder.productPriceTextView.setText("Not purchase yet");
         }
         Glide.with(mContext).load(product.getProductImageUrl())
                 .apply(RequestOptions.placeholderOf(R.drawable.placeholder))
                 .into(productListHolder.productImageImageView);
-        productListHolder.productNameTextView.setText(product.getProductName());
+        productListHolder.productNameTextView.setText("Product : " + product.getProductName());
     }
 
     @Override

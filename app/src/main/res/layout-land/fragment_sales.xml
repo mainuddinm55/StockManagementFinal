@@ -1,0 +1,383 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <LinearLayout
+        android:id="@+id/root_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        tools:context=".Fragment.SalesFragment">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:padding="10dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="5dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/select_customer_text"
+                            android:textColor="@android:color/black"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+
+                        <TextView
+                            android:id="@+id/customer_name_text_view"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="5dp"
+                            android:drawableEnd="@drawable/ic_arrow_down"
+                            android:drawableRight="@drawable/ic_arrow_down"
+                            android:drawablePadding="10dp"
+                            android:gravity="start"
+                            android:hint="@string/customer_name_text"
+                            android:padding="5dp"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="5dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/sales_date_text"
+                            android:textColor="@android:color/black"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:id="@+id/sales_date_text_view"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_margin="5dp"
+                                android:layout_weight="3"
+                                android:drawableEnd="@drawable/ic_arrow_down"
+                                android:drawableRight="@drawable/ic_arrow_down"
+                                android:gravity="start"
+                                android:paddingStart="5dp"
+                                android:paddingLeft="5dp"
+                                android:paddingTop="5dp"
+                                android:paddingEnd="40dp"
+                                android:paddingRight="40dp"
+                                android:paddingBottom="5dp"
+                                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                                tools:hint="@string/sales_date" />
+
+                            <TextView
+                                android:id="@+id/add_product_text_view"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_margin="5dp"
+                                android:layout_weight="2"
+                                android:drawableStart="@drawable/ic_add"
+                                android:drawableLeft="@drawable/ic_add"
+                                android:gravity="start"
+                                android:hint="@string/add_product_text"
+                                android:padding="5dp"
+                                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                                android:textStyle="bold" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@android:color/darker_gray"
+                            android:orientation="vertical">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:weightSum="6">
+
+
+                                <TextView
+                                    style="@style/TextViewPadding"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="2"
+                                    android:text="@string/product_description_text"
+                                    android:textAlignment="center"
+                                    android:textColor="@android:color/white"
+                                    android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+
+
+                                <TextView
+                                    style="@style/TextViewPadding"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1.5"
+                                    android:text="@string/unit_price_text"
+                                    android:textAlignment="center"
+                                    android:textColor="@android:color/white"
+                                    android:textAppearance="@style/TextAppearance.AppCompat.Medium"/>
+
+
+                                <TextView
+                                    style="@style/TextViewPadding"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:text="@string/quantity_text"
+                                    android:textAlignment="center"
+                                    android:textColor="@android:color/white"
+                                    android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+
+                                <TextView
+                                    style="@style/TextViewPadding"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1.5"
+                                    android:text="@string/amount_text"
+                                    android:textAlignment="center"
+                                    android:textColor="@android:color/white"
+                                    android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+
+                            </LinearLayout>
+
+                        </LinearLayout>
+
+                        <android.support.v7.widget.RecyclerView
+                            android:id="@+id/sales_product_list"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:padding="5dp" />
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="@color/colorPrimary" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <View
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="2" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="2"
+                                android:gravity="start"
+                                android:padding="5dp"
+                                android:text="@string/sub_total_text"
+                                android:textAlignment="viewStart"
+                                android:textColor="@android:color/black"
+                                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+
+                            <TextView
+                                android:id="@+id/sub_total_amount_text_view"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:gravity="end"
+                                android:padding="5dp"
+                                android:textAlignment="viewEnd"
+                                android:textColor="@android:color/black"
+                                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                                tools:text="@string/sub_total_text" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <View
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="2" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="2"
+                                android:gravity="start"
+                                android:padding="5dp"
+                                android:text="@string/discount_text"
+                                android:textAlignment="viewStart"
+                                android:textColor="@android:color/black"
+                                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+
+                            <EditText
+                                android:id="@+id/discount_amount_text_view"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:gravity="end"
+                                android:hint="0.00"
+                                android:inputType="number"
+                                android:padding="5dp"
+                                android:textAlignment="viewEnd"
+                                android:textColor="@android:color/black"
+                                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="@color/colorPrimary" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <View
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="2" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="2"
+                                android:gravity="start"
+                                android:padding="5dp"
+                                android:text="@string/total_text"
+                                android:textAlignment="viewStart"
+                                android:textColor="@android:color/black"
+                                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+
+                            <TextView
+                                android:id="@+id/total_amount_textview"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:gravity="end"
+                                android:padding="5dp"
+                                android:textAlignment="viewEnd"
+                                android:textColor="@android:color/black"
+                                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                                tools:text="@string/total_text" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <View
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="2" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="2"
+                                android:gravity="start"
+                                android:padding="5dp"
+                                android:text="@string/paid_text"
+                                android:textAlignment="viewStart"
+                                android:textColor="@android:color/black"
+                                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+
+                            <EditText
+                                android:id="@+id/paid_amount_edittext"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:gravity="end"
+                                android:hint="0.00"
+                                android:inputType="number"
+                                android:padding="5dp"
+                                android:textAlignment="viewEnd"
+                                android:textColor="@android:color/black"
+                                android:textAppearance="@style/TextAppearance.AppCompat.Medium"/>
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="@color/colorPrimary" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <View
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="2" />
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="2"
+                                android:gravity="start"
+                                android:padding="5dp"
+                                android:text="@string/due_text"
+                                android:textAlignment="viewStart"
+                                android:textColor="@android:color/black"
+                                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+
+                            <TextView
+                                android:id="@+id/due_amount_textview"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:gravity="end"
+                                android:padding="5dp"
+                                android:textAlignment="viewEnd"
+                                android:textColor="@android:color/black"
+                                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                                tools:text="@string/due_text" />
+                        </LinearLayout>
+
+                        <Button
+                            android:id="@+id/sell_product_btn"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="20dp"
+                            android:background="@color/colorPrimary"
+                            android:text="@string/sell_btn_text"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                            android:textColor="@android:color/white" />
+
+                    </LinearLayout>
+                </LinearLayout>
+
+                <ProgressBar
+                    android:id="@+id/progress_bar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:visibility="gone" />
+            </RelativeLayout>
+
+        </ScrollView>
+    </LinearLayout>
+
+</layout>

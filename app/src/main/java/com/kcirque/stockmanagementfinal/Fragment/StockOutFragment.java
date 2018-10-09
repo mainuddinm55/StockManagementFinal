@@ -90,7 +90,7 @@ public class StockOutFragment extends Fragment {
                 bundle.putInt(Constant.EXTRA_STOCK_OUT_TYPE,mType);
                 StockOutReportFragment fragment = StockOutReportFragment.getInstance();
                 fragment.setArguments(bundle);
-                mFragmentLoader.loadFragment(fragment,true);
+                mFragmentLoader.loadFragment(fragment,true,Constant.STOCK_OUT_REPORT_FRAGMENT_TAG);
 
             }
         });

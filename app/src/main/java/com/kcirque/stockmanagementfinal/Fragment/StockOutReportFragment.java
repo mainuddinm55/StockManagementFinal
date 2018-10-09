@@ -13,6 +13,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -21,8 +23,10 @@ import com.google.firebase.database.ValueEventListener;
 import com.kcirque.stockmanagementfinal.Adapter.StockOutAdapter;
 import com.kcirque.stockmanagementfinal.Common.Constant;
 import com.kcirque.stockmanagementfinal.Common.DateConverter;
+import com.kcirque.stockmanagementfinal.Common.SharedPref;
 import com.kcirque.stockmanagementfinal.Database.Model.ProductSell;
 import com.kcirque.stockmanagementfinal.Database.Model.Sales;
+import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.R;
 import com.kcirque.stockmanagementfinal.databinding.FragmentStockOutReportBinding;
 
@@ -36,6 +40,10 @@ public class StockOutReportFragment extends Fragment {
 
     private FragmentStockOutReportBinding mBinding;
     private static final String TAG = "Stock Out Report";
+    private FirebaseUser mUser;
+    private FirebaseAuth mAuth;
+    private SharedPref mSharedPref;
+    private DatabaseReference mAdminRef;
     private DatabaseReference mRootRef;
     private DatabaseReference mSalesRef;
 
@@ -69,9 +77,18 @@ public class StockOutReportFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        mSharedPref = new SharedPref(mContext);
+        Seller seller = mSharedPref.getSeller();
+        mAuth = FirebaseAuth.getInstance();
+        mUser = mAuth.getCurrentUser();
         mRootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
+        if (mUser != null) {
+            mAdminRef = mRootRef.child(mUser.getUid());
+        } else {
+            mAdminRef = mRootRef.child(seller.getAdminUid());
+        }
         mRootRef.keepSynced(true);
-        mSalesRef = mRootRef.child(Constant.SALES_REF);
+        mSalesRef = mAdminRef.child(Constant.SALES_REF);
 
         mDateConverter = new DateConverter();
 

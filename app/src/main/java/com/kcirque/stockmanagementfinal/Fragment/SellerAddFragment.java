@@ -59,13 +59,13 @@ public class SellerAddFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        mBinding =  DataBindingUtil.inflate(inflater,R.layout.fragment_seller_add, container, false);
+        mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_seller_add, container, false);
         return mBinding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
             mBinding.addSellerBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -85,7 +85,6 @@ public class SellerAddFragment extends Fragment {
                         mSellerMobile = mBinding.sellerMobileEditText.getText().toString();
                         DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
                         DatabaseReference sellerRef = rootRef.child(Constant.SELLER_REF);
-
                         String key = sellerRef.push().getKey();
                         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                         String uId = user.getUid();
@@ -95,15 +94,15 @@ public class SellerAddFragment extends Fragment {
                         sellerRef.child(key).setValue(seller).addOnCompleteListener(new OnCompleteListener<Void>() {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
-                                if (task.isSuccessful()){
+                                if (task.isSuccessful()) {
                                     Toast.makeText(mContext, "Seller Added", Toast.LENGTH_SHORT).show();
-                                    mFragmentLoader.loadFragment(HomeFragment.getInstance(),false);
+                                    mFragmentLoader.loadFragment(SellerFragment.getInstance(), true, Constant.SELLER_FRAGMENT_TAG);
                                 }
                             }
                         }).addOnFailureListener(new OnFailureListener() {
                             @Override
                             public void onFailure(@NonNull Exception e) {
-                                Log.e(TAG, "onFailure: "+e.getMessage() );
+                                Log.e(TAG, "onFailure: " + e.getMessage());
                             }
                         });
                     }
@@ -137,6 +136,6 @@ public class SellerAddFragment extends Fragment {
     public void onAttach(Context context) {
         super.onAttach(context);
         mContext = context;
-        mFragmentLoader = (FragmentLoader)context;
+        mFragmentLoader = (FragmentLoader) context;
     }
 }

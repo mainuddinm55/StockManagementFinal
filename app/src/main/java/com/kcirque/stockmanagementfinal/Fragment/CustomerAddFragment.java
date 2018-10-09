@@ -13,16 +13,22 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CompoundButton;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.kcirque.stockmanagementfinal.Common.Constant;
+import com.kcirque.stockmanagementfinal.Common.SharedPref;
 import com.kcirque.stockmanagementfinal.Database.Model.Customer;
+import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.Interface.FragmentLoader;
 import com.kcirque.stockmanagementfinal.databinding.FragmentCustomerAddBinding;
 
@@ -36,12 +42,16 @@ public class CustomerAddFragment extends Fragment {
     private FragmentLoader mFragmentLoader;
     private static CustomerAddFragment INSTANCE;
     private FragmentCustomerAddBinding mBinding;
-
+    private FirebaseUser mUser;
+    private FirebaseAuth mAuth;
+    private SharedPref mSharedPref;
+    private DatabaseReference mAdminRef;
     private int mCustomerId = 1;
 
     private DatabaseReference mRootRef;
     private DatabaseReference mCustomerRef;
-    private boolean mIsAdvancedPaid = false;
+    private boolean mIsMercantile = false;
+    private Context mContext;
 
     public static synchronized CustomerAddFragment getInstance() {
         if (INSTANCE == null) {
@@ -65,11 +75,19 @@ public class CustomerAddFragment extends Fragment {
     }
 
     @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-
+    public void onViewCreated(@NonNull final View view, @Nullable Bundle savedInstanceState) {
+        mSharedPref = new SharedPref(mContext);
+        Seller seller = mSharedPref.getSeller();
+        mAuth = FirebaseAuth.getInstance();
+        mUser = mAuth.getCurrentUser();
         mRootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
         mRootRef.keepSynced(true);
-        mCustomerRef = mRootRef.child(Constant.CUSTOMER_REF);
+        if (mUser != null) {
+            mAdminRef = mRootRef.child(mUser.getUid());
+        } else {
+            mAdminRef = mRootRef.child(seller.getAdminUid());
+        }
+        mCustomerRef = mAdminRef.child(Constant.CUSTOMER_REF);
         mCustomerRef.keepSynced(true);
 
         mCustomerRef.addValueEventListener(new ValueEventListener() {
@@ -81,6 +99,18 @@ public class CustomerAddFragment extends Fragment {
             @Override
             public void onCancelled(DatabaseError databaseError) {
 
+            }
+        });
+
+        mBinding.accountTypeRg.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                RadioButton radioButton = view.findViewById(checkedId);
+                if (radioButton.getText().toString().equals("Normal")){
+                    mIsMercantile = false;
+                }else if (radioButton.getText().toString().equals("Mercantile")){
+                    mIsMercantile = true;
+                }
             }
         });
 
@@ -100,34 +130,22 @@ public class CustomerAddFragment extends Fragment {
                             mBinding.customerMobileEdittext.requestFocus();
                             return;
                         }
-                        if (mIsAdvancedPaid) {
-                            if (mBinding.advancePaidAmountEditText.getText().toString().trim().isEmpty()) {
-                                mBinding.advancePaidAmountEditText.setError("Enter Amount");
-                                mBinding.advancePaidAmountEditText.requestFocus();
-                                return;
-                            }
-                        }
+
 
                         String key = mCustomerRef.push().getKey();
                         String name = mBinding.customerNameEdittext.getText().toString().trim();
                         String address = mBinding.customerAddressEdittext.getText().toString().trim();
                         String mobile = mBinding.customerMobileEdittext.getText().toString().trim();
                         String email = mBinding.customerEmailEdittext.getText().toString().trim();
-                        double advancedPaid;
-                        if (mIsAdvancedPaid) {
-                            advancedPaid = Double.parseDouble(mBinding.advancePaidAmountEditText.getText().toString().trim());
-                        } else {
-                            advancedPaid = 0.00;
-                        }
 
-                        Customer customer = new Customer(key, mCustomerId, name, address, mobile, email, advancedPaid);
+                        Customer customer = new Customer(key, mCustomerId, name, address, mobile, email,0,mIsMercantile);
 
                         mCustomerRef.child(key).setValue(customer).addOnCompleteListener(new OnCompleteListener<Void>() {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
                                 if (task.isSuccessful()) {
                                     Snackbar.make(mBinding.rootView, "Customer Added", Snackbar.LENGTH_SHORT).show();
-                                    mFragmentLoader.loadFragment(CustomerListFragment.getInstance(), true);
+                                    mFragmentLoader.loadFragment(CustomerListFragment.getInstance(), true,Constant.CUSTOMER_LIST_FRAGMENT_TAG);
                                 }
                             }
                         });
@@ -139,23 +157,12 @@ public class CustomerAddFragment extends Fragment {
         });
 
 
-        mBinding.isPaidAdvanceSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    mIsAdvancedPaid = true;
-                    mBinding.advancePaidAmountLinearLayout.setVisibility(View.VISIBLE);
-                } else {
-                    mIsAdvancedPaid = false;
-                    mBinding.advancePaidAmountLinearLayout.setVisibility(View.GONE);
-                }
-            }
-        });
     }
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+        mContext = context;
         mFragmentLoader = (FragmentLoader) context;
     }
 }

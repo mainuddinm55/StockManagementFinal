@@ -25,6 +25,8 @@ import android.widget.TextView;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -34,9 +36,12 @@ import com.kcirque.stockmanagementfinal.Adapter.CustomerDialogAdapter;
 import com.kcirque.stockmanagementfinal.Adapter.ProductSellAdapter;
 import com.kcirque.stockmanagementfinal.Common.Constant;
 import com.kcirque.stockmanagementfinal.Common.DateConverter;
+import com.kcirque.stockmanagementfinal.Common.SharedPref;
 import com.kcirque.stockmanagementfinal.Database.Model.Customer;
 import com.kcirque.stockmanagementfinal.Database.Model.ProductSell;
 import com.kcirque.stockmanagementfinal.Database.Model.Sales;
+import com.kcirque.stockmanagementfinal.Database.Model.Seller;
+import com.kcirque.stockmanagementfinal.Database.Model.StockHand;
 import com.kcirque.stockmanagementfinal.Interface.FragmentLoader;
 import com.kcirque.stockmanagementfinal.Interface.RecyclerItemClickListener;
 import com.kcirque.stockmanagementfinal.MainActivity;
@@ -55,10 +60,13 @@ public class SalesFragment extends Fragment {
     private static SalesFragment INSTANCE;
     public static final int GET_PRODUCT_REQUEST_CODE = 10;
     private FragmentSalesBinding mBinding;
-
-    private DatabaseReference mRootRef;
+    private FirebaseUser mUser;
+    private FirebaseAuth mAuth;
+    private SharedPref mSharedPref;
+    private DatabaseReference mAdminRef;
     private DatabaseReference mCustomerRef;
     private DatabaseReference mSalesRef;
+    private DatabaseReference mStockRef;
 
     private List<Customer> mCustomerList = new ArrayList<>();
     private List<ProductSell> mProductSellList = new ArrayList<>();
@@ -68,6 +76,7 @@ public class SalesFragment extends Fragment {
     private DateConverter mDateConverter;
     private int mCustomerId;
     private String mCustomerName;
+    private boolean mIsMercantileCustomer = false;
     private long mSalesDate;
     private double mSubTotal = 0.00;
     private double mTotal = 0.00;
@@ -76,6 +85,8 @@ public class SalesFragment extends Fragment {
     private double mDue = 0.00;
     private Context mContext;
     private FragmentLoader mFragmentLoader;
+    private String mCustomerKey;
+    private double mTotalDue;
 
     public static synchronized SalesFragment getInstance() {
         if (INSTANCE == null) {
@@ -100,11 +111,22 @@ public class SalesFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        mRootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
+
+        mSharedPref = new SharedPref(mContext);
+        Seller seller = mSharedPref.getSeller();
+        mAuth = FirebaseAuth.getInstance();
+        mUser = mAuth.getCurrentUser();
+        DatabaseReference mRootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
         mRootRef.keepSynced(true);
-        mCustomerRef = mRootRef.child(Constant.CUSTOMER_REF);
+        if (mUser != null) {
+            mAdminRef = mRootRef.child(mUser.getUid());
+        } else {
+            mAdminRef = mRootRef.child(seller.getAdminUid());
+        }
+        mCustomerRef = mAdminRef.child(Constant.CUSTOMER_REF);
         mCustomerRef.keepSynced(true);
-        mSalesRef = mRootRef.child(Constant.SALES_REF);
+        mSalesRef = mAdminRef.child(Constant.SALES_REF);
+        mStockRef = mAdminRef.child(Constant.STOCK_HAND_REF);
         mDateConverter = new DateConverter();
 
         mSalesDate = mDateConverter.getCurrentDate();
@@ -233,7 +255,14 @@ public class SalesFragment extends Fragment {
                     return;
                 }
 
-                if (mPaid == 0.00) {
+                if (!mIsMercantileCustomer){
+                    if (mPaid!=mTotal){
+                        mBinding.paidAmountEdittext.setError("Must be full payment");
+                        mBinding.paidAmountEdittext.requestFocus();
+                        return;
+                    }
+                }
+                if (mIsMercantileCustomer && mPaid<=0){
                     AlertDialog.Builder warningDialog = new AlertDialog.Builder(mContext);
                     warningDialog.setTitle("Paid warning");
                     warningDialog.setMessage("do you want to sell without no payment");
@@ -243,18 +272,8 @@ public class SalesFragment extends Fragment {
                             sellProduct();
                         }
                     });
-                    warningDialog.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            return;
-                        }
-                    });
-                    warningDialog.setNeutralButton("Cancel", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            return;
-                        }
-                    });
+                    warningDialog.setNegativeButton("No", null);
+                    warningDialog.setNeutralButton("Cancel", null);
                     warningDialog.show();
                     return;
                 }
@@ -288,18 +307,22 @@ public class SalesFragment extends Fragment {
                         if (mCustomerList.size() > 0) {
                             mAdapter = new CustomerDialogAdapter(mContext, mCustomerList);
                             customerRecyclerView.setAdapter(mAdapter);
+                            mAdapter.setItemClickListener(new RecyclerItemClickListener() {
+                                @Override
+                                public void onClick(View view, int position, Object object) {
+                                    mIsMercantileCustomer = mCustomerList.get(position).isMercantile();
+                                    mTotalDue = mTotalDue + mCustomerList.get(position).getDue();
+                                    mCustomerId = mCustomerList.get(position).getCustomerId();
+                                    mCustomerKey = mCustomerList.get(position).getKey();
+                                    mCustomerName = mCustomerList.get(position).getCustomerName();
+                                    mBinding.customerNameTextView.setText(mCustomerName);
+                                    mBinding.customerNameTextView.setError(null);
+                                    mBinding.customerNameTextView.clearFocus();
+                                    dialog.dismiss();
+                                }
+                            });
                         }
-                        mAdapter.setItemClickListener(new RecyclerItemClickListener() {
-                            @Override
-                            public void onClick(View view, int position, Object object) {
-                                mCustomerId = mCustomerList.get(position).getCustomerId();
-                                mCustomerName = mCustomerList.get(position).getCustomerName();
-                                mBinding.customerNameTextView.setText(mCustomerName);
-                                mBinding.customerNameTextView.setError(null);
-                                mBinding.customerNameTextView.clearFocus();
-                                dialog.dismiss();
-                            }
-                        });
+
                     }
 
                     @Override
@@ -344,12 +367,33 @@ public class SalesFragment extends Fragment {
         String key = mSalesRef.push().getKey();
         Sales sales = new Sales(key, mCustomerId, mCustomerName, mSalesDate, mProductSellList, mSubTotal, mDiscount, mTotal, mPaid, mDue);
         mSalesRef.child(key).setValue(sales).addOnCompleteListener(new OnCompleteListener<Void>() {
+            private int sellQuantity;
+
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()) {
+                    if (mDue>0){
+                        mTotalDue = mTotalDue + mDue;
+                        mCustomerRef.child(mCustomerKey).child("due").setValue(mTotalDue);
+                    }
+                    for (final ProductSell productSell : mProductSellList){
+                        mStockRef.child(String.valueOf(productSell.getProductId())).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                StockHand stockHand = dataSnapshot.getValue(StockHand.class);
+                                sellQuantity = stockHand.getSellQuantity();
+                                mStockRef.child(String.valueOf(productSell.getProductId())).child("sellQuantity").setValue(sellQuantity+productSell.getQuantity());
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
+                    }
                     Snackbar.make(mBinding.rootView, "Product Sell", Snackbar.LENGTH_SHORT).show();
                     mBinding.progressBar.setVisibility(View.GONE);
-                    mFragmentLoader.loadFragment(HomeFragment.getInstance(), false);
+                    mFragmentLoader.loadFragment(HomeFragment.getInstance(), false,Constant.HOME_FRAGMENT_TAG);
                 }
             }
         }).addOnFailureListener(new OnFailureListener() {

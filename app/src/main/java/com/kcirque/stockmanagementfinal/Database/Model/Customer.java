@@ -8,19 +8,29 @@ public class Customer {
     private String address;
     private String mobile;
     private String email;
-    private double deposit;
+    private double due;
+    private boolean isMercantile;
 
-    public Customer(String key, int customerId, String customerName, String address, String mobile, String email, double deposit) {
+    public Customer(String key, int customerId, String customerName, String address, String mobile, String email, double due ,boolean isMercantile) {
         this.key = key;
         this.customerId = customerId;
         this.customerName = customerName;
         this.address = address;
         this.mobile = mobile;
         this.email = email;
-        this.deposit = deposit;
+        this.due = due;
+        this.isMercantile = isMercantile;
     }
 
     public Customer() {
+    }
+
+    public boolean isMercantile() {
+        return isMercantile;
+    }
+
+    public void setMercantile(boolean mercantile) {
+        isMercantile = mercantile;
     }
 
     public String getKey() {
@@ -71,12 +81,12 @@ public class Customer {
         this.email = email;
     }
 
-    public double getDeposit() {
+    public double getDue() {
 
-        return deposit;
+        return due;
     }
 
-    public void setDeposit(double deposit) {
-        this.deposit = deposit;
+    public void setDue(double due) {
+        this.due = due;
     }
 }

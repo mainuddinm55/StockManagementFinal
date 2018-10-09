@@ -10,7 +10,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@mipmap/back"
+            android:background="@drawable/bg"
             android:gravity="center"
             android:orientation="vertical"
             android:padding="20dp">
@@ -55,7 +55,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
-                android:background="@drawable/shapeemail"
                 android:textColorHint="@android:color/white"
                 app:errorTextAppearance="@style/ErrorText"
                 app:hintTextAppearance="@style/HintText">
@@ -78,7 +77,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
-                android:background="@drawable/shapeemail"
                 android:textColorHint="@android:color/white"
                 app:hintTextAppearance="@style/HintText"
                 app:passwordToggleEnabled="true">

@@ -22,6 +22,8 @@ import android.widget.DatePicker;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -30,8 +32,11 @@ import com.google.firebase.database.ValueEventListener;
 import com.kcirque.stockmanagementfinal.Adapter.AutoCompleteProductAdapter;
 import com.kcirque.stockmanagementfinal.Common.Constant;
 import com.kcirque.stockmanagementfinal.Common.DateConverter;
+import com.kcirque.stockmanagementfinal.Common.SharedPref;
 import com.kcirque.stockmanagementfinal.Database.Model.Product;
 import com.kcirque.stockmanagementfinal.Database.Model.Purchase;
+import com.kcirque.stockmanagementfinal.Database.Model.Seller;
+import com.kcirque.stockmanagementfinal.Database.Model.StockHand;
 import com.kcirque.stockmanagementfinal.Interface.FragmentLoader;
 import com.kcirque.stockmanagementfinal.MainActivity;
 import com.kcirque.stockmanagementfinal.databinding.FragmentPurchaseBinding;
@@ -52,9 +57,13 @@ public class PurchaseFragment extends Fragment {
 
     private static final String TAG = "Spinner Item Selected";
 
-    private DatabaseReference mRootRef;
+    private FirebaseUser mUser;
+    private FirebaseAuth mAuth;
+    private SharedPref mSharedPref;
+    private DatabaseReference mAdminRef;
     private DatabaseReference mProductRef;
     private DatabaseReference mPurchaseRef;
+    private DatabaseReference mStockRef;
 
     private List<Product> mProductList = new ArrayList<>();
 
@@ -98,13 +107,24 @@ public class PurchaseFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        mSharedPref = new SharedPref(mContext);
+        Seller seller = mSharedPref.getSeller();
+        mAuth = FirebaseAuth.getInstance();
+        mUser = mAuth.getCurrentUser();
 
-        mRootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
+        DatabaseReference mRootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
         mRootRef.keepSynced(true);
-        mProductRef = mRootRef.child(Constant.PRODUCT_REF);
+        if (mUser != null) {
+            mAdminRef = mRootRef.child(mUser.getUid());
+        } else {
+            mAdminRef = mRootRef.child(seller.getAdminUid());
+        }
+        mProductRef = mAdminRef.child(Constant.PRODUCT_REF);
         mProductRef.keepSynced(true);
-        mPurchaseRef = mRootRef.child(Constant.PURCHASE_REF);
+        mPurchaseRef = mAdminRef.child(Constant.PURCHASE_REF);
         mPurchaseRef.keepSynced(true);
+        mStockRef = mAdminRef.child(Constant.STOCK_HAND_REF);
+
 
         mDateConverter = new DateConverter();
 
@@ -146,6 +166,7 @@ public class PurchaseFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 mProductId = ((Product) parent.getItemAtPosition(position)).getProductId();
+                mBinding.productNameAct.setText(((Product) parent.getItemAtPosition(position)).getProductName());
                 Log.e(TAG, "onItemClick: " + ((Product) parent.getItemAtPosition(position)).getProductName());
             }
         });
@@ -335,6 +356,8 @@ public class PurchaseFragment extends Fragment {
         });
 
         mBinding.addPurchaseBtn.setOnClickListener(new View.OnClickListener() {
+            private int quantity;
+
             @Override
             public void onClick(View v) {
 
@@ -387,12 +410,26 @@ public class PurchaseFragment extends Fragment {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         if (task.isSuccessful()) {
+                            mStockRef.child(String.valueOf(mProductId)).addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(DataSnapshot dataSnapshot) {
+                                    StockHand stockHand = dataSnapshot.getValue(StockHand.class);
+                                    quantity = stockHand.getPurchaseQuantity();
+                                }
+
+                                @Override
+                                public void onCancelled(DatabaseError databaseError) {
+
+                                }
+                            });
                             Constant.SELECTED_PRODUCT_ID = mProductId;
                             mProductRef.child(mProductKey).child("buyPrice").setValue(purchase.getActualPrice());
                             mProductRef.child(mProductKey).child("sellPrice").setValue(purchase.getSellingPrice());
                             mProductRef.child(mProductKey).child("company").setValue(purchase.getCompanyName());
                             Snackbar.make(mBinding.rootView, "Purchase Added", Snackbar.LENGTH_SHORT).show();
-                            mFragmentLoader.loadFragment(HomeFragment.getInstance(), false);
+                            mStockRef.child(String.valueOf(mProductId)).child("buyPrice").setValue(purchase.getActualPrice());
+                            mStockRef.child(String.valueOf(mProductId)).child("purchaseQuantity").setValue(quantity+mQuantity);
+                            mFragmentLoader.loadFragment(HomeFragment.getInstance(), false,Constant.HOME_FRAGMENT_TAG);
                         }
                     }
                 });

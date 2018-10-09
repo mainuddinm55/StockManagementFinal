@@ -22,6 +22,8 @@ import android.widget.Toast;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -30,7 +32,9 @@ import com.google.firebase.database.ValueEventListener;
 import com.kcirque.stockmanagementfinal.Adapter.ExpenseListAdapter;
 import com.kcirque.stockmanagementfinal.Common.Constant;
 import com.kcirque.stockmanagementfinal.Common.DateConverter;
+import com.kcirque.stockmanagementfinal.Common.SharedPref;
 import com.kcirque.stockmanagementfinal.Database.Model.Expense;
+import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.R;
 import com.kcirque.stockmanagementfinal.databinding.FragmentExpenseBinding;
 
@@ -55,6 +59,11 @@ public class ExpenseFragment extends Fragment {
     int mMonth = calendar.get(Calendar.MONTH);
     int mDay = calendar.get(Calendar.DAY_OF_MONTH);
 
+    private FirebaseUser mUser;
+    private FirebaseAuth mAuth;
+    private SharedPref mSharedPref;
+    private DatabaseReference mAdminRef;
+
     public ExpenseFragment() {
         // Required empty public constructor
     }
@@ -77,12 +86,22 @@ public class ExpenseFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        mSharedPref = new SharedPref(mContext);
+        Seller seller = mSharedPref.getSeller();
+        mAuth = FirebaseAuth.getInstance();
+        mUser = mAuth.getCurrentUser();
+
         mBinding.progressBar.setVisibility(View.VISIBLE);
         mBinding.expenseListRecyclerView.setHasFixedSize(true);
         mBinding.expenseListRecyclerView.setLayoutManager(new LinearLayoutManager(mContext));
         mDateConverter = new DateConverter();
         mRootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
-        DatabaseReference expenseRef = mRootRef.child(Constant.EXPENSE_REF);
+        if (mUser != null) {
+            mAdminRef = mRootRef.child(mUser.getUid());
+        } else {
+            mAdminRef = mRootRef.child(seller.getAdminUid());
+        }
+        DatabaseReference expenseRef = mAdminRef.child(Constant.EXPENSE_REF);
         expenseRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {

@@ -3,6 +3,7 @@ package com.kcirque.stockmanagementfinal.Fragment;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -71,7 +72,13 @@ public class HomeFragment extends Fragment {
 
         mHomeWidgetRecyclerView = view.findViewById(R.id.home_recycler_view);
         mHomeWidgetRecyclerView.setHasFixedSize(true);
-        mHomeWidgetRecyclerView.setLayoutManager(new GridLayoutManager(mContext, 2));
+        if(getActivity().getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT){
+            mHomeWidgetRecyclerView.setLayoutManager(new GridLayoutManager(mContext, 2));
+        }
+        else{
+            mHomeWidgetRecyclerView.setLayoutManager(new GridLayoutManager(mContext, 3));
+        }
+
         HomeWidgetAdapter adapter = new HomeWidgetAdapter(mContext);
         mHomeWidgetRecyclerView.setAdapter(adapter);
 
@@ -80,22 +87,22 @@ public class HomeFragment extends Fragment {
             public void onClick(View view, int position, String title) {
                 switch (position) {
                     case 0:
-                        mFragmentLoader.loadFragment(ProductListFragment.getInstance(),true);
+                        mFragmentLoader.loadFragment(ProductListFragment.getInstance(),true,Constant.PRODUCT_LIST_FRAGMENT_TAG);
                         break;
                     case 1:
-                        mFragmentLoader.loadFragment(PurchaseFragment.getInstance(),true);
+                        mFragmentLoader.loadFragment(PurchaseFragment.getInstance(),true, Constant.PURCHASE_FRAGMENT_TAG);
                         break;
                     case 2:
-                        mFragmentLoader.loadFragment(CustomerListFragment.getInstance(),true);
+                        mFragmentLoader.loadFragment(CustomerListFragment.getInstance(),true,Constant.CUSTOMER_LIST_FRAGMENT_TAG);
                         break;
                     case 3:
-                        mFragmentLoader.loadFragment(SalesFragment.getInstance(),true);
+                        mFragmentLoader.loadFragment(SalesFragment.getInstance(),true,Constant.SALES_FRAGMENT_TAG);
                         break;
                     case 4:
-                        mFragmentLoader.loadFragment(StockHandFragment.getInstance(),true);
+                        mFragmentLoader.loadFragment(StockHandFragment.getInstance(),true,Constant.STOCK_HAND_FRAGMENT_TAG);
                         break;
                     case 5:
-                        mFragmentLoader.loadFragment(ProfitLossFragment.getInstance(),true);
+                        mFragmentLoader.loadFragment(ProfitLossFragment.getInstance(),true,Constant.PROFIT_LOSS_FRAGMENT_TAG);
                         break;
 
                 }

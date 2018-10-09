@@ -34,7 +34,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="@string/select_customer_text"
-                            android:textColor="@color/colorAccent"
+                            android:textColor="@android:color/black"
                             android:textSize="16sp" />
 
                         <TextView
@@ -62,7 +62,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="@string/sales_date_text"
-                            android:textColor="@color/colorAccent"
+                            android:textColor="@android:color/black"
                             android:textSize="16sp" />
 
                         <LinearLayout
@@ -192,7 +192,7 @@
                                 android:padding="5dp"
                                 android:text="@string/sub_total_text"
                                 android:textAlignment="viewStart"
-                                android:textColor="@color/colorAccent"
+                                android:textColor="@android:color/black"
                                 android:textSize="16sp" />
 
                             <TextView
@@ -203,7 +203,7 @@
                                 android:gravity="end"
                                 android:padding="5dp"
                                 android:textAlignment="viewEnd"
-                                android:textColor="@color/colorAccent"
+                                android:textColor="@android:color/black"
                                 android:textSize="16sp"
                                 tools:text="@string/sub_total_text" />
                         </LinearLayout>
@@ -226,7 +226,7 @@
                                 android:padding="5dp"
                                 android:text="@string/discount_text"
                                 android:textAlignment="viewStart"
-                                android:textColor="@color/colorAccent"
+                                android:textColor="@android:color/black"
                                 android:textSize="16sp" />
 
                             <EditText
@@ -239,7 +239,7 @@
                                 android:inputType="number"
                                 android:padding="5dp"
                                 android:textAlignment="viewEnd"
-                                android:textColor="@color/colorAccent"
+                                android:textColor="@android:color/black"
                                 android:textSize="16sp" />
                         </LinearLayout>
 
@@ -266,7 +266,7 @@
                                 android:padding="5dp"
                                 android:text="@string/total_text"
                                 android:textAlignment="viewStart"
-                                android:textColor="@color/colorAccent"
+                                android:textColor="@android:color/black"
                                 android:textSize="16sp" />
 
                             <TextView
@@ -277,7 +277,7 @@
                                 android:gravity="end"
                                 android:padding="5dp"
                                 android:textAlignment="viewEnd"
-                                android:textColor="@color/colorAccent"
+                                android:textColor="@android:color/black"
                                 android:textSize="16sp"
                                 tools:text="@string/total_text" />
                         </LinearLayout>
@@ -300,7 +300,7 @@
                                 android:padding="5dp"
                                 android:text="@string/paid_text"
                                 android:textAlignment="viewStart"
-                                android:textColor="@color/colorAccent"
+                                android:textColor="@android:color/black"
                                 android:textSize="16sp" />
 
                             <EditText
@@ -313,7 +313,7 @@
                                 android:inputType="number"
                                 android:padding="5dp"
                                 android:textAlignment="viewEnd"
-                                android:textColor="@color/colorAccent"
+                                android:textColor="@android:color/black"
                                 android:textSize="16sp" />
                         </LinearLayout>
 
@@ -340,7 +340,7 @@
                                 android:padding="5dp"
                                 android:text="@string/due_text"
                                 android:textAlignment="viewStart"
-                                android:textColor="@color/colorAccent"
+                                android:textColor="@android:color/black"
                                 android:textSize="16sp" />
 
                             <TextView
@@ -351,7 +351,7 @@
                                 android:gravity="end"
                                 android:padding="5dp"
                                 android:textAlignment="viewEnd"
-                                android:textColor="@color/colorAccent"
+                                android:textColor="@android:color/black"
                                 android:textSize="16sp"
                                 tools:text="@string/due_text" />
                         </LinearLayout>

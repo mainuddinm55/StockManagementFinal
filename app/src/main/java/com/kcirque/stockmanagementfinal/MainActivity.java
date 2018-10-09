@@ -34,20 +34,22 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.kcirque.stockmanagementfinal.Common.BadgeDrawerArrowDrawable;
 import com.kcirque.stockmanagementfinal.Common.Constant;
 import com.kcirque.stockmanagementfinal.Common.SharedPref;
 import com.kcirque.stockmanagementfinal.Database.Model.Category;
+import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.Database.Model.StockHand;
+import com.kcirque.stockmanagementfinal.Fragment.DueFragment;
 import com.kcirque.stockmanagementfinal.Fragment.ExpenseFragment;
 import com.kcirque.stockmanagementfinal.Fragment.HomeFragment;
 import com.kcirque.stockmanagementfinal.Fragment.ReminderFragment;
-import com.kcirque.stockmanagementfinal.Fragment.SellerAddFragment;
+import com.kcirque.stockmanagementfinal.Fragment.SellerFragment;
 import com.kcirque.stockmanagementfinal.Fragment.StockOutFragment;
 import com.kcirque.stockmanagementfinal.Interface.FragmentLoader;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Deque;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity
@@ -70,6 +72,11 @@ public class MainActivity extends AppCompatActivity
     private DatabaseReference mCategoryRef;
     private SharedPref mSharedPref;
 
+    private ActionBarDrawerToggle mToggle;
+    private BadgeDrawerArrowDrawable mBadgeDrawable;
+    private DatabaseReference mAdminRef;
+    private Seller mSelller;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,22 +86,32 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
 
         mDrawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+        mToggle = new ActionBarDrawerToggle(
                 this, mDrawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        mDrawer.addDrawerListener(toggle);
-        toggle.syncState();
+        mBadgeDrawable = new BadgeDrawerArrowDrawable(getSupportActionBar().getThemedContext());
+        mDrawer.addDrawerListener(mToggle);
+        mToggle.syncState();
 
         mNavigationView = (NavigationView) findViewById(R.id.nav_view);
         mNavigationView.setNavigationItemSelectedListener(this);
+
         mSharedPref = new SharedPref(this);
+        mSelller = mSharedPref.getSeller();
         mAuth = FirebaseAuth.getInstance();
         mUser = mAuth.getCurrentUser();
         hideItem();
         reminderCounterTextView = (TextView) MenuItemCompat.getActionView(mNavigationView.getMenu().
                 findItem(R.id.nav_reminder));
         mRootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
-        mStockRef = mRootRef.child(Constant.STOCK_HAND_REF);
-        mCategoryRef = mRootRef.child(Constant.CATEGORY_REF);
+        if (mUser != null) {
+            mAdminRef = mRootRef.child(mUser.getUid());
+        } else {
+            mAdminRef = mRootRef.child(mSelller.getAdminUid());
+        }
+
+        mStockRef = mAdminRef.child(Constant.STOCK_HAND_REF);
+        mCategoryRef = mAdminRef.child(Constant.CATEGORY_REF);
+
         mStockRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -110,6 +127,7 @@ public class MainActivity extends AppCompatActivity
                 }
 
                 if (mCount > 0) {
+                    mToggle.setDrawerArrowDrawable(mBadgeDrawable);
                     initializeCountDrawer(mCount);
                 }
 
@@ -122,26 +140,33 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        HomeFragment fragment = HomeFragment.getInstance();
-        ft.replace(R.id.main_fragment_container,fragment,"homeFragment");
-        ft.commit();
 
+        HomeFragment fragment = HomeFragment.getInstance();
+        loadFragment(fragment, false, Constant.HOME_FRAGMENT_TAG);
 
 
     }
 
     @Override
     public void onBackPressed() {
-        Fragment fragment = getSupportFragmentManager().findFragmentByTag("homeFragment");
+        Fragment homeFragment = getSupportFragmentManager().findFragmentByTag(Constant.HOME_FRAGMENT_TAG);
+        Fragment productListFragment = getSupportFragmentManager().findFragmentByTag(Constant.PRODUCT_LIST_FRAGMENT_TAG);
+        Fragment customerListFragment = getSupportFragmentManager().findFragmentByTag(Constant.CUSTOMER_LIST_FRAGMENT_TAG);
+        Fragment sellerFragment = getSupportFragmentManager().findFragmentByTag(Constant.SELLER_FRAGMENT_TAG);
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
-        } else if (fragment != null && fragment.isVisible()) {
+        } else if (homeFragment != null && homeFragment.isVisible()) {
             Intent intent = new Intent(Intent.ACTION_MAIN);
             intent.addCategory(Intent.CATEGORY_HOME);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
+        } else if (productListFragment != null && productListFragment.isVisible()) {
+            loadFragment(HomeFragment.getInstance(), false, Constant.HOME_FRAGMENT_TAG);
+        } else if (customerListFragment != null && customerListFragment.isVisible()) {
+            loadFragment(HomeFragment.getInstance(), false, Constant.HOME_FRAGMENT_TAG);
+        }else if (sellerFragment != null && sellerFragment.isVisible()) {
+            loadFragment(HomeFragment.getInstance(), false, Constant.HOME_FRAGMENT_TAG);
         } else {
             super.onBackPressed();
         }
@@ -158,7 +183,12 @@ public class MainActivity extends AppCompatActivity
 
     public void displaySelectedScreen(int selectedMenuId) {
         Fragment fragment = null;
+        String tag = null;
         switch (selectedMenuId) {
+            case R.id.nav_home:
+                fragment = HomeFragment.getInstance();
+                tag = Constant.HOME_FRAGMENT_TAG;
+                break;
             case R.id.nav_category:
                 showCategoryDialog();
                 break;
@@ -168,15 +198,28 @@ public class MainActivity extends AppCompatActivity
                 bundle.putSerializable(Constant.EXTRA_STOCK_WARNING, (Serializable) mStockHandWarning);
                 fragment = ReminderFragment.getInstance();
                 fragment.setArguments(bundle);
+                tag = Constant.REMINDER_FRAGMENT_TAG;
                 break;
             case R.id.nav_seller:
-                fragment = SellerAddFragment.getInstance();
+                fragment = SellerFragment.getInstance();
+                tag = Constant.SELLER_FRAGMENT_TAG;
+                break;
+            case R.id.nav_message:
+                Intent intent = new Intent(MainActivity.this,ChatActivity.class);
+                intent.putExtra(Constant.EXTRA_SELLER,mSelller);
+                startActivity(intent);
                 break;
             case R.id.nav_stock_out:
                 fragment = StockOutFragment.getInstance();
+                tag = Constant.STOCK_OUT_FRAGMENT_TAG;
+                break;
+            case R.id.nav_due:
+                fragment = DueFragment.getInstance();
+                tag = Constant.DUE_FRAGMENT_TAG;
                 break;
             case R.id.nav_add_expense:
                 fragment = ExpenseFragment.getInstance();
+                tag = Constant.EXPENSE_FRAGMENT_TAG;
                 break;
             case R.id.nav_logout:
                 if (mUser != null) {
@@ -190,23 +233,25 @@ public class MainActivity extends AppCompatActivity
         }
 
         if (fragment != null) {
-            loadFragment(fragment, true);
+            loadFragment(fragment, true, tag);
         }
         mDrawer.closeDrawers();
     }
 
     private void hideItem() {
-        mNavigationView = (NavigationView) findViewById(R.id.nav_view);
         Menu nav_Menu = mNavigationView.getMenu();
         if (mUser == null) {
             nav_Menu.findItem(R.id.nav_seller).setVisible(false);
+        } else {
+            nav_Menu.findItem(R.id.nav_message).setVisible(false);
         }
     }
 
     @Override
-    public void loadFragment(Fragment fragment, boolean isBack) {
+    public void loadFragment(Fragment fragment, boolean isBack, String tag) {
+
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.replace(R.id.main_fragment_container, fragment);
+        ft.replace(R.id.main_fragment_container, fragment, tag);
         if (isBack) {
             ft.addToBackStack(null);
         }
@@ -216,9 +261,9 @@ public class MainActivity extends AppCompatActivity
     private void initializeCountDrawer(int count) {
         //Gravity property aligns the text
         reminderCounterTextView.setGravity(Gravity.CENTER_VERTICAL);
-        reminderCounterTextView.setTextSize(20);
         reminderCounterTextView.setTypeface(null, Typeface.BOLD);
-        reminderCounterTextView.setTextColor(getResources().getColor(android.R.color.black));
+        reminderCounterTextView.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+        mBadgeDrawable.setText(mCount + "");
         reminderCounterTextView.setText("" + count);
     }
 

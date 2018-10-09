@@ -11,6 +11,8 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -18,8 +20,10 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.kcirque.stockmanagementfinal.Adapter.ProductListAdapter;
 import com.kcirque.stockmanagementfinal.Common.Constant;
+import com.kcirque.stockmanagementfinal.Common.SharedPref;
 import com.kcirque.stockmanagementfinal.Database.Model.Product;
 import com.kcirque.stockmanagementfinal.Database.Model.Purchase;
+import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.Database.Model.StockHand;
 import com.kcirque.stockmanagementfinal.Interface.RecyclerItemClickListener;
 import com.kcirque.stockmanagementfinal.R;
@@ -32,13 +36,14 @@ import static android.support.constraint.Constraints.TAG;
 public class ProductDialogAdapter extends RecyclerView.Adapter<ProductDialogAdapter.ProductHolder> {
     private Context mContext;
     private List<Product> mProductList = new ArrayList<>();
-    private DatabaseReference mPurchaseRef;
     private DatabaseReference mStockRef;
-    private Purchase mPurchase = null;
 
     private RecyclerItemClickListener recyclerItemClickListener;
-    private Purchase purchaseForClick;
     private int mQuantity;
+    private FirebaseUser mUser;
+    private FirebaseAuth mAuth;
+    private SharedPref mSharedPref;
+    private DatabaseReference mAdminRef;
 
     public void setRecyclerItemClickListener(RecyclerItemClickListener recyclerItemClickListener) {
         this.recyclerItemClickListener = recyclerItemClickListener;
@@ -58,35 +63,42 @@ public class ProductDialogAdapter extends RecyclerView.Adapter<ProductDialogAdap
 
     @Override
     public void onBindViewHolder(@NonNull final ProductHolder productHolder, final int i) {
-
+        mSharedPref = new SharedPref(mContext);
+        Seller seller = mSharedPref.getSeller();
+        mAuth = FirebaseAuth.getInstance();
+        mUser = mAuth.getCurrentUser();
         DatabaseReference mRootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
-        mStockRef = mRootRef.child(Constant.STOCK_HAND_REF);
+        if (mUser != null) {
+            mAdminRef = mRootRef.child(mUser.getUid());
+        } else {
+            mAdminRef = mRootRef.child(seller.getAdminUid());
+        }
+        mStockRef = mAdminRef.child(Constant.STOCK_HAND_REF);
         mStockRef.keepSynced(true);
         final Product product = mProductList.get(i);
         Log.e(TAG, "run: " + mProductList.size());
 
         productHolder.nameTextView.setText(product.getProductName());
-        mStockRef.child(String.valueOf(product.getProductId())).addValueEventListener(new ValueEventListener() {
+        productHolder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                StockHand stockHand = dataSnapshot.getValue(StockHand.class);
-                if (stockHand != null) {
-                    mQuantity = stockHand.getPurchaseQuantity() - stockHand.getSellQuantity();
-                    productHolder.itemView.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
+            public void onClick(final View v) {
+                mStockRef.child(String.valueOf(product.getProductId())).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        StockHand stockHand = dataSnapshot.getValue(StockHand.class);
+                        if (stockHand != null) {
+                            mQuantity = stockHand.getPurchaseQuantity() - stockHand.getSellQuantity();
                             recyclerItemClickListener.onClick(v, i, mQuantity);
                         }
-                    });
-                }
-            }
+                    }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
 
+                    }
+                });
             }
         });
-
 
     }
 

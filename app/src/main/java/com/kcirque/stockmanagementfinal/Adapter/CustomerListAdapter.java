@@ -30,12 +30,8 @@ public class CustomerListAdapter extends RecyclerView.Adapter<CustomerListAdapte
     private static final String TAG = "Customer List";
     private Context mContext;
     private List<Customer> mCustomerList = new ArrayList<>();
-    private boolean mIsDialog;
-    private DatabaseReference mSalesRef;
 
     private RecyclerItemClickListener itemClickListener;
-
-    private double mDue;
 
     public void setItemClickListener(RecyclerItemClickListener itemClickListener) {
         this.itemClickListener = itemClickListener;
@@ -44,8 +40,6 @@ public class CustomerListAdapter extends RecyclerView.Adapter<CustomerListAdapte
     public CustomerListAdapter(Context context, List<Customer> customerList) {
         this.mContext = context;
         this.mCustomerList = customerList;
-        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
-        mSalesRef = rootRef.child(Constant.SALES_REF);
     }
 
 
@@ -58,46 +52,12 @@ public class CustomerListAdapter extends RecyclerView.Adapter<CustomerListAdapte
 
     @Override
     public void onBindViewHolder(@NonNull final CustomerHolder customerHolder, final int i) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                mSalesRef.orderByChild("customerId").equalTo(mCustomerList.get(i).getCustomerId())
-                        .addValueEventListener(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(DataSnapshot dataSnapshot) {
-                                List<Sales> salesList = new ArrayList<>();
-                                salesList.clear();
-                                for (DataSnapshot postData : dataSnapshot.getChildren()) {
-                                    Sales sales = postData.getValue(Sales.class);
-                                    salesList.add(sales);
-                                    Log.e(TAG, "Customer Sales List " + sales.getCustomerName());
-                                }
-                                if (salesList.size() > 0) {
-                                    for (Sales sales : salesList) {
-                                        mDue = mDue + sales.getDue();
-                                    }
-                                    if (mDue > mCustomerList.get(i).getDeposit()) {
-                                        customerHolder.debitTextTextView.setText(mContext.getResources().getString(R.string.due_text));
-                                        customerHolder.debitAmountTextView.setText(String.valueOf((mDue - mCustomerList.get(i).getDeposit())) + "BDT");
-                                    } else {
-                                        customerHolder.debitTextTextView.setText(mContext.getResources().getString(R.string.deposit_text));
-                                        customerHolder.debitAmountTextView.setText(String.valueOf(mCustomerList.get(i).getDeposit()) + " BDT");
-                                    }
-                                }
-                            }
 
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
-
-                            }
-                        });
-
-                customerHolder.debitTextTextView.setText(R.string.deposit_text);
-                customerHolder.emailTextView.setText(mCustomerList.get(i).getEmail());
-                customerHolder.nameTextView.setText(mCustomerList.get(i).getCustomerName());
-                customerHolder.mobileTextView.setText(mCustomerList.get(i).getMobile());
-            }
-        }).start();
+        customerHolder.debitTextTextView.setText(R.string.deposit_text);
+        customerHolder.debitAmountTextView.setText(String.valueOf(mCustomerList.get(i).getDue()));
+        customerHolder.emailTextView.setText(mCustomerList.get(i).getEmail());
+        customerHolder.nameTextView.setText(mCustomerList.get(i).getCustomerName());
+        customerHolder.mobileTextView.setText(mCustomerList.get(i).getMobile());
         customerHolder.imageView.setImageResource(R.drawable.ic_user);
     }
 

@@ -18,7 +18,7 @@ public class HomeWidgetAdapter extends RecyclerView.Adapter<HomeWidgetAdapter.Ho
     private LayoutInflater mLayoutInflater;
     private ItemClickListener mItemClickListener;
 
-    private String[] titles = {"Products", "Purchase\nEntry","Customers","Sales","Stock Hand","Profit Loss"};
+    private String[] titles = {"Products", "Stock In","Customers","Sales","Stock Hand","Profit Loss"};
     private int[] icons = {R.drawable.ic_product,R.drawable.ic_purchase,R.drawable.ic_customers,R.drawable.ic_sales,R.drawable.ic_stock,R.drawable.ic_reports};
 
     public HomeWidgetAdapter(Context context) {

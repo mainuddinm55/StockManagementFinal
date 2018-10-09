@@ -51,16 +51,7 @@ public class LoginActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
 
         mSharedPref = new SharedPref(getApplicationContext());
-        Seller seller = mSharedPref.getSeller();
-        FirebaseUser user = mAuth.getCurrentUser();
-        if (user != null) {
-            startActivity(new Intent(LoginActivity.this, MainActivity.class));
-            finish();
-        } else if (seller != null) {
-            Log.e(TAG, "onCreate: " + seller.getAdminUid() + seller.getName());
-            startActivity(new Intent(LoginActivity.this, MainActivity.class));
-            finish();
-        }
+
 
         mProgressDialog = new ProgressDialog(LoginActivity.this);
         mProgressDialog.setMessage("loading");

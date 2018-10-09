@@ -22,6 +22,8 @@ import android.widget.AdapterView;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -29,9 +31,11 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.kcirque.stockmanagementfinal.Adapter.CategorySpinnerAdapter;
 import com.kcirque.stockmanagementfinal.Common.Constant;
+import com.kcirque.stockmanagementfinal.Common.SharedPref;
 import com.kcirque.stockmanagementfinal.DataBinderMapperImpl;
 import com.kcirque.stockmanagementfinal.Database.Model.Category;
 import com.kcirque.stockmanagementfinal.Database.Model.Product;
+import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.Interface.FragmentLoader;
 import com.kcirque.stockmanagementfinal.MainActivity;
 import com.kcirque.stockmanagementfinal.R;
@@ -57,6 +61,10 @@ public class ProductAddFragment extends Fragment {
     private static final String TAG = "StockManagement";
     private static final int TAKE_PHOTO_REQUEST_CODE = 10;
     private List<Category> mCategoryList = new ArrayList<>();
+    private FirebaseUser mUser;
+    private FirebaseAuth mAuth;
+    private SharedPref mSharedPref;
+    private DatabaseReference mAdminRef;
     private DatabaseReference mRootRef;
     private DatabaseReference mCategoryRef;
     private DatabaseReference mProductRef;
@@ -102,11 +110,20 @@ public class ProductAddFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        mSharedPref = new SharedPref(mContext);
+        Seller seller = mSharedPref.getSeller();
+        mAuth = FirebaseAuth.getInstance();
+        mUser = mAuth.getCurrentUser();
         mRootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
         mRootRef.keepSynced(true);
-        mCategoryRef = mRootRef.child(Constant.CATEGORY_REF);
+        if (mUser != null) {
+            mAdminRef = mRootRef.child(mUser.getUid());
+        } else {
+            mAdminRef = mRootRef.child(seller.getAdminUid());
+        }
+        mCategoryRef = mAdminRef.child(Constant.CATEGORY_REF);
         mCategoryRef.keepSynced(true);
-        mProductRef = mRootRef.child(Constant.PRODUCT_REF);
+        mProductRef = mAdminRef.child(Constant.PRODUCT_REF);
         mProductRef.keepSynced(true);
 
         mProductRef.addValueEventListener(new ValueEventListener() {
@@ -212,37 +229,32 @@ public class ProductAddFragment extends Fragment {
     }
 
     private void addProduct() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                mKey = mProductRef.push().getKey();
-                String productName = mBinding.productNameEdittext.getText().toString();
-                String productCode = mBinding.productCodeEdittext.getText().toString();
-                String desc = mBinding.productDescEdittext.getText().toString();
 
-                Product product = new Product(mKey, mProductId, productName, productCode, mCategoryId, desc, "");
+        mKey = mProductRef.push().getKey();
+        String productName = mBinding.productNameEdittext.getText().toString();
+        String productCode = mBinding.productCodeEdittext.getText().toString();
+        String desc = mBinding.productDescEdittext.getText().toString();
 
-                mProductRef.child(mKey).setValue(product)
-                        .addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-                                if (task.isSuccessful()) {
-                                    Snackbar.make(mBinding.rootView, "Product Added", Snackbar.LENGTH_SHORT).show();
-                                    //Toast.makeText(AddProductActivity.this, "Product Added", Toast.LENGTH_SHORT).show();
-                                    mFragmentLoader.loadFragment(ProductListFragment.getInstance(), true);
+        Product product = new Product(mKey, mProductId, productName, productCode, mCategoryId, desc, "");
 
-                                }
-                            }
-                        })
-                        .addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                Log.e(TAG, "onFailure: " + e.getMessage());
-                            }
-                        });
-            }
-        }).start();
+        mProductRef.child(mKey).setValue(product)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            Snackbar.make(mBinding.rootView, "Product Added", Snackbar.LENGTH_SHORT).show();
+                            //Toast.makeText(AddProductActivity.this, "Product Added", Toast.LENGTH_SHORT).show();
+                            mFragmentLoader.loadFragment(ProductListFragment.getInstance(), true, Constant.PRODUCT_LIST_FRAGMENT_TAG);
 
+                        }
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e(TAG, "onFailure: " + e.getMessage());
+                    }
+                });
     }
 
     @Override

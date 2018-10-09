@@ -31,7 +31,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/seller_name_text"
-                        android:textColor="@color/colorAccent"
+                        android:textColor="@android:color/black"
                         android:textSize="16sp" />
 
                     <EditText
@@ -59,7 +59,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/email"
-                        android:textColor="@color/colorAccent"
+                        android:textColor="@android:color/black"
                         android:textSize="16sp" />
 
                     <EditText
@@ -87,7 +87,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/password"
-                        android:textColor="@color/colorAccent"
+                        android:textColor="@android:color/black"
                         android:textSize="16sp" />
 
                     <EditText
@@ -115,7 +115,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/confirm_password_text"
-                        android:textColor="@color/colorAccent"
+                        android:textColor="@android:color/black"
                         android:textSize="16sp" />
 
                     <EditText
@@ -143,7 +143,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/customer_mobile_text"
-                        android:textColor="@color/colorAccent"
+                        android:textColor="@android:color/black"
                         android:textSize="16sp" />
 
                     <EditText

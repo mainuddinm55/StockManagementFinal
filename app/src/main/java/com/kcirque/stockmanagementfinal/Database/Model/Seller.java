@@ -1,6 +1,8 @@
 package com.kcirque.stockmanagementfinal.Database.Model;
 
-public class Seller {
+import java.io.Serializable;
+
+public class Seller implements Serializable {
     private String key;
     private String name;
     private String email;
