@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.kcirque.stockmanagementfinal">
 
+    <uses-permission android:name="android.permission.INTERNET" />
     <application
         android:name=".Database.FirebaseOfflineSync"
         android:allowBackup="true"
@@ -16,7 +17,8 @@
             android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="adjustPan" />
         <activity android:name=".SaleProductActivity" />
-        <activity android:name=".LoginActivity"
+        <activity
+            android:name=".LoginActivity"
             android:theme="@style/FullScreenTheme"></activity>
 
         <service

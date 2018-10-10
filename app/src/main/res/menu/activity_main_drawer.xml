@@ -18,11 +18,13 @@
     <item
         android:id="@+id/nav_seller"
         android:icon="@drawable/client"
-        android:title="@string/seller_text" />
+        android:title="@string/seller_text"
+        app:actionViewClass="android.widget.TextView"/>
 
     <item android:id="@+id/nav_message"
         android:title="@string/message_text"
-        android:icon="@drawable/ic_email"/>
+        android:icon="@drawable/ic_email"
+        app:actionViewClass="android.widget.TextView"/>
     <item
         android:id="@+id/nav_stock_out"
         android:icon="@drawable/ic_stock_out"

@@ -36,6 +36,7 @@ public class ChatActivity extends AppCompatActivity {
     private DatabaseReference chatRef;
     private MessageAdapter adapter;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -99,6 +100,8 @@ public class ChatActivity extends AppCompatActivity {
         } else {
             seenMessage(seller.getAdminUid());
         }
+
+
     }
 
     private void sendMessage(String sender, String receiver, String msg) {

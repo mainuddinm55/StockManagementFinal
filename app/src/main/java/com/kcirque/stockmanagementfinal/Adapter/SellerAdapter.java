@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.kcirque.stockmanagementfinal.Database.Model.Chat;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.Interface.ItemClickListener;
 import com.kcirque.stockmanagementfinal.Interface.RecyclerItemClickListener;
@@ -21,16 +22,20 @@ import de.hdodenhof.circleimageview.CircleImageView;
 public class SellerAdapter extends RecyclerView.Adapter<SellerAdapter.SellerHolder> {
     private Context mContext;
     private List<Seller> mSellerList = new ArrayList<>();
+    List<Chat> mChatList = new ArrayList<>();
 
     RecyclerItemClickListener itemClickListener;
+    private int mCount;
 
     public void setItemClickListener(RecyclerItemClickListener itemClickListener) {
         this.itemClickListener = itemClickListener;
     }
 
-    public SellerAdapter(Context context, List<Seller> sellers) {
+
+    public SellerAdapter(Context context, List<Seller> sellers,List<Chat> chatList) {
         mContext = context;
         mSellerList = sellers;
+        this.mChatList = chatList;
     }
 
     @NonNull
@@ -42,6 +47,19 @@ public class SellerAdapter extends RecyclerView.Adapter<SellerAdapter.SellerHold
 
     @Override
     public void onBindViewHolder(@NonNull SellerHolder sellerHolder, final int i) {
+        if (mChatList.size()>0){
+            mCount = 0;
+            for (Chat chat : mChatList){
+                if (chat.getSender().equals(mSellerList.get(i).getKey())){
+                    mCount++;
+                }
+            }
+        }
+        if (mCount>0){
+            sellerHolder.unreadMsgCountTextView.setText(String.valueOf(mCount));
+        } else {
+            sellerHolder.unreadMsgCountTextView.setText(null);
+        }
         sellerHolder.sellerNameTextView.setText(mSellerList.get(i).getName());
         sellerHolder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -60,11 +78,13 @@ public class SellerAdapter extends RecyclerView.Adapter<SellerAdapter.SellerHold
 
         public CircleImageView sellerImageView;
         public TextView sellerNameTextView;
+        public TextView unreadMsgCountTextView;
 
         public SellerHolder(@NonNull View itemView) {
             super(itemView);
             sellerImageView = itemView.findViewById(R.id.seller_profile_image_view);
             sellerNameTextView = itemView.findViewById(R.id.seller_name_text_view);
+            unreadMsgCountTextView = itemView.findViewById(R.id.unread_msg_count_text_view);
         }
     }
 

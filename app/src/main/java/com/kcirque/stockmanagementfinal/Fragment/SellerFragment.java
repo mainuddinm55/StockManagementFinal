@@ -23,6 +23,8 @@ import com.google.firebase.database.ValueEventListener;
 import com.kcirque.stockmanagementfinal.Adapter.SellerAdapter;
 import com.kcirque.stockmanagementfinal.ChatActivity;
 import com.kcirque.stockmanagementfinal.Common.Constant;
+import com.kcirque.stockmanagementfinal.Common.SharedPref;
+import com.kcirque.stockmanagementfinal.Database.Model.Chat;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.Interface.FragmentLoader;
 import com.kcirque.stockmanagementfinal.Interface.RecyclerItemClickListener;
@@ -43,8 +45,16 @@ public class SellerFragment extends Fragment {
 
     private Context mContext;
     private SellerAdapter mAdapter;
+    private FirebaseUser mUser;
+    private FirebaseAuth mAuth;
+    private SharedPref mSharedPref;
+    private Seller mSeller;
 
     private FragmentLoader mFragmentLoader;
+    private DatabaseReference mAdminRef;
+    private List<Chat> mChatList = new ArrayList<>();
+    private DatabaseReference sellerRef;
+    private DatabaseReference chatRef;
 
     public SellerFragment() {
         // Required empty public constructor
@@ -68,13 +78,51 @@ public class SellerFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        mAuth = FirebaseAuth.getInstance();
+        mUser = mAuth.getCurrentUser();
         mBinding.progressBar.setVisibility(View.VISIBLE);
-        final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
-        DatabaseReference sellerRef = rootRef.child(Constant.SELLER_REF);
+        if (mUser != null) {
+            mAdminRef = rootRef.child(mUser.getUid());
+        }
+        sellerRef = rootRef.child(Constant.SELLER_REF);
+        chatRef = mAdminRef.child(Constant.CHAT_REF);
 
         mBinding.sellerListRecyclerView.setHasFixedSize(true);
         mBinding.sellerListRecyclerView.setLayoutManager(new LinearLayoutManager(mContext));
+
+        mBinding.addSellerFab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mFragmentLoader.loadFragment(SellerAddFragment.getInstance(), true, Constant.SELLER_ADD_FRAGMENT_TAG);
+            }
+        });
+
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        chatRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                mChatList.clear();
+                for (DataSnapshot postData : dataSnapshot.getChildren()) {
+                    Chat chat = postData.getValue(Chat.class);
+                    if (mUser != null) {
+                        if (chat.getReceiver().equals(mUser.getUid()) && !chat.isIsSeen()) {
+                            mChatList.add(chat);
+                        }
+                    }
+                }
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
         sellerRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -85,7 +133,7 @@ public class SellerFragment extends Fragment {
                 }
                 if (mSellerList.size() > 0) {
                     mBinding.progressBar.setVisibility(View.GONE);
-                    mAdapter = new SellerAdapter(mContext, mSellerList);
+                    mAdapter = new SellerAdapter(mContext, mSellerList,mChatList);
                     mBinding.sellerListRecyclerView.setAdapter(mAdapter);
                     mAdapter.setItemClickListener(new RecyclerItemClickListener() {
                         @Override
@@ -107,20 +155,12 @@ public class SellerFragment extends Fragment {
                 mBinding.progressBar.setVisibility(View.GONE);
             }
         });
-
-        mBinding.addSellerFab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mFragmentLoader.loadFragment(SellerAddFragment.getInstance(),true,Constant.SELLER_ADD_FRAGMENT_TAG);
-            }
-        });
-
     }
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         mContext = context;
-        mFragmentLoader = (FragmentLoader)context;
+        mFragmentLoader = (FragmentLoader) context;
     }
 }

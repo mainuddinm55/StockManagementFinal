@@ -38,6 +38,7 @@ import com.kcirque.stockmanagementfinal.Common.BadgeDrawerArrowDrawable;
 import com.kcirque.stockmanagementfinal.Common.Constant;
 import com.kcirque.stockmanagementfinal.Common.SharedPref;
 import com.kcirque.stockmanagementfinal.Database.Model.Category;
+import com.kcirque.stockmanagementfinal.Database.Model.Chat;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.Database.Model.StockHand;
 import com.kcirque.stockmanagementfinal.Fragment.DueFragment;
@@ -56,6 +57,7 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, FragmentLoader {
 
     private static final String TAG = "MainActivity";
+    private static final int MESSAGE_READ_CODE = 10;
     private DrawerLayout mDrawer;
     private DatabaseReference mRootRef;
     private DatabaseReference mStockRef;
@@ -67,6 +69,8 @@ public class MainActivity extends AppCompatActivity
     private int categoryId = 1;
 
     private TextView reminderCounterTextView;
+    private TextView messageCounterTextView;
+    private TextView sellerMessageCounterTextView;
     private List<StockHand> mStockHandWarning = new ArrayList<>();
     private NavigationView mNavigationView;
     private DatabaseReference mCategoryRef;
@@ -75,7 +79,11 @@ public class MainActivity extends AppCompatActivity
     private ActionBarDrawerToggle mToggle;
     private BadgeDrawerArrowDrawable mBadgeDrawable;
     private DatabaseReference mAdminRef;
-    private Seller mSelller;
+    private DatabaseReference mChatRef;
+    private Seller mSeller;
+    private int mTotalMessage = 0;
+
+    private ValueEventListener listener;
 
 
     @Override
@@ -96,21 +104,26 @@ public class MainActivity extends AppCompatActivity
         mNavigationView.setNavigationItemSelectedListener(this);
 
         mSharedPref = new SharedPref(this);
-        mSelller = mSharedPref.getSeller();
+        mSeller = mSharedPref.getSeller();
         mAuth = FirebaseAuth.getInstance();
         mUser = mAuth.getCurrentUser();
         hideItem();
         reminderCounterTextView = (TextView) MenuItemCompat.getActionView(mNavigationView.getMenu().
                 findItem(R.id.nav_reminder));
+        messageCounterTextView = (TextView) MenuItemCompat.getActionView(mNavigationView.getMenu().
+                findItem(R.id.nav_message));
+        sellerMessageCounterTextView = (TextView) MenuItemCompat.getActionView(mNavigationView.getMenu().
+                findItem(R.id.nav_seller));
         mRootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
         if (mUser != null) {
             mAdminRef = mRootRef.child(mUser.getUid());
         } else {
-            mAdminRef = mRootRef.child(mSelller.getAdminUid());
+            mAdminRef = mRootRef.child(mSeller.getAdminUid());
         }
 
         mStockRef = mAdminRef.child(Constant.STOCK_HAND_REF);
         mCategoryRef = mAdminRef.child(Constant.CATEGORY_REF);
+        mChatRef = mAdminRef.child(Constant.CHAT_REF);
 
         mStockRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -128,7 +141,7 @@ public class MainActivity extends AppCompatActivity
 
                 if (mCount > 0) {
                     mToggle.setDrawerArrowDrawable(mBadgeDrawable);
-                    initializeCountDrawer(mCount);
+                    initializeCountDrawer();
                 }
 
                 Log.e(TAG, "onDataChange: " + mStockHandWarning.size());
@@ -140,11 +153,34 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-
         HomeFragment fragment = HomeFragment.getInstance();
         loadFragment(fragment, false, Constant.HOME_FRAGMENT_TAG);
+    }
 
-
+    private void initializeMessageCount() {
+        if (mUser != null) {
+            if (mTotalMessage > 0) {
+                sellerMessageCounterTextView.setGravity(Gravity.CENTER_VERTICAL);
+                sellerMessageCounterTextView.setTypeface(null, Typeface.BOLD);
+                sellerMessageCounterTextView.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+                sellerMessageCounterTextView.setText("" + mTotalMessage);
+                initializeCountDrawer();
+            } else {
+                sellerMessageCounterTextView.setText(null);
+                initializeCountDrawer();
+            }
+        } else {
+            if (mTotalMessage > 0) {
+                messageCounterTextView.setGravity(Gravity.CENTER_VERTICAL);
+                messageCounterTextView.setTypeface(null, Typeface.BOLD);
+                messageCounterTextView.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+                messageCounterTextView.setText("" + mTotalMessage);
+                initializeCountDrawer();
+            } else {
+                messageCounterTextView.setText(null);
+                initializeCountDrawer();
+            }
+        }
     }
 
     @Override
@@ -165,7 +201,7 @@ public class MainActivity extends AppCompatActivity
             loadFragment(HomeFragment.getInstance(), false, Constant.HOME_FRAGMENT_TAG);
         } else if (customerListFragment != null && customerListFragment.isVisible()) {
             loadFragment(HomeFragment.getInstance(), false, Constant.HOME_FRAGMENT_TAG);
-        }else if (sellerFragment != null && sellerFragment.isVisible()) {
+        } else if (sellerFragment != null && sellerFragment.isVisible()) {
             loadFragment(HomeFragment.getInstance(), false, Constant.HOME_FRAGMENT_TAG);
         } else {
             super.onBackPressed();
@@ -205,9 +241,9 @@ public class MainActivity extends AppCompatActivity
                 tag = Constant.SELLER_FRAGMENT_TAG;
                 break;
             case R.id.nav_message:
-                Intent intent = new Intent(MainActivity.this,ChatActivity.class);
-                intent.putExtra(Constant.EXTRA_SELLER,mSelller);
-                startActivity(intent);
+                Intent intent = new Intent(MainActivity.this, ChatActivity.class);
+                intent.putExtra(Constant.EXTRA_SELLER, mSeller);
+                startActivityForResult(intent, MESSAGE_READ_CODE);
                 break;
             case R.id.nav_stock_out:
                 fragment = StockOutFragment.getInstance();
@@ -258,13 +294,13 @@ public class MainActivity extends AppCompatActivity
         ft.commit();
     }
 
-    private void initializeCountDrawer(int count) {
+    private void initializeCountDrawer() {
         //Gravity property aligns the text
         reminderCounterTextView.setGravity(Gravity.CENTER_VERTICAL);
         reminderCounterTextView.setTypeface(null, Typeface.BOLD);
         reminderCounterTextView.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
-        mBadgeDrawable.setText(mCount + "");
-        reminderCounterTextView.setText("" + count);
+        mBadgeDrawable.setText((mCount + mTotalMessage) + "");
+        reminderCounterTextView.setText("" + mCount);
     }
 
     private void showCategoryDialog() {
@@ -325,5 +361,56 @@ public class MainActivity extends AppCompatActivity
             }
         });
         dialog.show();
+    }
+
+    public void unreadMessage() {
+        listener = mChatRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                mTotalMessage = 0;
+                for (DataSnapshot postData : dataSnapshot.getChildren()) {
+                    Chat chat = postData.getValue(Chat.class);
+                    if (mUser != null) {
+                        if (chat.getReceiver().equals(mUser.getUid()) && !chat.isIsSeen()) {
+                            mTotalMessage++;
+                        }
+                    } else {
+                        if (chat.getReceiver().equals(mSeller.getKey()) && chat.getSender().equals(mSeller.getAdminUid())
+                                && !chat.isIsSeen()) {
+                            mTotalMessage++;
+                        }
+                    }
+                }
+
+                initializeMessageCount();
+
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+
+    @Override
+    protected void onPause() {
+        mChatRef.removeEventListener(listener);
+        super.onPause();
+
+    }
+
+    @Override
+    protected void onResume() {
+        unreadMessage();
+        super.onResume();
+    }
+
+    @Override
+    protected void onRestart() {
+        unreadMessage();
+        super.onRestart();
     }
 }

@@ -7,8 +7,8 @@
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/seller_profile_image_view"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
         android:src="@drawable/ic_user" />
 
     <TextView
@@ -21,7 +21,7 @@
         android:layout_toEndOf="@id/seller_profile_image_view"
         android:layout_toRightOf="@id/seller_profile_image_view"
         android:text="@string/seller_name_text"
-        android:textSize="18sp" />
+        android:textAppearance="@style/TextAppearance.AppCompat.Large" />
 
     <TextView
         android:id="@+id/unread_msg_count_text_view"
@@ -30,7 +30,7 @@
         tools:text="0"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
-        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        android:textAppearance="@style/TextAppearance.AppCompat.Large"
         android:textColor="@android:color/holo_red_dark"
         android:layout_centerVertical="true"
         android:layout_marginRight="20dp"

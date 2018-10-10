@@ -44,6 +44,7 @@ public class Constant {
     public static final String PROFIT_LOSS_REPORT_FRAGMENT_TAG = "profit_loss_report";
     public static final String DUE_FRAGMENT_TAG = "due";
     public static final String SELLER_ADD_FRAGMENT_TAG = "seller_add";
+    public static final String EXTRA_UNSEEN_MESSAGE = "unseen_message";
 
 
     public static int SELECTED_PRODUCT_ID;

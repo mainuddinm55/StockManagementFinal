@@ -6,8 +6,8 @@
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:background="#F5F5F5"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:background="#F5F5F5">
 
         <android.support.design.widget.AppBarLayout
             android:id="@+id/app_bar"
@@ -24,8 +24,8 @@
 
                 <de.hdodenhof.circleimageview.CircleImageView
                     android:id="@+id/seller_profile_image_view"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
                     android:src="@drawable/user" />
 
                 <TextView
@@ -36,8 +36,8 @@
                     android:layout_marginStart="25dp"
                     android:layout_marginLeft="25dp"
                     android:text="@string/seller_name_text"
-                    android:textColor="@android:color/white"
-                    android:textSize="18sp" />
+                    android:textAppearance="@style/TextAppearance.AppCompat.Large"
+                    android:textColor="@android:color/white" />
             </android.support.v7.widget.Toolbar>
         </android.support.design.widget.AppBarLayout>
 
@@ -47,7 +47,7 @@
             android:layout_height="match_parent"
             android:layout_above="@id/bottom"
             android:layout_below="@id/app_bar"
-            android:padding="5dp" />
+            android:padding="10dp" />
 
         <RelativeLayout
             android:id="@+id/bottom"
@@ -67,8 +67,8 @@
 
             <ImageButton
                 android:id="@+id/send_btn"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
                 android:layout_alignParentEnd="true"
                 android:layout_alignParentRight="true"
                 android:background="@drawable/ic_send" />

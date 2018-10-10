@@ -1,6 +1,8 @@
 package com.kcirque.stockmanagementfinal.Database.Model;
 
-public class Chat {
+import java.io.Serializable;
+
+public class Chat implements Serializable {
     private String sender;
     private String receiver;
     private String msg;
