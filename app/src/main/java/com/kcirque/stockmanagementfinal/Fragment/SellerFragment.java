@@ -129,11 +129,14 @@ public class SellerFragment extends Fragment {
                 mSellerList.clear();
                 for (DataSnapshot postData : dataSnapshot.getChildren()) {
                     Seller seller = postData.getValue(Seller.class);
-                    mSellerList.add(seller);
+                    if (seller.getAdminUid().equals(mUser.getUid())) {
+                        mSellerList.add(seller);
+                    }
+
                 }
                 if (mSellerList.size() > 0) {
                     mBinding.progressBar.setVisibility(View.GONE);
-                    mAdapter = new SellerAdapter(mContext, mSellerList,mChatList);
+                    mAdapter = new SellerAdapter(mContext, mSellerList, mChatList);
                     mBinding.sellerListRecyclerView.setAdapter(mAdapter);
                     mAdapter.setItemClickListener(new RecyclerItemClickListener() {
                         @Override

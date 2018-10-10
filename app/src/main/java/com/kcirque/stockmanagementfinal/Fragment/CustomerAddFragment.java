@@ -160,6 +160,15 @@ public class CustomerAddFragment extends Fragment {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        mBinding.customerAddressEdittext.setText(null);
+        mBinding.customerMobileEdittext.setText(null);
+        mBinding.customerNameEdittext.setText(null);
+        mBinding.customerEmailEdittext.setText(null);
+    }
+
+    @Override
     public void onAttach(Context context) {
         super.onAttach(context);
         mContext = context;

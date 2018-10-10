@@ -132,10 +132,12 @@ public class MainActivity extends AppCompatActivity
                 mStockHandWarning.clear();
                 for (DataSnapshot postData : dataSnapshot.getChildren()) {
                     StockHand stockHand = postData.getValue(StockHand.class);
-                    int stock = stockHand.getPurchaseQuantity() - stockHand.getSellQuantity();
-                    if (stock < 5) {
-                        mStockHandWarning.add(stockHand);
-                        mCount++;
+                    if (stockHand != null && stockHand.getSellQuantity() > 0) {
+                        int stock = stockHand.getPurchaseQuantity() - stockHand.getSellQuantity();
+                        if (stock < 5) {
+                            mStockHandWarning.add(stockHand);
+                            mCount++;
+                        }
                     }
                 }
 
@@ -291,7 +293,7 @@ public class MainActivity extends AppCompatActivity
         if (isBack) {
             ft.addToBackStack(null);
         }
-        ft.commit();
+        ft.commitAllowingStateLoss();
     }
 
     private void initializeCountDrawer() {

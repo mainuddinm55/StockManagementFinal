@@ -109,6 +109,8 @@
     <string name="message_text">Message</string>
     <string name="empty_customer_text">No Customer Found</string>
     <string name="empty_seller_text">No Seller Found</string>
+    <string name="empty_due_text">Empty Due</string>
+    <string name="empty_reminder_text">No Reminder Found</string>
 
     <string-array name="stock_out_type">
         <item name="today_stock_text">Today Stock Out</item>

@@ -109,6 +109,7 @@ public class DueFragment extends Fragment {
                     mBinding.totalDueTextTextView.setText(mContext.getResources().getString(R.string.total_text));
                     mBinding.totalDueAmountTextView.setText(String.valueOf(mTotalDue));
                 } else {
+                    mBinding.emptyDueTextView.setVisibility(View.VISIBLE);
                     mBinding.progressBar.setVisibility(View.GONE);
                 }
             }

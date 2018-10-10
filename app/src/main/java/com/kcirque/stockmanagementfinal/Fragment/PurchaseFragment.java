@@ -83,6 +83,7 @@ public class PurchaseFragment extends Fragment {
     private Context mContext;
     private FragmentLoader mFragmentLoader;
     private String mProductKey;
+    private Bundle bundle;
 
     public static synchronized PurchaseFragment getInstance() {
         if (INSTANCE == null) {
@@ -128,13 +129,6 @@ public class PurchaseFragment extends Fragment {
 
         mDateConverter = new DateConverter();
 
-        Bundle bundle = getArguments();
-        if (bundle != null) {
-            Product product = (Product) bundle.getSerializable(Constant.EXTRA_PURCHASE_PRODUCT);
-            mBinding.productNameAct.setText(product.getProductName());
-            mProductId = product.getProductId();
-
-        }
 
         new Thread(new Runnable() {
             @Override
@@ -414,7 +408,9 @@ public class PurchaseFragment extends Fragment {
                                 @Override
                                 public void onDataChange(DataSnapshot dataSnapshot) {
                                     StockHand stockHand = dataSnapshot.getValue(StockHand.class);
-                                    quantity = stockHand.getPurchaseQuantity();
+                                    if (stockHand != null) {
+                                        quantity = stockHand.getPurchaseQuantity();
+                                    }
                                 }
 
                                 @Override
@@ -428,14 +424,42 @@ public class PurchaseFragment extends Fragment {
                             mProductRef.child(mProductKey).child("company").setValue(purchase.getCompanyName());
                             Snackbar.make(mBinding.rootView, "Purchase Added", Snackbar.LENGTH_SHORT).show();
                             mStockRef.child(String.valueOf(mProductId)).child("buyPrice").setValue(purchase.getActualPrice());
-                            mStockRef.child(String.valueOf(mProductId)).child("purchaseQuantity").setValue(quantity+mQuantity);
-                            mFragmentLoader.loadFragment(HomeFragment.getInstance(), false,Constant.HOME_FRAGMENT_TAG);
+                            mStockRef.child(String.valueOf(mProductId)).child("productId").setValue(purchase.getProductId());
+                            mStockRef.child(String.valueOf(mProductId)).child("purchaseQuantity").setValue(quantity + mQuantity);
+                            mFragmentLoader.loadFragment(HomeFragment.getInstance(), false, Constant.HOME_FRAGMENT_TAG);
                         }
                     }
                 });
             }
         });
 
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        bundle = getArguments();
+        if (bundle != null) {
+            Product product = (Product) bundle.getSerializable(Constant.EXTRA_PURCHASE_PRODUCT);
+            mBinding.productNameAct.setText(product.getProductName());
+            mProductId = product.getProductId();
+
+        } else {
+            mBinding.productNameAct.setText(null);
+        }
+        mBinding.companyNameEdittext.setText(null);
+        mBinding.buyPriceEdittext.setText(null);
+        mBinding.sellPriceEdittext.setText(null);
+        mBinding.quantityEdittext.setText(null);
+        mBinding.totalAmountTextview.setText(null);
+        mBinding.paidAmountEdittext.setText(null);
+        mBinding.dueAmountTextview.setText(null);
+        mBinding.purchaseDateEdittext.setText(null);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
     }
 
     @Override

@@ -105,6 +105,7 @@ public class ExpenseFragment extends Fragment {
         expenseRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                mExpenseList.clear();
                 for (DataSnapshot postData : dataSnapshot.getChildren()){
                     Expense expense = postData.getValue(Expense.class);
                     mExpenseList.add(expense);
@@ -194,7 +195,7 @@ public class ExpenseFragment extends Fragment {
                 String expenseName = expenseNameET.getText().toString().trim();
                 double expenseAmount = Double.parseDouble(expenseAmountET.getText().toString().trim());
                 String comment = expenseCommentET.getText().toString().trim();
-                DatabaseReference expenseRef = mRootRef.child(Constant.EXPENSE_REF);
+                DatabaseReference expenseRef = mAdminRef.child(Constant.EXPENSE_REF);
                 String expenseKey = expenseRef.push().getKey();
 
                 Expense expense = new Expense(expenseKey, expenseName, expenseAmount, comment, mExpenseDate);
@@ -203,7 +204,8 @@ public class ExpenseFragment extends Fragment {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         if (task.isSuccessful()) {
-                            Toast.makeText(mContext, "Purchase Added", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(mContext, "Expense Added", Toast.LENGTH_SHORT).show();
+                            mBinding.emptyExpenseTextView.setVisibility(View.GONE);
                             alertDialog.dismiss();
                         }
                     }

@@ -103,6 +103,7 @@ public class ProductAddFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        Log.e(TAG, "onCreateView: ");
         // Inflate the layout for this fragment
         mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_product_add, container, false);
         return mBinding.getRoot();
@@ -110,6 +111,7 @@ public class ProductAddFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        Log.e(TAG, "onViewCreated: ");
         mSharedPref = new SharedPref(mContext);
         Seller seller = mSharedPref.getSeller();
         mAuth = FirebaseAuth.getInstance();
@@ -201,7 +203,7 @@ public class ProductAddFragment extends Fragment {
                     intent.putExtra(ImageUploadService.EXTRA_FILE_URI, mImageUri);
                     intent.putExtra(ImageUploadService.EXTRA_REF_KEY, mKey);
                     intent.putExtra(ImageUploadService.EXTRA_FILE_NAME, fileName);
-                    getActivity().startService(intent);
+                    mContext.startService(intent);
                     //Toast.makeText(AddProductActivity.this, "upload", Toast.LENGTH_SHORT).show();
                     Log.e(TAG, "onClick: Image Found");
                 } else {
@@ -210,6 +212,33 @@ public class ProductAddFragment extends Fragment {
                 }
             }
         });
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        Log.e(TAG, "onStart: " );
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.e(TAG, "onResume: " );
+        mBinding.productCodeEdittext.setText(null);
+        mBinding.productNameEdittext.setText(null);
+        mBinding.productDescEdittext.setText(null);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.e(TAG, "onPause: " );
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.e(TAG, "onDestroy: " );
     }
 
     private void showNoImageWarningDialog() {

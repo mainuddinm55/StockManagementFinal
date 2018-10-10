@@ -138,4 +138,14 @@ public class SellerAddFragment extends Fragment {
         mContext = context;
         mFragmentLoader = (FragmentLoader) context;
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        mBinding.sellerNameEditText.setText(null);
+        mBinding.sellerEmailEditText.setText(null);
+        mBinding.confirmPasswordEditText.setText(null);
+        mBinding.sellerPasswordEditText.setText(null);
+        mBinding.sellerMobileEditText.setText(null);
+    }
 }

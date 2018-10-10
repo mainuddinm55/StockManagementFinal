@@ -16,6 +16,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -57,6 +58,7 @@ import java.util.List;
  */
 public class SalesFragment extends Fragment {
 
+    private static final String TAG = "SalesFragment";
     private static SalesFragment INSTANCE;
     public static final int GET_PRODUCT_REQUEST_CODE = 10;
     private FragmentSalesBinding mBinding;
@@ -104,14 +106,22 @@ public class SalesFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        Log.e(TAG, "onCreateView: ");
         // Inflate the layout for this fragment
         mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_sales, container, false);
+        mProductSellList.clear();
+        mSubTotal = 0.00;
+        mTotal = 0.00;
+        mDiscount = 0.00;
+        mPaid = 0.00;
+        mDue = 0.00;
+        mBinding.paidAmountEdittext.setText(null);
         return mBinding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-
+        Log.e(TAG, "onViewCreated: ");
         mSharedPref = new SharedPref(mContext);
         Seller seller = mSharedPref.getSeller();
         mAuth = FirebaseAuth.getInstance();
@@ -255,14 +265,14 @@ public class SalesFragment extends Fragment {
                     return;
                 }
 
-                if (!mIsMercantileCustomer){
-                    if (mPaid!=mTotal){
+                if (!mIsMercantileCustomer) {
+                    if (mPaid != mTotal) {
                         mBinding.paidAmountEdittext.setError("Must be full payment");
                         mBinding.paidAmountEdittext.requestFocus();
                         return;
                     }
                 }
-                if (mIsMercantileCustomer && mPaid<=0){
+                if (mIsMercantileCustomer && mPaid <= 0) {
                     AlertDialog.Builder warningDialog = new AlertDialog.Builder(mContext);
                     warningDialog.setTitle("Paid warning");
                     warningDialog.setMessage("do you want to sell without no payment");
@@ -281,6 +291,54 @@ public class SalesFragment extends Fragment {
                 sellProduct();
             }
         });
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        Log.e(TAG, "onActivityCreated: " );
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        Log.e(TAG, "onStart: " );
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.e(TAG, "onResume: " );
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.e(TAG, "onPause: " );
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        Log.e(TAG, "onStop: " );
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        Log.e(TAG, "onDestroyView: " );
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.e(TAG, "onDestroy: " );
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        Log.e(TAG, "onDetach: " );
     }
 
     private void showCustomerDialog() {
@@ -372,17 +430,17 @@ public class SalesFragment extends Fragment {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()) {
-                    if (mDue>0){
+                    if (mDue > 0) {
                         mTotalDue = mTotalDue + mDue;
                         mCustomerRef.child(mCustomerKey).child("due").setValue(mTotalDue);
                     }
-                    for (final ProductSell productSell : mProductSellList){
+                    for (final ProductSell productSell : mProductSellList) {
                         mStockRef.child(String.valueOf(productSell.getProductId())).addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(DataSnapshot dataSnapshot) {
                                 StockHand stockHand = dataSnapshot.getValue(StockHand.class);
                                 sellQuantity = stockHand.getSellQuantity();
-                                mStockRef.child(String.valueOf(productSell.getProductId())).child("sellQuantity").setValue(sellQuantity+productSell.getQuantity());
+                                mStockRef.child(String.valueOf(productSell.getProductId())).child("sellQuantity").setValue(sellQuantity + productSell.getQuantity());
                             }
 
                             @Override
@@ -393,7 +451,7 @@ public class SalesFragment extends Fragment {
                     }
                     Snackbar.make(mBinding.rootView, "Product Sell", Snackbar.LENGTH_SHORT).show();
                     mBinding.progressBar.setVisibility(View.GONE);
-                    mFragmentLoader.loadFragment(HomeFragment.getInstance(), false,Constant.HOME_FRAGMENT_TAG);
+                    mFragmentLoader.loadFragment(HomeFragment.getInstance(), false, Constant.HOME_FRAGMENT_TAG);
                 }
             }
         }).addOnFailureListener(new OnFailureListener() {
@@ -405,10 +463,10 @@ public class SalesFragment extends Fragment {
         });
     }
 
-
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+        Log.e(TAG, "onAttach: " );
         mContext = context;
         mFragmentLoader = (FragmentLoader) context;
     }

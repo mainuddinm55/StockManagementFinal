@@ -53,6 +53,8 @@ public class ReminderFragment extends Fragment {
     private List<Product> mProductList = new ArrayList<>();
     private Context mContext;
     private FragmentLoader mFragmentLoader;
+    private PurchaseFragment fragment;
+    private Bundle mBundle;
 
     public ReminderFragment() {
         // Required empty public constructor
@@ -72,6 +74,9 @@ public class ReminderFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_reminder, container, false);
+        mBundle = null;
+        fragment = PurchaseFragment.getInstance();
+        fragment.setArguments(mBundle);
         return mBinding.getRoot();
     }
 
@@ -121,13 +126,15 @@ public class ReminderFragment extends Fragment {
                             @Override
                             public void onClick(View view, int position, Object object) {
                                 Product product = (Product) object;
-                                Bundle bundle = new Bundle();
-                                bundle.putSerializable(Constant.EXTRA_PURCHASE_PRODUCT, product);
-                                PurchaseFragment fragment = PurchaseFragment.getInstance();
-                                fragment.setArguments(bundle);
-                                mFragmentLoader.loadFragment(fragment, true,Constant.PURCHASE_FRAGMENT_TAG);
+                                mBundle = new Bundle();
+                                mBundle.putSerializable(Constant.EXTRA_PURCHASE_PRODUCT, product);
+                                fragment.setArguments(mBundle);
+                                mFragmentLoader.loadFragment(fragment, true, Constant.PURCHASE_FRAGMENT_TAG);
                             }
                         });
+                    } else {
+                        mBinding.progressBar.setVisibility(View.GONE);
+                        mBinding.emptyReminderTextView.setVisibility(View.VISIBLE);
                     }
                 }
 
@@ -145,4 +152,29 @@ public class ReminderFragment extends Fragment {
         mContext = context;
         mFragmentLoader = (FragmentLoader) context;
     }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.e(TAG, "onPause: ");
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        Log.e(TAG, "onStop: ");
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        Log.e(TAG, "onDestroyView: ");
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.e(TAG, "onDestroy: ");
+    }
+
 }
