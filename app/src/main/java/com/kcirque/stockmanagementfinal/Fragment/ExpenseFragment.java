@@ -35,6 +35,8 @@ import com.kcirque.stockmanagementfinal.Common.DateConverter;
 import com.kcirque.stockmanagementfinal.Common.SharedPref;
 import com.kcirque.stockmanagementfinal.Database.Model.Expense;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
+import com.kcirque.stockmanagementfinal.Interface.FragmentLoader;
+import com.kcirque.stockmanagementfinal.Interface.RecyclerItemClickListener;
 import com.kcirque.stockmanagementfinal.R;
 import com.kcirque.stockmanagementfinal.databinding.FragmentExpenseBinding;
 
@@ -48,6 +50,8 @@ import java.util.List;
 public class ExpenseFragment extends Fragment {
 
     private Context mContext;
+    private FragmentLoader mFragmentLoader;
+
     private FragmentExpenseBinding mBinding;
     private static ExpenseFragment INSTANCE;
     private List<Expense> mExpenseList = new ArrayList<>();
@@ -90,6 +94,7 @@ public class ExpenseFragment extends Fragment {
         Seller seller = mSharedPref.getSeller();
         mAuth = FirebaseAuth.getInstance();
         mUser = mAuth.getCurrentUser();
+        getActivity().setTitle("Expenses");
 
         mBinding.progressBar.setVisibility(View.VISIBLE);
         mBinding.expenseListRecyclerView.setHasFixedSize(true);
@@ -106,14 +111,25 @@ public class ExpenseFragment extends Fragment {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 mExpenseList.clear();
-                for (DataSnapshot postData : dataSnapshot.getChildren()){
+                for (DataSnapshot postData : dataSnapshot.getChildren()) {
                     Expense expense = postData.getValue(Expense.class);
                     mExpenseList.add(expense);
                 }
-                if (mExpenseList.size()>0){
+                if (mExpenseList.size() > 0) {
                     mBinding.progressBar.setVisibility(View.GONE);
-                    ExpenseListAdapter adapter = new ExpenseListAdapter(mContext,mExpenseList);
+                    ExpenseListAdapter adapter = new ExpenseListAdapter(mContext, mExpenseList);
                     mBinding.expenseListRecyclerView.setAdapter(adapter);
+                    adapter.setRecyclerItemClickListener(new RecyclerItemClickListener() {
+                        @Override
+                        public void onClick(View view, int position, Object object) {
+                            Expense expense = (Expense) object;
+                            ExpenseDetailsFragment fragment = ExpenseDetailsFragment.getInstance();
+                            Bundle bundle = new Bundle();
+                            bundle.putSerializable(Constant.EXTRA_EXPENSE, expense);
+                            fragment.setArguments(bundle);
+                            mFragmentLoader.loadFragment(fragment, true, Constant.EXPENSE_DETAILS_FRAGMENT_TAG);
+                        }
+                    });
                 } else {
                     mBinding.emptyExpenseTextView.setVisibility(View.VISIBLE);
                     mBinding.progressBar.setVisibility(View.GONE);
@@ -139,11 +155,12 @@ public class ExpenseFragment extends Fragment {
     public void onAttach(Context context) {
         super.onAttach(context);
         mContext = context;
+        mFragmentLoader = (FragmentLoader) context;
     }
 
     private void newExpenseDialog() {
         AlertDialog.Builder dialog = new AlertDialog.Builder(mContext);
-        View view = LayoutInflater.from(mContext()).inflate(R.layout.add_new_expense, null);
+        View view = LayoutInflater.from(mContext).inflate(R.layout.add_new_expense, null);
         dialog.setView(view);
         dialog.setCancelable(false);
         final EditText expenseNameET = view.findViewById(R.id.expenseNameET);
@@ -230,7 +247,4 @@ public class ExpenseFragment extends Fragment {
         alertDialog.show();
     }
 
-    private Context mContext() {
-        return mContext;
-    }
 }

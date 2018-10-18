@@ -1,6 +1,8 @@
 package com.kcirque.stockmanagementfinal.Database.Model;
 
-public class Customer {
+import java.io.Serializable;
+
+public class Customer implements Serializable {
 
     private String key;
     private int customerId;
@@ -10,6 +12,7 @@ public class Customer {
     private String email;
     private double due;
     private boolean isMercantile;
+    private long dueDate;
 
     public Customer(String key, int customerId, String customerName, String address, String mobile, String email, double due ,boolean isMercantile) {
         this.key = key;
@@ -88,5 +91,13 @@ public class Customer {
 
     public void setDue(double due) {
         this.due = due;
+    }
+
+    public long getDueDate() {
+        return dueDate;
+    }
+
+    public void setDueDate(long dueDate) {
+        this.dueDate = dueDate;
     }
 }

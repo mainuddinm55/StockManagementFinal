@@ -36,7 +36,7 @@ public class StockOutAdapter extends RecyclerView.Adapter<StockOutAdapter.StockO
         stockOutHolder.idTextView.setText(String.valueOf(mProductSell.get(i).getProductId()));
         stockOutHolder.nameTextView.setText(String.valueOf(mProductSell.get(i).getProductName()));
         stockOutHolder.quantityTextView.setText(String.valueOf(mProductSell.get(i).getQuantity()));
-        stockOutHolder.amountTextView.setText(String.valueOf(amount + "BDT"));
+        stockOutHolder.amountTextView.setText(String.valueOf(amount + " BDT"));
     }
 
     @Override

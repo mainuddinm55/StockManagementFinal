@@ -130,6 +130,7 @@ public class LoginActivity extends AppCompatActivity {
                                     mProgressDialog.dismiss();
                                     Toast.makeText(LoginActivity.this, "Login Success", Toast.LENGTH_SHORT).show();
                                     startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                                    overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
                                     finish();
                                 }
                             }
@@ -162,6 +163,7 @@ public class LoginActivity extends AppCompatActivity {
                                             Toast.makeText(LoginActivity.this, "Login Success", Toast.LENGTH_SHORT).show();
                                             startActivity(new Intent(LoginActivity.this, MainActivity.class)
                                                     .putExtra(Constant.ADMIN_UID, adminUid));
+                                            overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
                                             finish();
                                             return;
                                         }

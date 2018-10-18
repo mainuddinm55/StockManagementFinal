@@ -92,6 +92,7 @@ public class StockHandFragment extends Fragment {
         Seller seller = mSharedPref.getSeller();
         mAuth = FirebaseAuth.getInstance();
         mUser = mAuth.getCurrentUser();
+        getActivity().setTitle("Stock Hand");
         mRootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
         mRootRef.keepSynced(true);
         if (mUser != null) {

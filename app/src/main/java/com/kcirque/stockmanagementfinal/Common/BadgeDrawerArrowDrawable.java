@@ -6,6 +6,8 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.support.v7.graphics.drawable.DrawerArrowDrawable;
 
 import java.util.Objects;
@@ -68,6 +70,7 @@ public class BadgeDrawerArrowDrawable extends DrawerArrowDrawable {
         return enabled;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public void setText(String text) {
         if (!Objects.equals(this.text, text)) {
             this.text = text;

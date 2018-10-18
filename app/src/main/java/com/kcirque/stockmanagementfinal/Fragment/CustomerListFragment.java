@@ -83,6 +83,7 @@ public class CustomerListFragment extends Fragment {
         mUser = mAuth.getCurrentUser();
         mRootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
         mRootRef.keepSynced(true);
+        getActivity().setTitle("Customer List");
         if (mUser != null) {
             mAdminRef = mRootRef.child(mUser.getUid());
         } else {
@@ -125,7 +126,7 @@ public class CustomerListFragment extends Fragment {
         mBinding.addCustomerFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mFragmentLoader.loadFragment(CustomerAddFragment.getInstance(), true,Constant.CUSTOMER_ADD_FRAGMENT_TAG);
+                mFragmentLoader.loadFragment(CustomerAddFragment.getInstance(), true, Constant.CUSTOMER_ADD_FRAGMENT_TAG);
             }
         });
 

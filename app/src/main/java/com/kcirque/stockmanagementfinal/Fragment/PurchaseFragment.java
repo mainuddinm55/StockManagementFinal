@@ -84,6 +84,7 @@ public class PurchaseFragment extends Fragment {
     private FragmentLoader mFragmentLoader;
     private String mProductKey;
     private Bundle bundle;
+    private String mProductName;
 
     public static synchronized PurchaseFragment getInstance() {
         if (INSTANCE == null) {
@@ -103,6 +104,24 @@ public class PurchaseFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_purchase, container, false);
+        bundle = getArguments();
+        if (bundle != null) {
+            Product product = (Product) bundle.getSerializable(Constant.EXTRA_PURCHASE_PRODUCT);
+            mBinding.productNameAct.setText(product.getProductName());
+            mProductId = product.getProductId();
+            mProductName = product.getProductName();
+
+        }/* else {
+            mBinding.productNameAct.setText(null);
+        }
+        mBinding.companyNameEdittext.setText(null);
+        mBinding.buyPriceEdittext.setText(null);
+        mBinding.sellPriceEdittext.setText(null);
+        mBinding.quantityEdittext.setText(null);
+        mBinding.totalAmountTextview.setText(null);
+        mBinding.paidAmountEdittext.setText(null);
+        mBinding.dueAmountTextview.setText(null);
+        mBinding.purchaseDateEdittext.setText(null);*/
         return mBinding.getRoot();
     }
 
@@ -112,7 +131,7 @@ public class PurchaseFragment extends Fragment {
         Seller seller = mSharedPref.getSeller();
         mAuth = FirebaseAuth.getInstance();
         mUser = mAuth.getCurrentUser();
-
+        getActivity().setTitle("Product Stock In");
         DatabaseReference mRootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
         mRootRef.keepSynced(true);
         if (mUser != null) {
@@ -130,36 +149,34 @@ public class PurchaseFragment extends Fragment {
         mDateConverter = new DateConverter();
 
 
-        new Thread(new Runnable() {
+        mProductRef.addValueEventListener(new ValueEventListener() {
             @Override
-            public void run() {
-                mProductRef.addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        mProductList.clear();
-                        for (DataSnapshot postData : dataSnapshot.getChildren()) {
-                            Product product = postData.getValue(Product.class);
-                            mProductList.add(product);
-                        }
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                mProductList.clear();
+                for (DataSnapshot postData : dataSnapshot.getChildren()) {
+                    Product product = postData.getValue(Product.class);
+                    mProductList.add(product);
+                }
 
-                        if (mProductList.size() > 0) {
-                            AutoCompleteProductAdapter aptAdapter = new AutoCompleteProductAdapter(mContext, mProductList);
-                            mBinding.productNameAct.setAdapter(aptAdapter);
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                });
+                if (mProductList.size() > 0) {
+                    AutoCompleteProductAdapter aptAdapter = new AutoCompleteProductAdapter(mContext, mProductList);
+                    mBinding.productNameAct.setAdapter(aptAdapter);
+                }
             }
-        }).start();
 
-        mBinding.productNameAct.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+        mBinding.productNameAct.setOnItemClickListener(new AdapterView.OnItemClickListener()
+
+        {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 mProductId = ((Product) parent.getItemAtPosition(position)).getProductId();
+                mProductName = ((Product) parent.getItemAtPosition(position)).getProductName();
                 mBinding.productNameAct.setText(((Product) parent.getItemAtPosition(position)).getProductName());
                 Log.e(TAG, "onItemClick: " + ((Product) parent.getItemAtPosition(position)).getProductName());
             }
@@ -257,7 +274,8 @@ public class PurchaseFragment extends Fragment {
                         sel++;
                     }
                     //Fix for pressing delete next to a forward slash
-                    if (clean.equals(cleanC)) sel--;
+                    if (clean.equals(cleanC))
+                        sel--;
 
                     if (clean.length() < 8) {
                         clean = clean + ddmmyyyy.substring(clean.length());
@@ -298,7 +316,9 @@ public class PurchaseFragment extends Fragment {
             }
         });
 
-        mBinding.purchaseDateEdittext.setOnClickListener(new View.OnClickListener() {
+        mBinding.purchaseDateEdittext.setOnClickListener(new View.OnClickListener()
+
+        {
             @Override
             public void onClick(View v) {
                 final DatePickerDialog datePickerDialog = new DatePickerDialog(mContext, new DatePickerDialog.OnDateSetListener() {
@@ -331,14 +351,16 @@ public class PurchaseFragment extends Fragment {
         mBinding.productNameAct.setValidator(new AutoCompleteTextView.Validator() {
             @Override
             public boolean isValid(CharSequence text) {
+                boolean isValid = false;
                 for (Product product : mProductList) {
                     if (product.getProductName().toLowerCase().equals(text.toString().toLowerCase())) {
                         mProductKey = product.getKey();
-                        return true;
+                        isValid = true;
+                        return isValid;
                     } else
-                        return false;
+                        isValid = false;
                 }
-                return false;
+                return isValid;
             }
 
             @Override
@@ -349,17 +371,19 @@ public class PurchaseFragment extends Fragment {
             }
         });
 
-        mBinding.addPurchaseBtn.setOnClickListener(new View.OnClickListener() {
+
+        mBinding.addPurchaseBtn.setOnClickListener(new View.OnClickListener()
+
+        {
             private int quantity;
 
             @Override
             public void onClick(View v) {
-
                 if (mBinding.productNameAct.getText().toString().length() < 1) {
                     mBinding.productNameAct.setError("Product Name Required");
                     mBinding.productNameAct.requestFocus();
                     return;
-                } else if (!mBinding.productNameAct.getValidator().isValid(mBinding.productNameAct.getText())) {
+                } else if (!mBinding.productNameAct.getValidator().isValid(mBinding.productNameAct.getText().toString())) {
                     mBinding.productNameAct.setError("this product not found. add this product before purchase");
                     mBinding.productNameAct.requestFocus();
                     return;
@@ -399,7 +423,7 @@ public class PurchaseFragment extends Fragment {
                 double sellPrice = Double.parseDouble(mBinding.sellPriceEdittext.getText().toString());
                 double paidAmt = Double.parseDouble(mBinding.paidAmountEdittext.getText().toString());
                 String key = mPurchaseRef.push().getKey();
-                final Purchase purchase = new Purchase(key, mProductId, companyName, mBuyPrice, sellPrice, mQuantity, mPurchaseDate, mTotalAmount, paidAmt, mDueAmount);
+                final Purchase purchase = new Purchase(key, mProductId, mProductName, companyName, mBuyPrice, sellPrice, mQuantity, mPurchaseDate, mTotalAmount, paidAmt, mDueAmount);
                 mPurchaseRef.child(String.valueOf(mProductId)).child(key).setValue(purchase).addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
@@ -411,6 +435,14 @@ public class PurchaseFragment extends Fragment {
                                     if (stockHand != null) {
                                         quantity = stockHand.getPurchaseQuantity();
                                     }
+                                    mProductRef.child(mProductKey).child("buyPrice").setValue(purchase.getActualPrice());
+                                    mProductRef.child(mProductKey).child("sellPrice").setValue(purchase.getSellingPrice());
+                                    mProductRef.child(mProductKey).child("company").setValue(purchase.getCompanyName());
+                                    Snackbar.make(mBinding.rootView, "Purchase Added", Snackbar.LENGTH_SHORT).show();
+                                    mStockRef.child(String.valueOf(mProductId)).child("buyPrice").setValue(purchase.getActualPrice());
+                                    mStockRef.child(String.valueOf(mProductId)).child("productId").setValue(purchase.getProductId());
+                                    mStockRef.child(String.valueOf(mProductId)).child("purchaseQuantity").setValue(quantity + mQuantity);
+                                    mFragmentLoader.loadFragment(HomeFragment.getInstance(), false, Constant.HOME_FRAGMENT_TAG);
                                 }
 
                                 @Override
@@ -418,15 +450,7 @@ public class PurchaseFragment extends Fragment {
 
                                 }
                             });
-                            Constant.SELECTED_PRODUCT_ID = mProductId;
-                            mProductRef.child(mProductKey).child("buyPrice").setValue(purchase.getActualPrice());
-                            mProductRef.child(mProductKey).child("sellPrice").setValue(purchase.getSellingPrice());
-                            mProductRef.child(mProductKey).child("company").setValue(purchase.getCompanyName());
-                            Snackbar.make(mBinding.rootView, "Purchase Added", Snackbar.LENGTH_SHORT).show();
-                            mStockRef.child(String.valueOf(mProductId)).child("buyPrice").setValue(purchase.getActualPrice());
-                            mStockRef.child(String.valueOf(mProductId)).child("productId").setValue(purchase.getProductId());
-                            mStockRef.child(String.valueOf(mProductId)).child("purchaseQuantity").setValue(quantity + mQuantity);
-                            mFragmentLoader.loadFragment(HomeFragment.getInstance(), false, Constant.HOME_FRAGMENT_TAG);
+
                         }
                     }
                 });
@@ -438,23 +462,6 @@ public class PurchaseFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        bundle = getArguments();
-        if (bundle != null) {
-            Product product = (Product) bundle.getSerializable(Constant.EXTRA_PURCHASE_PRODUCT);
-            mBinding.productNameAct.setText(product.getProductName());
-            mProductId = product.getProductId();
-
-        } else {
-            mBinding.productNameAct.setText(null);
-        }
-        mBinding.companyNameEdittext.setText(null);
-        mBinding.buyPriceEdittext.setText(null);
-        mBinding.sellPriceEdittext.setText(null);
-        mBinding.quantityEdittext.setText(null);
-        mBinding.totalAmountTextview.setText(null);
-        mBinding.paidAmountEdittext.setText(null);
-        mBinding.dueAmountTextview.setText(null);
-        mBinding.purchaseDateEdittext.setText(null);
     }
 
     @Override

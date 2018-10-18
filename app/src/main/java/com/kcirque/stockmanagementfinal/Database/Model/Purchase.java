@@ -4,6 +4,7 @@ public class Purchase {
 
     private String key;
     private int productId;
+    private String productName;
     private String companyName;
     private double actualPrice;
     private double sellingPrice;
@@ -13,9 +14,10 @@ public class Purchase {
     private double paidAmount;
     private double dueAmount;
 
-    public Purchase(String key, int productId, String companyName, double actualPrice, double sellingPrice, int quantity, long purchaseDate, double totalPrice, double paidAmount, double dueAmount) {
+    public Purchase(String key, int productId, String productName, String companyName, double actualPrice, double sellingPrice, int quantity, long purchaseDate, double totalPrice, double paidAmount, double dueAmount) {
         this.key = key;
         this.productId = productId;
+        this.productName = productName;
         this.companyName = companyName;
         this.actualPrice = actualPrice;
         this.sellingPrice = sellingPrice;
@@ -29,8 +31,24 @@ public class Purchase {
     public Purchase() {
     }
 
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
+    }
+
     public int getProductId() {
         return productId;
+    }
+
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
     }
 
     public void setProductId(int productId) {

@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import com.kcirque.stockmanagementfinal.Common.DateConverter;
 import com.kcirque.stockmanagementfinal.Database.Model.Expense;
+import com.kcirque.stockmanagementfinal.Interface.RecyclerItemClickListener;
 import com.kcirque.stockmanagementfinal.R;
 
 import java.util.ArrayList;
@@ -20,6 +21,11 @@ public class ExpenseListAdapter extends RecyclerView.Adapter<ExpenseListAdapter.
 
     private Context mContext;
     private List<Expense> mExpenseList = new ArrayList<>();
+    private RecyclerItemClickListener mRecyclerItemClickListener;
+
+    public void setRecyclerItemClickListener(RecyclerItemClickListener recyclerItemClickListener) {
+        this.mRecyclerItemClickListener = recyclerItemClickListener;
+    }
 
     public ExpenseListAdapter(Context context, List<Expense> expenseList) {
         this.mContext = context;
@@ -29,16 +35,22 @@ public class ExpenseListAdapter extends RecyclerView.Adapter<ExpenseListAdapter.
     @NonNull
     @Override
     public ExpenseHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-        View view = LayoutInflater.from(mContext).inflate(R.layout.expense_row_item,viewGroup,false);
+        View view = LayoutInflater.from(mContext).inflate(R.layout.expense_row_item, viewGroup, false);
         return new ExpenseHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ExpenseHolder expenseHolder, int i) {
+    public void onBindViewHolder(@NonNull ExpenseHolder expenseHolder, final int i) {
         DateConverter converter = new DateConverter();
         expenseHolder.expenseNameTextView.setText(mExpenseList.get(i).getExpenseName());
-        expenseHolder.ExpenseAmountTextView.setText(mExpenseList.get(i).getExpenseAmount()+" BDT");
+        expenseHolder.ExpenseAmountTextView.setText(mExpenseList.get(i).getExpenseAmount() + " BDT");
         expenseHolder.expenseDateTextView.setText(converter.getDateInString(mExpenseList.get(i).getDate()));
+        expenseHolder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mRecyclerItemClickListener.onClick(v, i, mExpenseList.get(i));
+            }
+        });
     }
 
     @Override
@@ -46,9 +58,10 @@ public class ExpenseListAdapter extends RecyclerView.Adapter<ExpenseListAdapter.
         return mExpenseList.size();
     }
 
-    public class ExpenseHolder extends RecyclerView.ViewHolder{
+    public class ExpenseHolder extends RecyclerView.ViewHolder {
 
         public TextView expenseNameTextView, expenseDateTextView, ExpenseAmountTextView;
+
         public ExpenseHolder(@NonNull View itemView) {
             super(itemView);
             expenseNameTextView = itemView.findViewById(R.id.expenseName);

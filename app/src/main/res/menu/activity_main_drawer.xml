@@ -19,24 +19,38 @@
         android:id="@+id/nav_seller"
         android:icon="@drawable/client"
         android:title="@string/seller_text"
-        app:actionViewClass="android.widget.TextView"/>
+        app:actionViewClass="android.widget.TextView" />
+    <item
+        android:id="@+id/nav_salry"
+        android:icon="@drawable/ic_salary"
+        android:title="@string/salary_text" />
 
-    <item android:id="@+id/nav_message"
-        android:title="@string/message_text"
+    <item
+        android:id="@+id/nav_message"
         android:icon="@drawable/ic_email"
-        app:actionViewClass="android.widget.TextView"/>
+        android:title="@string/message_text"
+        app:actionViewClass="android.widget.TextView" />
     <item
         android:id="@+id/nav_stock_out"
         android:icon="@drawable/ic_stock_out"
-        android:title="@string/stock_out_text" />
+        android:title="@string/sales_reports_text" />
+
+    <item
+        android:id="@+id/nav_daily_report"
+        android:icon="@drawable/ic_chart"
+        android:title="@string/daily_report_text" />
     <item
         android:id="@+id/nav_due"
         android:icon="@drawable/ic_due"
-        android:title="@string/due_text" />
+        android:title="@string/total_due_text" />
     <item
         android:id="@+id/nav_add_expense"
         android:icon="@drawable/ic_expense"
         android:title="@string/expense_text" />
+    <item
+        android:id="@+id/nav_settings"
+        android:icon="@drawable/ic_settings"
+        android:title="@string/action_settings" />
 
     <item
         android:id="@+id/nav_logout"

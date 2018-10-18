@@ -66,6 +66,7 @@ public class SellerAddFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        getActivity().setTitle("Add a Seller");
         if (user != null) {
             mBinding.addSellerBtn.setOnClickListener(new View.OnClickListener() {
                 @Override

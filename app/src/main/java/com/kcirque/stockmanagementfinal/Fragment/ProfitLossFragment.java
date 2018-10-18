@@ -75,7 +75,7 @@ public class ProfitLossFragment extends Fragment {
         String[] profit_loss_type = getResources().getStringArray(R.array.profit_loss_type);
         ArrayAdapter<String> adapter = new ArrayAdapter<>(mContext,R.layout.stock_type_list_item,profit_loss_type);
         mBinding.profitLossTypeListView.setAdapter(adapter);
-
+        getActivity().setTitle("Profit Loss");
         mBinding.profitLossTypeListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {

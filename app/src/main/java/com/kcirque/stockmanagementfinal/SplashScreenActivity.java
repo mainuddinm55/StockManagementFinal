@@ -1,6 +1,10 @@
 package com.kcirque.stockmanagementfinal;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -23,6 +27,7 @@ public class SplashScreenActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash_screen);
+
         ImageView imageView = findViewById(R.id.imageView);
         Animation animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade);
         imageView.startAnimation(animation);
@@ -33,6 +38,7 @@ public class SplashScreenActivity extends AppCompatActivity {
         final Seller seller = mSharedPref.getSeller();
         final FirebaseUser user = mAuth.getCurrentUser();
 
+
         Thread timer = new Thread() {
 
             @Override
@@ -42,14 +48,19 @@ public class SplashScreenActivity extends AppCompatActivity {
                     sleep(3000);
                     if (user != null) {
                         startActivity(new Intent(SplashScreenActivity.this, MainActivity.class));
+                        overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
                         finish();
+                        overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
                     } else if (seller != null) {
                         Log.e(TAG, "onCreate: " + seller.getAdminUid() + seller.getName());
                         startActivity(new Intent(SplashScreenActivity.this, MainActivity.class));
+                        overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
                         finish();
+
                     } else {
                         Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
                         startActivity(intent);
+                        overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
                         finish();
                     }
                     super.run();
@@ -63,4 +74,6 @@ public class SplashScreenActivity extends AppCompatActivity {
 
         timer.start();
     }
+
+
 }

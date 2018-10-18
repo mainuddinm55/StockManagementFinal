@@ -6,7 +6,7 @@
     android:textStyle="normal"
     android:layout_margin="10dp"
     android:padding="10dp"
-    tools:text="@string/stock_out_text"
+    tools:text="@string/sales_reports_text"
     android:layout_height="wrap_content">
 
 

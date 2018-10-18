@@ -6,6 +6,7 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.PluralsRes;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
@@ -30,6 +31,7 @@ import com.kcirque.stockmanagementfinal.Common.SharedPref;
 import com.kcirque.stockmanagementfinal.Database.Model.Product;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.Interface.FragmentLoader;
+import com.kcirque.stockmanagementfinal.Interface.RecyclerItemClickListener;
 import com.kcirque.stockmanagementfinal.R;
 
 import java.util.ArrayList;
@@ -91,10 +93,9 @@ public class ProductListFragment extends Fragment {
         mProgressBar = view.findViewById(R.id.progress_bar);
 
         mProductListRecyclerView.setHasFixedSize(true);
-        if(getActivity().getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT){
+        if (getActivity().getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
             mProductListRecyclerView.setLayoutManager(new GridLayoutManager(mContext, 2));
-        }
-        else{
+        } else {
             mProductListRecyclerView.setLayoutManager(new GridLayoutManager(mContext, 3));
         }
 
@@ -108,40 +109,48 @@ public class ProductListFragment extends Fragment {
         mProductRef = mAdminRef.child(Constant.PRODUCT_REF);
         mProductRef.keepSynced(true);
         mProgressBar.setVisibility(View.VISIBLE);
-        new Thread(new Runnable() {
+        getActivity().setTitle("All Products");
+        mProductRef.addValueEventListener(new ValueEventListener() {
             @Override
-            public void run() {
-                mProductRef.addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        mProductList.clear();
-                        for (DataSnapshot postData : dataSnapshot.getChildren()) {
-                            Product product = postData.getValue(Product.class);
-                            mProductList.add(product);
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                mProductList.clear();
+                for (DataSnapshot postData : dataSnapshot.getChildren()) {
+                    Product product = postData.getValue(Product.class);
+                    mProductList.add(product);
+                }
+                if (mProductList.size() > 0) {
+                    mEmptyProductTextView.setVisibility(View.GONE);
+                    mProgressBar.setVisibility(View.GONE);
+                    ProductListAdapter adapter = new ProductListAdapter(mContext, mProductList);
+                    mProductListRecyclerView.setAdapter(adapter);
+                    adapter.setRecyclerItemClickListener(new RecyclerItemClickListener() {
+                        @Override
+                        public void onClick(View view, int position, Object object) {
+                            Product product = (Product) object;
+                            ProductDetailsFragment fragment = ProductDetailsFragment.getInstance();
+                            Bundle bundle = new Bundle();
+                            bundle.putSerializable(Constant.EXTRA_PRODUCT, product);
+                            fragment.setArguments(bundle);
+                            mFragmentLoader.loadFragment(fragment, true, Constant.PRODUCT_DETAILS_FRAGMENT_TAG);
                         }
-                        if (mProductList.size() > 0) {
-                            mEmptyProductTextView.setVisibility(View.GONE);
-                            mProgressBar.setVisibility(View.GONE);
-                            ProductListAdapter adapter = new ProductListAdapter(mContext, mProductList);
-                            mProductListRecyclerView.setAdapter(adapter);
-                        } else {
-                            mProgressBar.setVisibility(View.GONE);
-                            mEmptyProductTextView.setVisibility(View.VISIBLE);
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                    }
-                });
+                    });
+                } else {
+                    mProgressBar.setVisibility(View.GONE);
+                    mEmptyProductTextView.setVisibility(View.VISIBLE);
+                }
             }
-        }).start();
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
 
         mAddProductFab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mFragmentLoader.loadFragment(ProductAddFragment.getInstance(), true,Constant.PRODUCT_ADD_FRAGMENT_TAG);
+                mFragmentLoader.loadFragment(ProductAddFragment.getInstance(), true, Constant.PRODUCT_ADD_FRAGMENT_TAG);
             }
         });
     }

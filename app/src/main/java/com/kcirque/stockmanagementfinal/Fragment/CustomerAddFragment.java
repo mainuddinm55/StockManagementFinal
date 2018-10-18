@@ -82,6 +82,7 @@ public class CustomerAddFragment extends Fragment {
         mUser = mAuth.getCurrentUser();
         mRootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
         mRootRef.keepSynced(true);
+        getActivity().setTitle("Add a Customer");
         if (mUser != null) {
             mAdminRef = mRootRef.child(mUser.getUid());
         } else {

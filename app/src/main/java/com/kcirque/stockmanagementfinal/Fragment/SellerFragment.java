@@ -80,6 +80,7 @@ public class SellerFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         mAuth = FirebaseAuth.getInstance();
         mUser = mAuth.getCurrentUser();
+        getActivity().setTitle("Seller");
         mBinding.progressBar.setVisibility(View.VISIBLE);
         DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
         if (mUser != null) {
@@ -145,6 +146,7 @@ public class SellerFragment extends Fragment {
                             Seller seller = (Seller) object;
                             intent.putExtra(Constant.EXTRA_SELLER, seller);
                             startActivity(intent);
+                            getActivity().overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
                         }
                     });
                 } else {

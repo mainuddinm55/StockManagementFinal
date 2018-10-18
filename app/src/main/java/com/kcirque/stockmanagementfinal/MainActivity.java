@@ -1,10 +1,16 @@
 package com.kcirque.stockmanagementfinal;
 
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.Typeface;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import android.support.design.widget.NavigationView;
+import android.support.transition.Fade;
+import android.support.transition.Slide;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
@@ -21,9 +27,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.RequestOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
@@ -41,20 +51,29 @@ import com.kcirque.stockmanagementfinal.Database.Model.Category;
 import com.kcirque.stockmanagementfinal.Database.Model.Chat;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.Database.Model.StockHand;
+import com.kcirque.stockmanagementfinal.Fragment.DailyCostFragment;
 import com.kcirque.stockmanagementfinal.Fragment.DueFragment;
 import com.kcirque.stockmanagementfinal.Fragment.ExpenseFragment;
 import com.kcirque.stockmanagementfinal.Fragment.HomeFragment;
 import com.kcirque.stockmanagementfinal.Fragment.ReminderFragment;
+import com.kcirque.stockmanagementfinal.Fragment.SalaryFragment;
 import com.kcirque.stockmanagementfinal.Fragment.SellerFragment;
+import com.kcirque.stockmanagementfinal.Fragment.SettingFragment;
 import com.kcirque.stockmanagementfinal.Fragment.StockOutFragment;
 import com.kcirque.stockmanagementfinal.Interface.FragmentLoader;
+import com.kcirque.stockmanagementfinal.Service.SinchService;
+import com.sinch.android.rtc.SinchError;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, FragmentLoader {
+import de.hdodenhof.circleimageview.CircleImageView;
+import uk.co.chrisjenx.calligraphy.CalligraphyConfig;
+import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
+
+public class MainActivity extends BaseActivity
+        implements NavigationView.OnNavigationItemSelectedListener, FragmentLoader, SinchService.StartFailedListener {
 
     private static final String TAG = "MainActivity";
     private static final int MESSAGE_READ_CODE = 10;
@@ -83,12 +102,18 @@ public class MainActivity extends AppCompatActivity
     private Seller mSeller;
     private int mTotalMessage = 0;
 
+    private View mHeaderView;
     private ValueEventListener listener;
 
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase));
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        CalligraphyConfig.initDefault(new CalligraphyConfig.Builder().build());
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -101,6 +126,11 @@ public class MainActivity extends AppCompatActivity
         mToggle.syncState();
 
         mNavigationView = (NavigationView) findViewById(R.id.nav_view);
+        mHeaderView = mNavigationView.getHeaderView(0);
+        final CircleImageView logoImageView = mHeaderView.findViewById(R.id.logoImageView);
+        final TextView titleTextView = mHeaderView.findViewById(R.id.title_text_view);
+
+
         mNavigationView.setNavigationItemSelectedListener(this);
 
         mSharedPref = new SharedPref(this);
@@ -125,7 +155,37 @@ public class MainActivity extends AppCompatActivity
         mCategoryRef = mAdminRef.child(Constant.CATEGORY_REF);
         mChatRef = mAdminRef.child(Constant.CHAT_REF);
 
+
+        mAdminRef.child(Constant.COMPANY_NAME_REF).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                String title = dataSnapshot.getValue(String.class);
+                titleTextView.setText(title);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+        mAdminRef.child(Constant.LOGO_URL_REF).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                String ulr = dataSnapshot.getValue(String.class);
+                Glide.with(MainActivity.this).load(ulr)
+                        .apply(RequestOptions.placeholderOf(R.mipmap.ic_header_logo_round))
+                        .apply(RequestOptions.diskCacheStrategyOf(DiskCacheStrategy.ALL))
+                        .into(logoImageView);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
         mStockRef.addValueEventListener(new ValueEventListener() {
+            @RequiresApi(api = Build.VERSION_CODES.KITKAT)
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 mCount = 0;
@@ -142,7 +202,11 @@ public class MainActivity extends AppCompatActivity
                 }
 
                 if (mCount > 0) {
+                    mBadgeDrawable.setBackgroundColor(Color.RED);
                     mToggle.setDrawerArrowDrawable(mBadgeDrawable);
+                    initializeCountDrawer();
+                } else {
+                    mBadgeDrawable.setBackgroundColor(Color.TRANSPARENT);
                     initializeCountDrawer();
                 }
 
@@ -157,8 +221,10 @@ public class MainActivity extends AppCompatActivity
 
         HomeFragment fragment = HomeFragment.getInstance();
         loadFragment(fragment, false, Constant.HOME_FRAGMENT_TAG);
+
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     private void initializeMessageCount() {
         if (mUser != null) {
             if (mTotalMessage > 0) {
@@ -191,6 +257,7 @@ public class MainActivity extends AppCompatActivity
         Fragment productListFragment = getSupportFragmentManager().findFragmentByTag(Constant.PRODUCT_LIST_FRAGMENT_TAG);
         Fragment customerListFragment = getSupportFragmentManager().findFragmentByTag(Constant.CUSTOMER_LIST_FRAGMENT_TAG);
         Fragment sellerFragment = getSupportFragmentManager().findFragmentByTag(Constant.SELLER_FRAGMENT_TAG);
+        Fragment salaryFragment = getSupportFragmentManager().findFragmentByTag(Constant.SALARY_FRAGMENT_TAG);
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
@@ -199,11 +266,14 @@ public class MainActivity extends AppCompatActivity
             intent.addCategory(Intent.CATEGORY_HOME);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
+            overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
         } else if (productListFragment != null && productListFragment.isVisible()) {
             loadFragment(HomeFragment.getInstance(), false, Constant.HOME_FRAGMENT_TAG);
         } else if (customerListFragment != null && customerListFragment.isVisible()) {
             loadFragment(HomeFragment.getInstance(), false, Constant.HOME_FRAGMENT_TAG);
         } else if (sellerFragment != null && sellerFragment.isVisible()) {
+            loadFragment(HomeFragment.getInstance(), false, Constant.HOME_FRAGMENT_TAG);
+        } else if (salaryFragment != null && salaryFragment.isVisible()) {
             loadFragment(HomeFragment.getInstance(), false, Constant.HOME_FRAGMENT_TAG);
         } else {
             super.onBackPressed();
@@ -242,14 +312,23 @@ public class MainActivity extends AppCompatActivity
                 fragment = SellerFragment.getInstance();
                 tag = Constant.SELLER_FRAGMENT_TAG;
                 break;
+            case R.id.nav_salry:
+                fragment = SalaryFragment.getInstance();
+                tag = Constant.SALARY_FRAGMENT_TAG;
+                break;
             case R.id.nav_message:
                 Intent intent = new Intent(MainActivity.this, ChatActivity.class);
                 intent.putExtra(Constant.EXTRA_SELLER, mSeller);
                 startActivityForResult(intent, MESSAGE_READ_CODE);
+                overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
                 break;
             case R.id.nav_stock_out:
                 fragment = StockOutFragment.getInstance();
                 tag = Constant.STOCK_OUT_FRAGMENT_TAG;
+                break;
+            case R.id.nav_daily_report:
+                startActivity(new Intent(MainActivity.this, DailyReportActivity.class));
+                overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
                 break;
             case R.id.nav_due:
                 fragment = DueFragment.getInstance();
@@ -259,6 +338,10 @@ public class MainActivity extends AppCompatActivity
                 fragment = ExpenseFragment.getInstance();
                 tag = Constant.EXPENSE_FRAGMENT_TAG;
                 break;
+            case R.id.nav_settings:
+                fragment = SettingFragment.getInstance();
+                tag = Constant.SETTING_FRAGMENT_TAG;
+                break;
             case R.id.nav_logout:
                 if (mUser != null) {
                     mAuth.signOut();
@@ -266,6 +349,7 @@ public class MainActivity extends AppCompatActivity
                     mSharedPref.logOut();
                 }
                 startActivity(new Intent(MainActivity.this, LoginActivity.class));
+                overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
                 finish();
                 break;
         }
@@ -280,6 +364,7 @@ public class MainActivity extends AppCompatActivity
         Menu nav_Menu = mNavigationView.getMenu();
         if (mUser == null) {
             nav_Menu.findItem(R.id.nav_seller).setVisible(false);
+            nav_Menu.findItem(R.id.nav_salry).setVisible(false);
         } else {
             nav_Menu.findItem(R.id.nav_message).setVisible(false);
         }
@@ -289,6 +374,7 @@ public class MainActivity extends AppCompatActivity
     public void loadFragment(Fragment fragment, boolean isBack, String tag) {
 
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.setCustomAnimations(R.anim.fade_in,R.anim.fade_out);
         ft.replace(R.id.main_fragment_container, fragment, tag);
         if (isBack) {
             ft.addToBackStack(null);
@@ -296,13 +382,21 @@ public class MainActivity extends AppCompatActivity
         ft.commitAllowingStateLoss();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     private void initializeCountDrawer() {
         //Gravity property aligns the text
         reminderCounterTextView.setGravity(Gravity.CENTER_VERTICAL);
         reminderCounterTextView.setTypeface(null, Typeface.BOLD);
         reminderCounterTextView.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
-        mBadgeDrawable.setText((mCount + mTotalMessage) + "");
-        reminderCounterTextView.setText("" + mCount);
+
+        if (mCount > 0 || mTotalMessage > 0) {
+            reminderCounterTextView.setText("" + mCount);
+            mBadgeDrawable.setText((mCount + mTotalMessage) + "");
+        } else {
+            reminderCounterTextView.setText(null);
+            mBadgeDrawable.setText((null));
+        }
+
     }
 
     private void showCategoryDialog() {
@@ -367,6 +461,7 @@ public class MainActivity extends AppCompatActivity
 
     public void unreadMessage() {
         listener = mChatRef.addValueEventListener(new ValueEventListener() {
+            @RequiresApi(api = Build.VERSION_CODES.KITKAT)
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 mTotalMessage = 0;
@@ -415,4 +510,31 @@ public class MainActivity extends AppCompatActivity
         unreadMessage();
         super.onRestart();
     }
+
+    @Override
+    public void onStartFailed(SinchError error) {
+
+    }
+
+    @Override
+    public void onStarted() {
+
+    }
+
+    @Override
+    protected void onServiceConnected() {
+        super.onServiceConnected();
+        getSinchServiceInterface().setStartFailedListener(this);
+        String username;
+        if (mUser != null) {
+            username = mUser.getUid();
+        } else {
+            username = mSeller.getKey();
+        }
+
+        if (!getSinchServiceInterface().isStarted()) {
+            getSinchServiceInterface().startClient(username);
+        }
+    }
+
 }

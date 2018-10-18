@@ -99,6 +99,24 @@ public class StockOutReportFragment extends Fragment {
         Bundle bundle = getArguments();
         if (bundle != null) {
             mStockType = bundle.getInt(Constant.EXTRA_STOCK_OUT_TYPE);
+            switch (mStockType) {
+                case StockOutFragment.TODAY_TYPE:
+                    getActivity().setTitle("Today Sales Reports");
+                    break;
+                case StockOutFragment.DAY_7_TYPE:
+                    getActivity().setTitle("7 Day's Sales Reports");
+                    break;
+                case StockOutFragment.WEEK_TYPE:
+                    getActivity().setTitle("Last Week Sales Reports");
+                    break;
+                case StockOutFragment.DAY_30_TYPE:
+                    getActivity().setTitle("30 Day's Sales Reports");
+                    break;
+                case StockOutFragment.MONTH_TYPE:
+                    getActivity().setTitle("Last Month Sales Reports");
+                    break;
+
+            }
         }
 
         mSalesRef.addValueEventListener(new ValueEventListener() {
@@ -155,36 +173,37 @@ public class StockOutReportFragment extends Fragment {
                                 break;
                         }
                     }
-                    if (mProductSellList.size() > 0) {
-                        Log.e(TAG, "Product List Size " + mProductSellList.size());
-                        List<ProductSell> productSellList = new ArrayList<>();
-                        for (int i = 0; i < mProductSellList.size(); i++) {
-                            int productId = mProductSellList.get(i).getProductId();
-                            int quantity = mProductSellList.get(i).getQuantity();
-                            String name = mProductSellList.get(i).getProductName();
-                            double price = mProductSellList.get(i).getPrice();
-                            for (int j = 0; j < mProductSellList.size(); j++) {
-                                if (i == j) {
-                                    continue;
-                                }
-                                if (mProductSellList.get(i).getProductId() == mProductSellList.get(j).getProductId()) {
-                                    quantity = quantity + mProductSellList.get(j).getQuantity();
-                                    mProductSellList.remove(mProductSellList.get(j));
-                                }
-                            }
-                            ProductSell productSell = new ProductSell(productId, name, quantity, price);
-                            productSellList.add(productSell);
-                        }
 
-                        if (productSellList.size() > 0) {
-                            mBinding.progressBar.setVisibility(View.GONE);
-                            StockOutAdapter adapter = new StockOutAdapter(mContext, productSellList);
-                            mBinding.stockOutRecyclerView.setAdapter(adapter);
+                }
+                if (mProductSellList.size() > 0) {
+                    Log.e(TAG, "Product List Size " + mProductSellList.size());
+                    List<ProductSell> productSellList = new ArrayList<>();
+                    for (int i = 0; i < mProductSellList.size(); i++) {
+                        int productId = mProductSellList.get(i).getProductId();
+                        int quantity = mProductSellList.get(i).getQuantity();
+                        String name = mProductSellList.get(i).getProductName();
+                        double price = mProductSellList.get(i).getPrice();
+                        for (int j = 0; j < mProductSellList.size(); j++) {
+                            if (i == j) {
+                                continue;
+                            }
+                            if (mProductSellList.get(i).getProductId() == mProductSellList.get(j).getProductId()) {
+                                quantity = quantity + mProductSellList.get(j).getQuantity();
+                                mProductSellList.remove(mProductSellList.get(j));
+                            }
                         }
-                    } else {
-                        mBinding.progressBar.setVisibility(View.GONE);
-                        mBinding.emptyStockOutTextView.setVisibility(View.VISIBLE);
+                        ProductSell productSell = new ProductSell(productId, name, quantity, price);
+                        productSellList.add(productSell);
                     }
+
+                    if (productSellList.size() > 0) {
+                        mBinding.progressBar.setVisibility(View.GONE);
+                        StockOutAdapter adapter = new StockOutAdapter(mContext, productSellList);
+                        mBinding.stockOutRecyclerView.setAdapter(adapter);
+                    }
+                } else {
+                    mBinding.progressBar.setVisibility(View.GONE);
+                    mBinding.emptyStockOutTextView.setVisibility(View.VISIBLE);
                 }
             }
 

@@ -26,6 +26,7 @@ import com.kcirque.stockmanagementfinal.Common.SharedPref;
 import com.kcirque.stockmanagementfinal.Database.Model.Expense;
 import com.kcirque.stockmanagementfinal.Database.Model.ProductSell;
 import com.kcirque.stockmanagementfinal.Database.Model.Purchase;
+import com.kcirque.stockmanagementfinal.Database.Model.Salary;
 import com.kcirque.stockmanagementfinal.Database.Model.Sales;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.Database.Model.StockHand;
@@ -50,7 +51,6 @@ public class ProfitLossReportFragment extends Fragment {
     private DatabaseReference mAdminRef;
     private DatabaseReference mPurchaseRef;
     private DatabaseReference mSalesRef;
-    private DatabaseReference mStockRef;
     private DatabaseReference mExpenseRef;
     private DateConverter mDateConverter;
 
@@ -63,6 +63,8 @@ public class ProfitLossReportFragment extends Fragment {
     private List<StockHand> mStockList = new ArrayList<>();
     private List<ProductSell> mProductSell = new ArrayList<>();
     private StockHand stockHand = null;
+    private DatabaseReference mSalaryRef;
+    private double mTotalSalary = 0;
 
     public static synchronized ProfitLossReportFragment getInstance() {
         if (INSTANCE == null) {
@@ -101,13 +103,31 @@ public class ProfitLossReportFragment extends Fragment {
         }
         mPurchaseRef = mAdminRef.child(Constant.PURCHASE_REF);
         mSalesRef = mAdminRef.child(Constant.SALES_REF);
-        mStockRef = mAdminRef.child(Constant.STOCK_HAND_REF);
+        mSalaryRef = mAdminRef.child(Constant.SALARY_REF);
         mExpenseRef = mAdminRef.child(Constant.EXPENSE_REF);
         mBinding.linearLayout.setVisibility(View.GONE);
         mBinding.progressBar.setVisibility(View.VISIBLE);
         Bundle bundle = getArguments();
         if (bundle != null) {
             mProfitType = bundle.getInt(Constant.EXTRA_PROFIT_LOSS_TYPE);
+            switch (mProfitType) {
+                case ProfitLossFragment.DAY_7_TYPE:
+                    getActivity().setTitle("7 Day's Profit Loss");
+                    break;
+                case ProfitLossFragment.WEEK_TYPE:
+                    getActivity().setTitle("last Week Profit Loss");
+                    break;
+                case ProfitLossFragment.DAY_30_TYPE:
+                    getActivity().setTitle("30 Day's Profit Loss");
+                    break;
+                case ProfitLossFragment.MONTH_TYPE:
+                    getActivity().setTitle("Last Month Profit Loss");
+                    break;
+                case ProfitLossFragment.YEAR_TYPE:
+                    getActivity().setTitle("Last Year Profit Loss");
+                    break;
+
+            }
         }
         new Thread(new Runnable() {
             private int productId = 0;
@@ -216,6 +236,32 @@ public class ProfitLossReportFragment extends Fragment {
 
                     }
                 });
+
+                mSalaryRef.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        mTotalSalary = 0;
+                        for (DataSnapshot postData : dataSnapshot.getChildren()) {
+                            Salary salary = postData.getValue(Salary.class);
+                            if (salary != null) {
+                                switch (mProfitType) {
+                                    case ProfitLossFragment.MONTH_TYPE:
+                                        if (mDateConverter.isLastMonth(salary.getDate())) {
+                                            mTotalSalary = mTotalSalary + salary.getAmount();
+                                        }
+                                        break;
+                                }
+                            }
+                        }
+
+                        mBinding.totalEmpSalaryTextView.setText(String.valueOf(mTotalSalary));
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
                 mSalesRef.addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
@@ -279,8 +325,11 @@ public class ProfitLossReportFragment extends Fragment {
                             mBinding.totalStockTextView.setText(String.valueOf(mTotalStock));
                         }
 
-
                         mTotalProfit = ((mTotalSales + mTotalStock) - mTotalPurchase) - mTotalCost;
+                        if (mProfitType == ProfitLossFragment.MONTH_TYPE) {
+                            mBinding.empSalLinearLayout.setVisibility(View.VISIBLE);
+                            mTotalProfit = mTotalProfit - mTotalSalary;
+                        }
                         mBinding.totalSellAmountTextView.setText(String.valueOf(mTotalSales));
                         mBinding.totalStockTextView.setText(String.valueOf(mTotalStock));
                         if (mTotalProfit >= 0) {

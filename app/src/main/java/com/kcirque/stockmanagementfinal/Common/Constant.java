@@ -1,7 +1,5 @@
 package com.kcirque.stockmanagementfinal.Common;
 
-import com.kcirque.stockmanagementfinal.Database.Model.Product;
-
 public class Constant {
 
     public static final String STOCK_MGT_REF = "StockManagement";
@@ -45,8 +43,21 @@ public class Constant {
     public static final String DUE_FRAGMENT_TAG = "due";
     public static final String SELLER_ADD_FRAGMENT_TAG = "seller_add";
     public static final String EXTRA_UNSEEN_MESSAGE = "unseen_message";
+    public static final String SETTING_FRAGMENT_TAG = "settings";
+    public static final String DAILY_REPORT_FRAGMENT_TAG = "daily_report";
+    public static final String SALARY_REF = "Salary";
+    public static final String SALARY_FRAGMENT_TAG = "salary";
+    public static final String SALARY_ADD_FRAGMENT_TAG = "salary_add";
+    public static final String PRODUCT_DETAILS_FRAGMENT_TAG = "product_details";
+    public static final String EXTRA_PRODUCT = "product";
+    public static final String EXTRA_CUSTOMER = "customer";
+    public static final String DUE_DETAILS_FRAGMENT = "due_details";
+    public static final String EXTRA_EXPENSE = "expense";
+    public static final String EXPENSE_DETAILS_FRAGMENT_TAG = "expense_details";
+    public static final String COMPANY_NAME_REF = "company";
+    public static final String REMINDER_COUNT_REF = "reminderCount";
+    public static final String LOGO_REF = "Logo";
+    public static final String LOGO_URL_REF = "logoUrl";
 
-
-    public static int SELECTED_PRODUCT_ID;
 
 }

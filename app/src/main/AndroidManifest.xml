@@ -2,7 +2,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.kcirque.stockmanagementfinal">
 
+    <uses-feature
+        android:name="android.hardware.microphone"
+        android:required="false" />
+
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+
     <application
         android:name=".Database.FirebaseOfflineSync"
         android:allowBackup="true"
@@ -14,12 +23,12 @@
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar"
+            android:theme="@style/AppTheme"
             android:windowSoftInputMode="adjustPan" />
         <activity android:name=".SaleProductActivity" />
         <activity
             android:name=".LoginActivity"
-            android:theme="@style/FullScreenTheme"></activity>
+            android:theme="@style/FullScreenTheme" />
 
         <service
             android:name=".Service.ImageUploadService"
@@ -35,7 +44,24 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ChatActivity"></activity>
+        <activity
+            android:name=".ChatActivity"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name=".DailyReportActivity"
+            android:label="@string/daily_report_text"
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name=".CallActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/FullScreenTheme" />
+
+        <service
+            android:name=".Service.SinchService"
+            android:enabled="true"
+            android:exported="true" />
+
+        <activity android:name=".IncomingCallActivity" />
     </application>
 
 </manifest>

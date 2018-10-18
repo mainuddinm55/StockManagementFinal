@@ -61,7 +61,7 @@
     <string name="upload_success">Success</string>
     <string name="upload_failure">Failed</string>
     <string name="product_alert_title">Please, purchase more product</string>
-    <string name="stock_out_text">Stock Out</string>
+    <string name="sales_reports_text">Sales Reports</string>
     <string name="total_sell_amount">Amount</string>
     <string name="client_text">Client</string>
     <string name="product_less_warning">These Product are going finish</string>
@@ -85,7 +85,6 @@
     <string name="logout_text">Logout</string>
     <string name="expense_text">Expense</string>
     <string name="select_date_text">Select Date</string>
-    <string name="cancel_text">Cancel</string>
     <string name="comment_optional_text">Comment (Optional)</string>
     <string name="add_new_expense_text">Add New Expense</string>
     <string name="expense_name_text">Expense Name</string>
@@ -95,7 +94,7 @@
     <string name="total_sell_text">Total Sell</string>
     <string name="total_profit">Total Profit</string>
     <string name="tap_to_select_image_text">Tap to select Image</string>
-    <string name="empty_expense_text">Empty Expense</string>
+    <string name="empty_expense_text">Empty Expense Found</string>
     <string name="breakfast_text">Breakfast</string>
     <string name="date_21_05_2018_text">Date:21/05/2018</string>
     <string name="tk_text">80 TK</string>
@@ -109,22 +108,49 @@
     <string name="message_text">Message</string>
     <string name="empty_customer_text">No Customer Found</string>
     <string name="empty_seller_text">No Seller Found</string>
-    <string name="empty_due_text">Empty Due</string>
+    <string name="empty_due_text">There is no Due</string>
     <string name="empty_reminder_text">No Reminder Found</string>
+    <string name="date_text">Date</string>
+    <string name="date_between_text">Date Between</string>
+    <string name="search_text">Search</string>
+    <string name="daily_report_text">Daily Reports</string>
+    <string name="sl_no_text">SL No</string>
+    <string name="empty_purchase_text">Empty Purchase Found</string>
+    <string name="emp_sal_text">Employee Salary</string>
+    <string name="salary_text">Salary</string>
+    <string name="month_text">Month</string>
+    <string name="total_salary_text">Total Salary</string>
+    <string name="empty_salary_text">No given salary yet</string>
+    <string name="call_seller">Call Seller</string>
+    <string name="send_msg">Send Message</string>
+    <string name="cancel_text">Cancel</string>
+    <string name="answer_text">Answer</string>
+    <string name="incoming_call_text">Incoming call</string>
+    <string name="sample_user_text">Sample user</string>
+    <string name="name_text">Name</string>
+    <string name="total_due_text">Total Due</string>
+    <string name="empty_sales_text">Empty Sales Found</string>
+    <string name="comment_text">Comment</string>
+    <string name="change_password_text">Change Password</string>
+    <string name="reminder_count_text">Set Reminder Count</string>
+    <string name="username_text">Username</string>
+    <string name="reminder_count">Reminder Count</string>
+    <string name="old_password_text">Old Password</string>
+    <string name="new_password_text">New Password</string>
 
     <string-array name="stock_out_type">
-        <item name="today_stock_text">Today Stock Out</item>
-        <item name="last_7_day_stock_text">7 Day\'s Stock Out</item>
-        <item name="week_stock_text">Last Week Stock Out</item>
-        <item name="last_30_stock_text">30 Day\'s Stock Out</item>
-        <item name="monthly_stock_text">Last Month Stock Out</item>
+        <item name="today_stock_text">Today Sales Reports</item>
+        <item name="last_7_day_stock_text">7 Day\'s Sales Reports</item>
+        <item name="week_stock_text">Last Week Sales Reports</item>
+        <item name="last_30_stock_text">30 Day\'s Sales Reports</item>
+        <item name="monthly_stock_text">Last Month Sales Reports</item>
     </string-array>
     <string-array name="profit_loss_type">
-        <item name="last_7_day_stock_text">7 Day\'s Profit</item>
-        <item name="week_stock_text">Last Week Profit</item>
-        <item name="last_30_stock_text">30 Day\'s Profit</item>
-        <item name="monthly_stock_text">Last Month Profit</item>
-        <item name="monthly_stock_text">Last Year Profit</item>
+        <item name="last_7_day_profit_loss_text">7 Day\'s Profit</item>
+        <item name="week_profit_loss_text">Last Week Profit</item>
+        <item name="last_30_profit_loss_text">30 Day\'s Profit</item>
+        <item name="monthly_profit_loss_text">Last Month Profit</item>
+        <item name="monthly_profit_loss_text">Last Year Profit</item>
     </string-array>
 
 </resources>

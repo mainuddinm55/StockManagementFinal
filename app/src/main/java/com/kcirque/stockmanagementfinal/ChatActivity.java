@@ -1,10 +1,14 @@
 package com.kcirque.stockmanagementfinal;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.databinding.DataBindingUtil;
+import android.os.Build;
+import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.view.View;
 
@@ -20,14 +24,17 @@ import com.kcirque.stockmanagementfinal.Common.Constant;
 import com.kcirque.stockmanagementfinal.Common.SharedPref;
 import com.kcirque.stockmanagementfinal.Database.Model.Chat;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
+import com.kcirque.stockmanagementfinal.Service.SinchService;
 import com.kcirque.stockmanagementfinal.databinding.ActivityChatBinding;
+import com.sinch.android.rtc.calling.Call;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class ChatActivity extends AppCompatActivity {
+public class ChatActivity extends BaseActivity {
 
+    private static final int PERMISSION_REQUEST_CODE = 100;
     private ActivityChatBinding mBinding;
     private FirebaseUser mUser;
     private List<Chat> mChatList = new ArrayList<>();
@@ -35,6 +42,9 @@ public class ChatActivity extends AppCompatActivity {
     private ValueEventListener seenListener;
     private DatabaseReference chatRef;
     private MessageAdapter adapter;
+    private String receiverId;
+    private String callerName;
+    private Seller seller;
 
 
     @Override
@@ -47,6 +57,7 @@ public class ChatActivity extends AppCompatActivity {
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
+
 
         mBinding.toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
@@ -97,11 +108,68 @@ public class ChatActivity extends AppCompatActivity {
 
         if (mUser != null) {
             seenMessage(seller.getKey());
+            receiverId = seller.getKey();
+            callerName = seller.getName();
         } else {
             seenMessage(seller.getAdminUid());
+            receiverId = seller.getAdminUid();
+            callerName = "Admin";
         }
 
+        mBinding.callBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    if (!checkPermission()) {
+                        requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO,
+                                        Manifest.permission.ACCESS_NETWORK_STATE,
+                                        Manifest.permission.READ_PHONE_STATE},
+                                PERMISSION_REQUEST_CODE);
+                    }
+                }
+                callUser();
+            }
+        });
 
+    }
+
+    private void callUser() {
+        Call call = getSinchServiceInterface().callUserAudio(receiverId);
+        String callId = call.getCallId();
+        Intent callScreen = new Intent(ChatActivity.this, CallActivity.class);
+        callScreen.putExtra(SinchService.CALL_ID, callId);
+        callScreen.putExtra(SinchService.CALLER_NAME, callerName);
+        startActivity(callScreen);
+        overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CODE && grantResults[0] == RESULT_OK) {
+            callUser();
+        }
+    }
+
+    private boolean checkPermission() {
+        //asking for permissions here
+        if (ActivityCompat.checkSelfPermission(ChatActivity.this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(ChatActivity.this, Manifest.permission.ACCESS_NETWORK_STATE) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(ChatActivity.this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED
+                ) {
+            return false;
+        } else {
+            return true;
+        }
+
+    }
+
+    @Override
+    public void onDestroy() {
+        if (getSinchServiceInterface() != null) {
+            getSinchServiceInterface().stopClient();
+        }
+        super.onDestroy();
     }
 
     private void sendMessage(String sender, String receiver, String msg) {
@@ -172,7 +240,7 @@ public class ChatActivity extends AppCompatActivity {
         DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
 
         SharedPref sharedPref = new SharedPref(this);
-        final Seller seller = sharedPref.getSeller();
+        seller = sharedPref.getSeller();
 
         if (mUser != null) {
             adminRef = rootRef.child(mUser.getUid());
@@ -214,6 +282,7 @@ public class ChatActivity extends AppCompatActivity {
     public void onBackPressed() {
         finish();
     }
+
 
     @Override
     protected void onPause() {

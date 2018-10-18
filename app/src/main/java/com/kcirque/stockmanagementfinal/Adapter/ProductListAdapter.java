@@ -71,6 +71,12 @@ public class ProductListAdapter extends RecyclerView.Adapter<ProductListAdapter.
                 .apply(RequestOptions.placeholderOf(R.drawable.placeholder))
                 .into(productListHolder.productImageImageView);
         productListHolder.productNameTextView.setText("Product : " + product.getProductName());
+        productListHolder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                recyclerItemClickListener.onClick(v, i, product);
+            }
+        });
     }
 
     @Override

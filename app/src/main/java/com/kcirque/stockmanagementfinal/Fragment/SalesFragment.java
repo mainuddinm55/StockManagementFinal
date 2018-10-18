@@ -14,6 +14,7 @@ import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -115,9 +116,9 @@ public class SalesFragment extends Fragment {
         mDiscount = 0.00;
         mPaid = 0.00;
         mDue = 0.00;
-        mBinding.paidAmountEdittext.setText(null);
         return mBinding.getRoot();
     }
+
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
@@ -126,6 +127,7 @@ public class SalesFragment extends Fragment {
         Seller seller = mSharedPref.getSeller();
         mAuth = FirebaseAuth.getInstance();
         mUser = mAuth.getCurrentUser();
+        getActivity().setTitle("Sales Product");
         DatabaseReference mRootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
         mRootRef.keepSynced(true);
         if (mUser != null) {
@@ -299,47 +301,6 @@ public class SalesFragment extends Fragment {
         Log.e(TAG, "onActivityCreated: " );
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        Log.e(TAG, "onStart: " );
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        Log.e(TAG, "onResume: " );
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        Log.e(TAG, "onPause: " );
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        Log.e(TAG, "onStop: " );
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        Log.e(TAG, "onDestroyView: " );
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        Log.e(TAG, "onDestroy: " );
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        Log.e(TAG, "onDetach: " );
-    }
 
     private void showCustomerDialog() {
         AlertDialog.Builder customerDialog = new AlertDialog.Builder(mContext);
@@ -433,6 +394,7 @@ public class SalesFragment extends Fragment {
                     if (mDue > 0) {
                         mTotalDue = mTotalDue + mDue;
                         mCustomerRef.child(mCustomerKey).child("due").setValue(mTotalDue);
+                        mCustomerRef.child(mCustomerKey).child("dueDate").setValue(mSalesDate);
                     }
                     for (final ProductSell productSell : mProductSellList) {
                         mStockRef.child(String.valueOf(productSell.getProductId())).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -469,5 +431,13 @@ public class SalesFragment extends Fragment {
         Log.e(TAG, "onAttach: " );
         mContext = context;
         mFragmentLoader = (FragmentLoader) context;
+    }
+
+
+    @Override
+    public void onPause() {
+        mBinding.paidAmountEdittext.setText(null);
+        mBinding.dueAmountTextview.setText(null);
+        super.onPause();
     }
 }

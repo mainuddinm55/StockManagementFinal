@@ -19,6 +19,19 @@
         tools:text="@string/customer_name_text" />
 
     <TextView
+        android:id="@+id/due_date_text_view"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="start"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:textAlignment="viewStart"
+        android:textColor="@android:color/darker_gray"
+        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+        tools:text="@string/date_text" />
+
+    <TextView
         android:id="@+id/due_amount_text_view"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -29,6 +42,6 @@
         android:textAlignment="viewStart"
         android:textColor="@android:color/darker_gray"
         android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-        tools:text="@string/due_text" />
+        tools:text="@string/total_due_text" />
 
 </LinearLayout>

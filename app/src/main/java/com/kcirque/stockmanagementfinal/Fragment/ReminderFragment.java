@@ -86,6 +86,7 @@ public class ReminderFragment extends Fragment {
         Seller seller = mSharedPref.getSeller();
         mAuth = FirebaseAuth.getInstance();
         mUser = mAuth.getCurrentUser();
+        getActivity().setTitle("Reminder");
 
         mBinding.stockWarningList.setHasFixedSize(true);
         mBinding.stockWarningList.setLayoutManager(new LinearLayoutManager(mContext));

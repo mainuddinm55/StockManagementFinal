@@ -79,6 +79,7 @@ public class HomeFragment extends Fragment {
             mHomeWidgetRecyclerView.setLayoutManager(new GridLayoutManager(mContext, 3));
         }
 
+        getActivity().setTitle("Dashboard");
         HomeWidgetAdapter adapter = new HomeWidgetAdapter(mContext);
         mHomeWidgetRecyclerView.setAdapter(adapter);
 

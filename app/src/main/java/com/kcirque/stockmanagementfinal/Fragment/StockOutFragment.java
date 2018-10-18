@@ -60,6 +60,7 @@ public class StockOutFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        getActivity().setTitle("Sales Reports");
         String[] stockOutType = getResources().getStringArray(R.array.stock_out_type);
         ArrayAdapter<String> adapter = new ArrayAdapter<>(mContext,R.layout.stock_type_list_item,stockOutType);
         mBinding.stockOutTypeListView.setAdapter(adapter);

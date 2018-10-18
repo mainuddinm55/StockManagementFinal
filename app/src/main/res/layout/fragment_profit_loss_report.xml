@@ -118,6 +118,34 @@
                     tools:text="@string/total_cost" />
             </LinearLayout>
 
+            <LinearLayout
+                android:id="@+id/emp_sal_linear_layout"
+                android:visibility="gone"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="start"
+                    android:padding="5dp"
+                    android:text="@string/emp_sal_text"
+                    android:textAlignment="viewStart"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:id="@+id/total_emp_salary_text_view"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="start"
+                    android:padding="5dp"
+                    android:textAlignment="viewStart"
+                    android:textSize="16sp"
+                    tools:text="@string/emp_sal_text" />
+            </LinearLayout>
+
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
