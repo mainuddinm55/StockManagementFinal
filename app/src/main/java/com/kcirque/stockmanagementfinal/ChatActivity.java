@@ -1,6 +1,7 @@
 package com.kcirque.stockmanagementfinal;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.databinding.DataBindingUtil;
@@ -9,6 +10,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.view.View;
 
@@ -120,23 +122,50 @@ public class ChatActivity extends BaseActivity {
             @Override
             public void onClick(View v) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    if (!checkPermission()) {
-                        requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO,
-                                        Manifest.permission.ACCESS_NETWORK_STATE,
-                                        Manifest.permission.READ_PHONE_STATE},
+                    if (ContextCompat.checkSelfPermission(ChatActivity.this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                        ActivityCompat.requestPermissions(ChatActivity.this, new String[]{Manifest.permission.RECORD_AUDIO},
                                 PERMISSION_REQUEST_CODE);
+                    } else {
+                        voiceCallUser();
                     }
+                } else {
+                    voiceCallUser();
                 }
-                callUser();
+            }
+        });
+
+        mBinding.videoCallBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    if (ContextCompat.checkSelfPermission(ChatActivity.this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                        ActivityCompat.requestPermissions(ChatActivity.this, new String[]{Manifest.permission.RECORD_AUDIO},
+                                PERMISSION_REQUEST_CODE);
+                    } else {
+                        videoCallUser();
+                    }
+                } else {
+                    videoCallUser();
+                }
             }
         });
 
     }
 
-    private void callUser() {
+    private void voiceCallUser() {
         Call call = getSinchServiceInterface().callUserAudio(receiverId);
         String callId = call.getCallId();
         Intent callScreen = new Intent(ChatActivity.this, CallActivity.class);
+        callScreen.putExtra(SinchService.CALL_ID, callId);
+        callScreen.putExtra(SinchService.CALLER_NAME, callerName);
+        startActivity(callScreen);
+        overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+    }
+
+    private void videoCallUser() {
+        Call call = getSinchServiceInterface().callUserVideo(receiverId);
+        String callId = call.getCallId();
+        Intent callScreen = new Intent(ChatActivity.this, VideoCallScreenActivity.class);
         callScreen.putExtra(SinchService.CALL_ID, callId);
         callScreen.putExtra(SinchService.CALLER_NAME, callerName);
         startActivity(callScreen);
@@ -147,15 +176,14 @@ public class ChatActivity extends BaseActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSION_REQUEST_CODE && grantResults[0] == RESULT_OK) {
-            callUser();
         }
     }
 
     private boolean checkPermission() {
         //asking for permissions here
-        if (ActivityCompat.checkSelfPermission(ChatActivity.this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(ChatActivity.this, Manifest.permission.ACCESS_NETWORK_STATE) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(ChatActivity.this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED
+        if (ContextCompat.checkSelfPermission(ChatActivity.this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED
+                && ContextCompat.checkSelfPermission(ChatActivity.this, Manifest.permission.ACCESS_NETWORK_STATE) != PackageManager.PERMISSION_GRANTED
+                && ContextCompat.checkSelfPermission(ChatActivity.this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED
                 ) {
             return false;
         } else {
@@ -166,9 +194,9 @@ public class ChatActivity extends BaseActivity {
 
     @Override
     public void onDestroy() {
-        if (getSinchServiceInterface() != null) {
+      /*  if (getSinchServiceInterface() != null) {
             getSinchServiceInterface().stopClient();
-        }
+        }*/
         super.onDestroy();
     }
 
@@ -288,5 +316,11 @@ public class ChatActivity extends BaseActivity {
     protected void onPause() {
         super.onPause();
         chatRef.removeEventListener(seenListener);
+    }
+
+    @Override
+    protected void onServiceConnected() {
+        super.onServiceConnected();
+
     }
 }

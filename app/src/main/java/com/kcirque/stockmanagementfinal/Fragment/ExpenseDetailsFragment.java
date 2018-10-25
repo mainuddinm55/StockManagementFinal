@@ -48,7 +48,7 @@ public class ExpenseDetailsFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         Bundle bundle = getArguments();
-        getActivity().setTitle("Expense");
+        getActivity().setTitle("ExpenseForRoom");
         if (bundle != null) {
             Expense expense = (Expense) bundle.getSerializable(Constant.EXTRA_EXPENSE);
 

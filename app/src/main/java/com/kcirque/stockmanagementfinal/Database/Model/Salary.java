@@ -2,7 +2,10 @@ package com.kcirque.stockmanagementfinal.Database.Model;
 
 import java.io.Serializable;
 
+
 public class Salary implements Serializable {
+
+
     String key;
     String empKey;
     String empName;

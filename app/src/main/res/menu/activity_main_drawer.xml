@@ -52,6 +52,10 @@
         android:icon="@drawable/ic_settings"
         android:title="@string/action_settings" />
 
+    <item android:id="@+id/nav_export_to_xl"
+        android:title="@string/export_to_xl"
+        android:icon="@drawable/ic_excel"/>
+
     <item
         android:id="@+id/nav_logout"
         android:icon="@drawable/ic_logout"

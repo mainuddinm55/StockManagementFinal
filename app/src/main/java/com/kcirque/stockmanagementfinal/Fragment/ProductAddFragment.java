@@ -1,6 +1,7 @@
 package com.kcirque.stockmanagementfinal.Fragment;
 
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -18,6 +19,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -86,6 +88,7 @@ public class ProductAddFragment extends Fragment {
         }
     };
     private Context mContext;
+    private ProgressDialog progressDialog;
 
     public static synchronized ProductAddFragment getInstance() {
         if (INSTANCE == null) {
@@ -117,17 +120,14 @@ public class ProductAddFragment extends Fragment {
         mAuth = FirebaseAuth.getInstance();
         mUser = mAuth.getCurrentUser();
         mRootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
-        mRootRef.keepSynced(true);
-        getActivity().setTitle("Add a Product");
+        getActivity().setTitle("Add a ProductForRoom");
         if (mUser != null) {
             mAdminRef = mRootRef.child(mUser.getUid());
         } else {
             mAdminRef = mRootRef.child(seller.getAdminUid());
         }
         mCategoryRef = mAdminRef.child(Constant.CATEGORY_REF);
-        mCategoryRef.keepSynced(true);
         mProductRef = mAdminRef.child(Constant.PRODUCT_REF);
-        mProductRef.keepSynced(true);
 
         mProductRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -188,12 +188,12 @@ public class ProductAddFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 if (mBinding.productNameEdittext.getText().toString().trim().isEmpty()) {
-                    mBinding.productNameEdittext.setError("Product Name Required");
+                    mBinding.productNameEdittext.setError("ProductForRoom Name Required");
                     mBinding.productNameEdittext.requestFocus();
                     return;
                 }
                 if (mBinding.productCodeEdittext.getText().toString().trim().isEmpty()) {
-                    mBinding.productCodeEdittext.setError("Product Code Required");
+                    mBinding.productCodeEdittext.setError("ProductForRoom Code Required");
                     mBinding.productCodeEdittext.requestFocus();
                     return;
                 }
@@ -259,7 +259,7 @@ public class ProductAddFragment extends Fragment {
     }
 
     private void addProduct() {
-
+        showProgressDialog();
         mKey = mProductRef.push().getKey();
         String productName = mBinding.productNameEdittext.getText().toString();
         String productCode = mBinding.productCodeEdittext.getText().toString();
@@ -272,8 +272,9 @@ public class ProductAddFragment extends Fragment {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         if (task.isSuccessful()) {
-                            Snackbar.make(mBinding.rootView, "Product Added", Snackbar.LENGTH_SHORT).show();
-                            //Toast.makeText(AddProductActivity.this, "Product Added", Toast.LENGTH_SHORT).show();
+                            dismissProgressDialog();
+                            Snackbar.make(mBinding.rootView, "ProductForRoom Added", Snackbar.LENGTH_SHORT).show();
+                            //Toast.makeText(AddProductActivity.this, "ProductForRoom Added", Toast.LENGTH_SHORT).show();
                             mFragmentLoader.loadFragment(ProductListFragment.getInstance(), true, Constant.PRODUCT_LIST_FRAGMENT_TAG);
 
                         }
@@ -282,6 +283,8 @@ public class ProductAddFragment extends Fragment {
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
+                        dismissProgressDialog();
+                        Toast.makeText(mContext, e.getMessage(), Toast.LENGTH_SHORT).show();
                         Log.e(TAG, "onFailure: " + e.getMessage());
                     }
                 });
@@ -303,5 +306,16 @@ public class ProductAddFragment extends Fragment {
             mBinding.productImageview.setVisibility(View.VISIBLE);
             mBinding.productImageview.setImageURI(mImageUri);
         }
+    }
+    private void showProgressDialog() {
+        progressDialog = new ProgressDialog(mContext);
+        progressDialog.setTitle("Loading.....");
+        progressDialog.setMessage("Please wait.....");
+        progressDialog.show();
+    }
+
+    private void dismissProgressDialog() {
+        if (progressDialog != null)
+            progressDialog.dismiss();
     }
 }

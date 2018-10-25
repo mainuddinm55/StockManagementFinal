@@ -55,8 +55,6 @@ public class StockHandFragment extends Fragment {
     private SharedPref mSharedPref;
     private DatabaseReference mAdminRef;
     private DatabaseReference mRootRef;
-    private DatabaseReference mPurchaseRef;
-    private DatabaseReference mSalesRef;
     private DatabaseReference mStockRef;
     private DatabaseReference mProductRef;
 
@@ -94,20 +92,13 @@ public class StockHandFragment extends Fragment {
         mUser = mAuth.getCurrentUser();
         getActivity().setTitle("Stock Hand");
         mRootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
-        mRootRef.keepSynced(true);
         if (mUser != null) {
             mAdminRef = mRootRef.child(mUser.getUid());
         } else {
             mAdminRef = mRootRef.child(seller.getAdminUid());
         }
-        mPurchaseRef = mAdminRef.child(Constant.PURCHASE_REF);
-        mPurchaseRef.keepSynced(true);
-        mSalesRef = mAdminRef.child(Constant.SALES_REF);
-        mSalesRef.keepSynced(true);
         mStockRef = mAdminRef.child(Constant.STOCK_HAND_REF);
-        mStockRef.keepSynced(true);
         mProductRef = mAdminRef.child(Constant.PRODUCT_REF);
-        mProductRef.keepSynced(true);
 
         mBinding.totalLinearLayout.setVisibility(View.GONE);
         mBinding.progressBar.setVisibility(View.VISIBLE);
@@ -123,22 +114,21 @@ public class StockHandFragment extends Fragment {
                     mStockHandList.add(stockHand);
 
                 }
-                mProductRef.orderByChild("productId")
-                        .addValueEventListener(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(DataSnapshot dataSnapshot) {
-                                mProductList.clear();
-                                for (DataSnapshot postData : dataSnapshot.getChildren()) {
-                                    Product product = postData.getValue(Product.class);
-                                    mProductList.add(product);
-                                }
-                            }
+                mProductRef.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        mProductList.clear();
+                        for (DataSnapshot postData : dataSnapshot.getChildren()) {
+                            Product product = postData.getValue(Product.class);
+                            mProductList.add(product);
+                        }
+                    }
 
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
 
-                            }
-                        });
+                    }
+                });
                 if (mStockHandList.size() > 0 && mProductList.size() > 0) {
                     mBinding.progressBar.setVisibility(View.GONE);
                     StockHandAdapter adapter = new StockHandAdapter(mContext, mStockHandList, mProductList);

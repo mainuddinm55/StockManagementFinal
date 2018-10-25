@@ -50,7 +50,7 @@ public class SalaryAdapter extends RecyclerView.Adapter<SalaryAdapter.SalaryHold
                 totalSalary = totalSalary + salary1.getAmount();
             }
             salaryHolder.linearLayout.setVisibility(View.VISIBLE);
-            salaryHolder.totalTextTextView.setText("Total Salary");
+            salaryHolder.totalTextTextView.setText("Total SalaryForRoom");
             salaryHolder.totalSalaryTextView.setText(String.valueOf(totalSalary));
         }
     }

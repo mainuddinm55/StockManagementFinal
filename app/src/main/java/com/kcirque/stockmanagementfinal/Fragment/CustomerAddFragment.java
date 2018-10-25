@@ -1,6 +1,7 @@
 package com.kcirque.stockmanagementfinal.Fragment;
 
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
@@ -17,6 +18,7 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -52,6 +54,7 @@ public class CustomerAddFragment extends Fragment {
     private DatabaseReference mCustomerRef;
     private boolean mIsMercantile = false;
     private Context mContext;
+    private ProgressDialog progressDialog;
 
     public static synchronized CustomerAddFragment getInstance() {
         if (INSTANCE == null) {
@@ -81,7 +84,6 @@ public class CustomerAddFragment extends Fragment {
         mAuth = FirebaseAuth.getInstance();
         mUser = mAuth.getCurrentUser();
         mRootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
-        mRootRef.keepSynced(true);
         getActivity().setTitle("Add a Customer");
         if (mUser != null) {
             mAdminRef = mRootRef.child(mUser.getUid());
@@ -89,7 +91,6 @@ public class CustomerAddFragment extends Fragment {
             mAdminRef = mRootRef.child(seller.getAdminUid());
         }
         mCustomerRef = mAdminRef.child(Constant.CUSTOMER_REF);
-        mCustomerRef.keepSynced(true);
 
         mCustomerRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -107,9 +108,9 @@ public class CustomerAddFragment extends Fragment {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 RadioButton radioButton = view.findViewById(checkedId);
-                if (radioButton.getText().toString().equals("Normal")){
+                if (radioButton.getText().toString().equals("Normal")) {
                     mIsMercantile = false;
-                }else if (radioButton.getText().toString().equals("Mercantile")){
+                } else if (radioButton.getText().toString().equals("Mercantile")) {
                     mIsMercantile = true;
                 }
             }
@@ -118,41 +119,41 @@ public class CustomerAddFragment extends Fragment {
         mBinding.addCustBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new Thread(new Runnable() {
+
+                if (mBinding.customerNameEdittext.getText().toString().isEmpty()) {
+                    mBinding.customerNameEdittext.setError("Customer name required");
+                    mBinding.customerNameEdittext.requestFocus();
+                    return;
+                }
+                if (mBinding.customerMobileEdittext.getText().toString().isEmpty()) {
+                    mBinding.customerMobileEdittext.setError("Customer mobile required");
+                    mBinding.customerMobileEdittext.requestFocus();
+                    return;
+                }
+                showProgressDialog();
+                String key = mCustomerRef.push().getKey();
+                String name = mBinding.customerNameEdittext.getText().toString().trim();
+                String address = mBinding.customerAddressEdittext.getText().toString().trim();
+                String mobile = mBinding.customerMobileEdittext.getText().toString().trim();
+                String email = mBinding.customerEmailEdittext.getText().toString().trim();
+
+                Customer customer = new Customer(key, mCustomerId, name, address, mobile, email, 0, mIsMercantile);
+
+                mCustomerRef.child(key).setValue(customer).addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
-                    public void run() {
-                        if (mBinding.customerNameEdittext.getText().toString().isEmpty()) {
-                            mBinding.customerNameEdittext.setError("Customer name required");
-                            mBinding.customerNameEdittext.requestFocus();
-                            return;
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            dismissProgressDialog();
+                            Snackbar.make(mBinding.rootView, "Customer Added", Snackbar.LENGTH_SHORT).show();
+                            mFragmentLoader.loadFragment(CustomerListFragment.getInstance(), true, Constant.CUSTOMER_LIST_FRAGMENT_TAG);
                         }
-                        if (mBinding.customerMobileEdittext.getText().toString().isEmpty()) {
-                            mBinding.customerMobileEdittext.setError("Customer mobile required");
-                            mBinding.customerMobileEdittext.requestFocus();
-                            return;
-                        }
-
-
-                        String key = mCustomerRef.push().getKey();
-                        String name = mBinding.customerNameEdittext.getText().toString().trim();
-                        String address = mBinding.customerAddressEdittext.getText().toString().trim();
-                        String mobile = mBinding.customerMobileEdittext.getText().toString().trim();
-                        String email = mBinding.customerEmailEdittext.getText().toString().trim();
-
-                        Customer customer = new Customer(key, mCustomerId, name, address, mobile, email,0,mIsMercantile);
-
-                        mCustomerRef.child(key).setValue(customer).addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-                                if (task.isSuccessful()) {
-                                    Snackbar.make(mBinding.rootView, "Customer Added", Snackbar.LENGTH_SHORT).show();
-                                    mFragmentLoader.loadFragment(CustomerListFragment.getInstance(), true,Constant.CUSTOMER_LIST_FRAGMENT_TAG);
-                                }
-                            }
-                        });
                     }
-                }).start();
-
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        dismissProgressDialog();
+                    }
+                });
 
             }
         });
@@ -174,5 +175,17 @@ public class CustomerAddFragment extends Fragment {
         super.onAttach(context);
         mContext = context;
         mFragmentLoader = (FragmentLoader) context;
+    }
+
+    private void showProgressDialog() {
+        progressDialog = new ProgressDialog(mContext);
+        progressDialog.setTitle("Loading.....");
+        progressDialog.setMessage("Please wait.....");
+        progressDialog.show();
+    }
+
+    private void dismissProgressDialog() {
+        if (progressDialog != null)
+            progressDialog.dismiss();
     }
 }

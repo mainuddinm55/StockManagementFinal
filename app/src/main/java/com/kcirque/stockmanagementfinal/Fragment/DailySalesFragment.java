@@ -102,7 +102,7 @@ public class DailySalesFragment extends Fragment {
                 }
 
                 if (mProductSellList.size() > 0) {
-                    Log.e(TAG, "Product List Size " + mProductSellList.size());
+                    Log.e(TAG, "ProductForRoom List Size " + mProductSellList.size());
                     List<ProductSell> productSellList = new ArrayList<>();
                     for (int i = 0; i < mProductSellList.size(); i++) {
                         int productId = mProductSellList.get(i).getProductId();

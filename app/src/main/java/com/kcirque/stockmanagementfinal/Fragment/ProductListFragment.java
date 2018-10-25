@@ -100,14 +100,12 @@ public class ProductListFragment extends Fragment {
         }
 
         mRootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
-        mRootRef.keepSynced(true);
         if (mUser != null) {
             mAdminRef = mRootRef.child(mUser.getUid());
         } else {
             mAdminRef = mRootRef.child(seller.getAdminUid());
         }
         mProductRef = mAdminRef.child(Constant.PRODUCT_REF);
-        mProductRef.keepSynced(true);
         mProgressBar.setVisibility(View.VISIBLE);
         getActivity().setTitle("All Products");
         mProductRef.addValueEventListener(new ValueEventListener() {

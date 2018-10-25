@@ -137,6 +137,12 @@
     <string name="reminder_count">Reminder Count</string>
     <string name="old_password_text">Old Password</string>
     <string name="new_password_text">New Password</string>
+    <string name="profit_loss_text">Profit Loss</string>
+    <string name="total_sales_text">Total Sales</string>
+    <string name="year_text">Year</string>
+    <string name="internet_connection_text">No internet connection found. \nCheck your connection</string>
+    <string name="registration_expired_text">Your registration was expired.\nPlease contact with us</string>
+    <string name="export_to_xl">Export 2 XL</string>
 
     <string-array name="stock_out_type">
         <item name="today_stock_text">Today Sales Reports</item>
@@ -150,7 +156,8 @@
         <item name="week_profit_loss_text">Last Week Profit</item>
         <item name="last_30_profit_loss_text">30 Day\'s Profit</item>
         <item name="monthly_profit_loss_text">Last Month Profit</item>
-        <item name="monthly_profit_loss_text">Last Year Profit</item>
+        <item name="yearly_profit_loss_text">Last Year Profit</item>
+        <item name="over_all_profit_loss_text">Over All Profit</item>
     </string-array>
 
 </resources>

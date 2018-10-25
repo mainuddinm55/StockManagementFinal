@@ -74,17 +74,15 @@ public class SalaryFragment extends Fragment {
         Seller seller = sharedPref.getSeller();
         FirebaseAuth auth = FirebaseAuth.getInstance();
         FirebaseUser user = auth.getCurrentUser();
-        getActivity().setTitle("Salary");
+        getActivity().setTitle("SalaryForRoom");
         DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
         DatabaseReference adminRef;
-        rootRef.keepSynced(true);
         if (user != null) {
             adminRef = rootRef.child(user.getUid());
         } else {
             adminRef = rootRef.child(seller.getAdminUid());
         }
         DatabaseReference salaryRef = adminRef.child(Constant.SALARY_REF);
-        salaryRef.keepSynced(true);
         mAdapter = new SalaryAdapter(mContext, mSalaryList);
         mBinding.progressBar.setVisibility(View.VISIBLE);
         mBinding.salaryListRecyclerView.setHasFixedSize(true);

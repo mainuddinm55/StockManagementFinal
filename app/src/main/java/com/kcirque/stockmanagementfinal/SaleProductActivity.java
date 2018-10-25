@@ -20,13 +20,12 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.kcirque.stockmanagementfinal.Adapter.ProductDialogAdapter;
-import com.kcirque.stockmanagementfinal.Adapter.ProductListAdapter;
 import com.kcirque.stockmanagementfinal.Common.Constant;
 import com.kcirque.stockmanagementfinal.Common.SharedPref;
 import com.kcirque.stockmanagementfinal.Database.Model.Product;
 import com.kcirque.stockmanagementfinal.Database.Model.ProductSell;
-import com.kcirque.stockmanagementfinal.Database.Model.Purchase;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
+import com.kcirque.stockmanagementfinal.Database.Model.StockHand;
 import com.kcirque.stockmanagementfinal.Fragment.SalesFragment;
 import com.kcirque.stockmanagementfinal.Interface.RecyclerItemClickListener;
 import com.kcirque.stockmanagementfinal.databinding.ActivitySaleProductBinding;
@@ -36,7 +35,7 @@ import java.util.List;
 
 public class SaleProductActivity extends AppCompatActivity {
 
-    private static final String TAG = "Sale Product";
+    private static final String TAG = "Sale ProductForRoom";
     private ActivitySaleProductBinding mBinding;
 
     private FirebaseUser mUser;
@@ -50,6 +49,7 @@ public class SaleProductActivity extends AppCompatActivity {
     private ProductDialogAdapter mAdapter;
     private int mProductId;
     private int mHasQuantity;
+    private double mBuyPrice;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +57,7 @@ public class SaleProductActivity extends AppCompatActivity {
         setContentView(R.layout.activity_sale_product);
         mBinding = DataBindingUtil.setContentView(SaleProductActivity.this, R.layout.activity_sale_product);
 
-        mBinding.toolbar.setTitle("Choose Product");
+        mBinding.toolbar.setTitle("Choose ProductForRoom");
         setSupportActionBar(mBinding.toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -70,14 +70,12 @@ public class SaleProductActivity extends AppCompatActivity {
         mUser = mAuth.getCurrentUser();
 
         mRootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
-        mRootRef.keepSynced(true);
         if (mUser != null) {
             mAdminRef = mRootRef.child(mUser.getUid());
         } else {
             mAdminRef = mRootRef.child(seller.getAdminUid());
         }
         mProductRef = mAdminRef.child(Constant.PRODUCT_REF);
-        mProductRef.keepSynced(true);
 
         mBinding.productNameTextView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -90,7 +88,7 @@ public class SaleProductActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (mBinding.productNameTextView.getText().toString().isEmpty()) {
-                    mBinding.productNameTextView.setError("Select a Product");
+                    mBinding.productNameTextView.setError("Select a ProductForRoom");
                     mBinding.productNameTextView.requestFocus();
                     return;
                 }
@@ -102,7 +100,7 @@ public class SaleProductActivity extends AppCompatActivity {
                 String productName = mBinding.productNameTextView.getText().toString();
                 double price = Double.parseDouble(mBinding.priceView.getText().toString());
                 int qty = Integer.parseInt(mBinding.quantityEditText.getText().toString());
-                if (qty>mHasQuantity){
+                if (qty > mHasQuantity) {
                     mBinding.quantityEditText.setError("Quantity must give under stock hand");
                     mBinding.quantityEditText.requestFocus();
                     return;
@@ -110,6 +108,7 @@ public class SaleProductActivity extends AppCompatActivity {
                 ProductSell productSell = new ProductSell(mProductId, productName, qty, price);
                 Intent intent = new Intent(SaleProductActivity.this, MainActivity.class);
                 intent.putExtra(Constant.EXTRA_PRODUCT_SELL, productSell);
+                intent.putExtra(Constant.EXTRA_BUY_PRICE, mBuyPrice);
                 setResult(SalesFragment.GET_PRODUCT_REQUEST_CODE, intent);
                 finish();
             }
@@ -139,7 +138,7 @@ public class SaleProductActivity extends AppCompatActivity {
         customerDialog.setView(v);
         final RecyclerView customerRecyclerView = v.findViewById(R.id.customer_list_recycler_view);
         TextView titleTextView = v.findViewById(R.id.text_view_list_item);
-        titleTextView.setText("Product");
+        titleTextView.setText("ProductForRoom");
         customerRecyclerView.setHasFixedSize(true);
         customerRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         final AlertDialog dialog = customerDialog.create();
@@ -154,20 +153,21 @@ public class SaleProductActivity extends AppCompatActivity {
                     }
                 }
                 if (mProductList.size() > 0) {
-                    Log.e(TAG, "onDataChange: "+mProductList.size() );
+                    Log.e(TAG, "onDataChange: " + mProductList.size());
                     mAdapter = new ProductDialogAdapter(SaleProductActivity.this, mProductList);
                     customerRecyclerView.setAdapter(mAdapter);
                     mAdapter.setRecyclerItemClickListener(new RecyclerItemClickListener() {
                         @Override
                         public void onClick(View view, int position, Object object) {
                             if (object != null) {
-                                Integer i = (Integer) object;
-                                mHasQuantity = i;
+                                StockHand stockHand = (StockHand) object;
+                                mHasQuantity = stockHand.getPurchaseQuantity() - stockHand.getSellQuantity();
                                 mBinding.productNameTextView.setText(mProductList.get(position).getProductName());
                                 mBinding.priceView.setText(String.valueOf(mProductList.get(position).getSellPrice()));
+                                mBuyPrice = stockHand.getBuyPrice();
                                 mBinding.quantityEditText.setText("1");
                                 mProductId = mProductList.get(position).getProductId();
-                                mBinding.stockHandTextView.setText("Stock Has " + i);
+                                mBinding.stockHandTextView.setText("Stock Has " + mHasQuantity);
                                 dialog.dismiss();
                             } else {
                                 mBinding.productNameTextView.setText(mProductList.get(position).getProductName());

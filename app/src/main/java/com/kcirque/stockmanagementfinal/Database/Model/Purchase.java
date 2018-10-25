@@ -1,6 +1,8 @@
 package com.kcirque.stockmanagementfinal.Database.Model;
 
+
 public class Purchase {
+
 
     private String key;
     private int productId;

@@ -1,6 +1,7 @@
 package com.kcirque.stockmanagementfinal.Common;
 
 import android.util.Log;
+import android.widget.Switch;
 
 import java.io.CharArrayReader;
 import java.text.DateFormat;
@@ -24,6 +25,52 @@ public class DateConverter {
         date = new Date(unixDate * 1000L);
         dateFormat.setTimeZone(TimeZone.getTimeZone("GMT+6:00"));
         return dateFormat.format(date);
+    }
+
+    public int getMonth(long unixDate) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(unixDate * 1000);
+        return calendar.get(Calendar.MONTH);
+    }
+
+    public String getMonthInString(long unixDate) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(unixDate * 1000);
+        int month = calendar.get(Calendar.MONTH);
+        switch (month) {
+            case 0:
+                return "January";
+            case 1:
+                return "February";
+            case 2:
+                return "March";
+            case 3:
+                return "April";
+            case 4:
+                return "May";
+            case 5:
+                return "June";
+            case 6:
+                return "July";
+            case 7:
+                return "August";
+            case 8:
+                return "September";
+            case 9:
+                return "October";
+            case 10:
+                return "November";
+            case 11:
+                return "December";
+            default:
+                return null;
+        }
+    }
+
+    public int getYear(long unixDate) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(unixDate * 1000);
+        return calendar.get(Calendar.YEAR);
     }
 
     public int getYear() {
@@ -67,7 +114,7 @@ public class DateConverter {
     }
 
     public String unixToDay(long timeStamp) {
-        Date dateTime = new Date((long) timeStamp * 1000);
+        Date dateTime = new Date(timeStamp * 1000);
         Calendar cal = Calendar.getInstance();
         cal.setTime(dateTime);
         int dayInt = cal.get(Calendar.DAY_OF_WEEK);
@@ -115,9 +162,8 @@ public class DateConverter {
         calendar.setTimeInMillis(timestamp * 1000L);
 
         Date d = calendar.getTime();
-        String timeStr = new SimpleDateFormat("hh:mm a").format(d);
 
-        return timeStr;
+        return new SimpleDateFormat("hh:mm a").format(d);
     }
 
     public boolean isToday(long unixDate) {
@@ -125,13 +171,9 @@ public class DateConverter {
         Calendar specifiedDay = Calendar.getInstance();
         specifiedDay.setTimeInMillis(unixDate * 1000);
         specifiedDay.setTimeZone(TimeZone.getTimeZone("GMT+6:00"));
-        if (today.get(Calendar.YEAR) == specifiedDay.get(Calendar.YEAR)
+        return today.get(Calendar.YEAR) == specifiedDay.get(Calendar.YEAR)
                 && today.get(Calendar.MONTH) == specifiedDay.get(Calendar.MONTH)
-                && today.get(Calendar.DAY_OF_MONTH) == specifiedDay.get(Calendar.DAY_OF_MONTH)) {
-            return true;
-        } else {
-            return false;
-        }
+                && today.get(Calendar.DAY_OF_MONTH) == specifiedDay.get(Calendar.DAY_OF_MONTH);
     }
 
     public int getDayCount(long unixDate) {
@@ -147,12 +189,8 @@ public class DateConverter {
         specifiedCalendar.setTimeInMillis(unixDate * 1000);
         currentCalendar.setFirstDayOfWeek(Calendar.SATURDAY);
         specifiedCalendar.setFirstDayOfWeek(Calendar.SATURDAY);
-        if (specifiedCalendar.get(Calendar.WEEK_OF_MONTH) ==
-                (currentCalendar.get(Calendar.WEEK_OF_MONTH) - 1)) {
-            return true;
-        } else {
-            return false;
-        }
+        return specifiedCalendar.get(Calendar.WEEK_OF_MONTH) ==
+                (currentCalendar.get(Calendar.WEEK_OF_MONTH) - 1);
     }
 
     public boolean isLastMonth(long unixDate) {
@@ -164,12 +202,8 @@ public class DateConverter {
         specifiedDay.setTimeZone(TimeZone.getTimeZone("GMT+6:00"));
         int month = today.get(Calendar.MONTH);
         int mon = specifiedDay.get(Calendar.MONTH);
-        if (today.get(Calendar.YEAR) == specifiedDay.get(Calendar.YEAR)
-                && (today.get(Calendar.MONTH) - 1) == (specifiedDay.get(Calendar.MONTH))) {
-            return true;
-        } else {
-            return false;
-        }
+        return today.get(Calendar.YEAR) == specifiedDay.get(Calendar.YEAR)
+                && (today.get(Calendar.MONTH) - 1) == (specifiedDay.get(Calendar.MONTH));
     }
 
     public boolean isLastYear(long unixDate) {
@@ -181,10 +215,6 @@ public class DateConverter {
         specifiedDay.setTimeZone(TimeZone.getTimeZone("GMT+6:00"));
         int month = today.get(Calendar.MONTH);
         int mon = specifiedDay.get(Calendar.MONTH);
-        if ((today.get(Calendar.YEAR) - 1) == specifiedDay.get(Calendar.YEAR)) {
-            return true;
-        } else {
-            return false;
-        }
+        return (today.get(Calendar.YEAR) - 1) == specifiedDay.get(Calendar.YEAR);
     }
 }

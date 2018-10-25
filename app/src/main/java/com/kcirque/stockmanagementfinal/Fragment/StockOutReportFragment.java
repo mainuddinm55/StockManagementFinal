@@ -87,9 +87,7 @@ public class StockOutReportFragment extends Fragment {
         } else {
             mAdminRef = mRootRef.child(seller.getAdminUid());
         }
-        mRootRef.keepSynced(true);
         mSalesRef = mAdminRef.child(Constant.SALES_REF);
-
         mDateConverter = new DateConverter();
 
         mBinding.stockOutRecyclerView.setHasFixedSize(true);
@@ -176,7 +174,7 @@ public class StockOutReportFragment extends Fragment {
 
                 }
                 if (mProductSellList.size() > 0) {
-                    Log.e(TAG, "Product List Size " + mProductSellList.size());
+                    Log.e(TAG, "ProductForRoom List Size " + mProductSellList.size());
                     List<ProductSell> productSellList = new ArrayList<>();
                     for (int i = 0; i < mProductSellList.size(); i++) {
                         int productId = mProductSellList.get(i).getProductId();

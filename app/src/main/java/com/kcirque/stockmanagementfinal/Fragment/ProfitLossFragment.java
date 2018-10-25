@@ -19,6 +19,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.kcirque.stockmanagementfinal.Adapter.OverAllProfitLossAdapter;
 import com.kcirque.stockmanagementfinal.Common.Constant;
 import com.kcirque.stockmanagementfinal.Database.Model.Expense;
 import com.kcirque.stockmanagementfinal.Database.Model.Purchase;
@@ -40,6 +41,7 @@ public class ProfitLossFragment extends Fragment {
     public static final int DAY_30_TYPE = 3;
     public static final int MONTH_TYPE = 4;
     public static final int YEAR_TYPE = 5;
+    public static final int OVER_ALL_TYPE = 6;
 
     private int mType;
 
@@ -73,14 +75,14 @@ public class ProfitLossFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         String[] profit_loss_type = getResources().getStringArray(R.array.profit_loss_type);
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(mContext,R.layout.stock_type_list_item,profit_loss_type);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(mContext, R.layout.stock_type_list_item, profit_loss_type);
         mBinding.profitLossTypeListView.setAdapter(adapter);
         getActivity().setTitle("Profit Loss");
         mBinding.profitLossTypeListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-                switch (position){
+                switch (position) {
                     case 0:
                         mType = DAY_7_TYPE;
                         break;
@@ -96,13 +98,20 @@ public class ProfitLossFragment extends Fragment {
                     case 4:
                         mType = YEAR_TYPE;
                         break;
+                    case 5:
+                        mType = OVER_ALL_TYPE;
+                        break;
                 }
 
-                Bundle bundle = new Bundle();
-                bundle.putInt(Constant.EXTRA_PROFIT_LOSS_TYPE,mType);
-                ProfitLossReportFragment fragment = ProfitLossReportFragment.getInstance();
-                fragment.setArguments(bundle);
-                mFragmentLoader.loadFragment(fragment,true,Constant.PROFIT_LOSS_REPORT_FRAGMENT_TAG);
+                if (mType != OVER_ALL_TYPE) {
+                    Bundle bundle = new Bundle();
+                    bundle.putInt(Constant.EXTRA_PROFIT_LOSS_TYPE, mType);
+                    ProfitLossReportFragment fragment = ProfitLossReportFragment.getInstance();
+                    fragment.setArguments(bundle);
+                    mFragmentLoader.loadFragment(fragment, true, Constant.PROFIT_LOSS_REPORT_FRAGMENT_TAG);
+                } else {
+                    mFragmentLoader.loadFragment(OverAllProfitLossFragment.getInstance(),true,Constant.OVER_ALL_PROFIT_LOSS_FRAGMENT_TAG);
+                }
 
             }
         });
@@ -113,6 +122,6 @@ public class ProfitLossFragment extends Fragment {
     public void onAttach(Context context) {
         super.onAttach(context);
         mContext = context;
-        mFragmentLoader = (FragmentLoader)context;
+        mFragmentLoader = (FragmentLoader) context;
     }
 }

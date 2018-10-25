@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <RelativeLayout
+        android:id="@+id/root_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context=".Fragment.ExpenseFragment">
@@ -28,8 +29,8 @@
             android:layout_centerInParent="true"
             android:text="@string/empty_expense_text"
             android:textAlignment="center"
-            android:visibility="gone"
-            android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:visibility="gone" />
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/add_expense_btn"

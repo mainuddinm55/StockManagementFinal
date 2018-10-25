@@ -45,7 +45,7 @@ public class Constant {
     public static final String EXTRA_UNSEEN_MESSAGE = "unseen_message";
     public static final String SETTING_FRAGMENT_TAG = "settings";
     public static final String DAILY_REPORT_FRAGMENT_TAG = "daily_report";
-    public static final String SALARY_REF = "Salary";
+    public static final String SALARY_REF = "SalaryForRoom";
     public static final String SALARY_FRAGMENT_TAG = "salary";
     public static final String SALARY_ADD_FRAGMENT_TAG = "salary_add";
     public static final String PRODUCT_DETAILS_FRAGMENT_TAG = "product_details";
@@ -60,4 +60,18 @@ public class Constant {
     public static final String LOGO_URL_REF = "logoUrl";
 
 
+    public static final String EXTRA_BUY_PRICE = "price";
+    public static final String PROFIT_REF = "Profit";
+    public static final String OVER_ALL_PROFIT_LOSS_FRAGMENT_TAG = "over_all_profit_loss";
+    public static final String COST_REF = "Cost";
+
+    public static final int TOTAL_SL_NO_INDEX = 0;
+    public static final int TOTAL_MONTH_INDEX = 1;
+    public static final int TOTAL_PURCHASE_INDEX = 2;
+    public static final int TOTAL_STOCK_HAND_INDEX = 3;
+    public static final int TOTAL_SALES_INDEX = 4;
+    public static final int TOTAL_COST_INDEX = 5;
+    public static final int TOTAL_SALARY_INDEX = 6;
+    public static final int TOTAL_PROFIT_INDEX = 7;
+    public static final String REGISTRATION_REF = "registrationExpiredDate";
 }

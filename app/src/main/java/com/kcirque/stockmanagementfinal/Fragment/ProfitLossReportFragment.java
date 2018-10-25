@@ -23,8 +23,13 @@ import com.google.firebase.database.ValueEventListener;
 import com.kcirque.stockmanagementfinal.Common.Constant;
 import com.kcirque.stockmanagementfinal.Common.DateConverter;
 import com.kcirque.stockmanagementfinal.Common.SharedPref;
+import com.kcirque.stockmanagementfinal.Database.Model.DateAmountCost;
+import com.kcirque.stockmanagementfinal.Database.Model.DateAmountPurchase;
+import com.kcirque.stockmanagementfinal.Database.Model.DateAmountSalary;
+import com.kcirque.stockmanagementfinal.Database.Model.DateAmountSales;
 import com.kcirque.stockmanagementfinal.Database.Model.Expense;
 import com.kcirque.stockmanagementfinal.Database.Model.ProductSell;
+import com.kcirque.stockmanagementfinal.Database.Model.Profit;
 import com.kcirque.stockmanagementfinal.Database.Model.Purchase;
 import com.kcirque.stockmanagementfinal.Database.Model.Salary;
 import com.kcirque.stockmanagementfinal.Database.Model.Sales;
@@ -45,25 +50,16 @@ public class ProfitLossReportFragment extends Fragment {
     private static final String TAG = "Profit Activity";
     private FragmentProfitLossReportBinding mBinding;
 
-    private FirebaseUser mUser;
-    private FirebaseAuth mAuth;
-    private SharedPref mSharedPref;
-    private DatabaseReference mAdminRef;
-    private DatabaseReference mPurchaseRef;
-    private DatabaseReference mSalesRef;
-    private DatabaseReference mExpenseRef;
     private DateConverter mDateConverter;
 
     private double mTotalPurchase = 0;
     private double mTotalSales = 0;
-    private double mTotalStock = 0;
+    private double mTotalStockHand = 0;
+    private double mTotalStockOut = 0;
     private double mTotalProfit = 0;
     private double mTotalCost = 0;
     private int mProfitType;
-    private List<StockHand> mStockList = new ArrayList<>();
-    private List<ProductSell> mProductSell = new ArrayList<>();
-    private StockHand stockHand = null;
-    private DatabaseReference mSalaryRef;
+
     private double mTotalSalary = 0;
 
     public static synchronized ProfitLossReportFragment getInstance() {
@@ -90,286 +86,227 @@ public class ProfitLossReportFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable final Bundle savedInstanceState) {
-        mSharedPref = new SharedPref(getContext());
-        Seller seller = mSharedPref.getSeller();
-        mAuth = FirebaseAuth.getInstance();
-        mUser = mAuth.getCurrentUser();
+        SharedPref sharedPref = new SharedPref(getContext());
+        Seller seller = sharedPref.getSeller();
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        FirebaseUser user = auth.getCurrentUser();
         mDateConverter = new DateConverter();
-        DatabaseReference mRootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
-        if (mUser != null) {
-            mAdminRef = mRootRef.child(mUser.getUid());
+        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
+        DatabaseReference adminRef;
+        if (user != null) {
+            adminRef = rootRef.child(user.getUid());
         } else {
-            mAdminRef = mRootRef.child(seller.getAdminUid());
+            adminRef = rootRef.child(seller.getAdminUid());
         }
-        mPurchaseRef = mAdminRef.child(Constant.PURCHASE_REF);
-        mSalesRef = mAdminRef.child(Constant.SALES_REF);
-        mSalaryRef = mAdminRef.child(Constant.SALARY_REF);
-        mExpenseRef = mAdminRef.child(Constant.EXPENSE_REF);
         mBinding.linearLayout.setVisibility(View.GONE);
         mBinding.progressBar.setVisibility(View.VISIBLE);
+        DatabaseReference profitRef = adminRef.child(Constant.PROFIT_REF);
+        DatabaseReference salesRef = profitRef.child(Constant.SALES_REF);
+        DatabaseReference purchaseRef = profitRef.child(Constant.PURCHASE_REF);
+        DatabaseReference costRef = profitRef.child(Constant.COST_REF);
+        final DatabaseReference salaryRef = profitRef.child(Constant.SALES_REF);
         Bundle bundle = getArguments();
         if (bundle != null) {
             mProfitType = bundle.getInt(Constant.EXTRA_PROFIT_LOSS_TYPE);
-            switch (mProfitType) {
-                case ProfitLossFragment.DAY_7_TYPE:
-                    getActivity().setTitle("7 Day's Profit Loss");
-                    break;
-                case ProfitLossFragment.WEEK_TYPE:
-                    getActivity().setTitle("last Week Profit Loss");
-                    break;
-                case ProfitLossFragment.DAY_30_TYPE:
-                    getActivity().setTitle("30 Day's Profit Loss");
-                    break;
-                case ProfitLossFragment.MONTH_TYPE:
-                    getActivity().setTitle("Last Month Profit Loss");
-                    break;
-                case ProfitLossFragment.YEAR_TYPE:
-                    getActivity().setTitle("Last Year Profit Loss");
-                    break;
 
-            }
-        }
-        new Thread(new Runnable() {
-            private int productId = 0;
-            private int totalPurchaseQuantity = 0;
-            private double buyPrice;
-            private int sellQuantity;
-
-            @Override
-            public void run() {
-                mPurchaseRef.addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        mTotalPurchase = 0;
-                        mStockList.clear();
-                        for (DataSnapshot postData : dataSnapshot.getChildren()) {
-                            productId = 0;
-                            totalPurchaseQuantity = 0;
-                            buyPrice = 0;
-                            sellQuantity = 0;
-                            for (DataSnapshot data : postData.getChildren()) {
-                                Purchase purchase = data.getValue(Purchase.class);
-                                long purchaseDate = purchase.getPurchaseDate();
-                                switch (mProfitType) {
-                                    case ProfitLossFragment.DAY_7_TYPE:
-                                        if (mDateConverter.getDayCount(purchaseDate) <= 7) {
-                                            mTotalPurchase = mTotalPurchase + purchase.getTotalPrice();
-                                            getStockHand(purchase);
-                                        }
-                                        break;
-                                    case ProfitLossFragment.WEEK_TYPE:
-                                        if (mDateConverter.isLastWeek(purchaseDate)) {
-                                            mTotalPurchase = mTotalPurchase + purchase.getTotalPrice();
-                                            getStockHand(purchase);
-                                        }
-                                        break;
-                                    case ProfitLossFragment.DAY_30_TYPE:
-                                        if (mDateConverter.getDayCount(purchaseDate) <= 30) {
-                                            mTotalPurchase = mTotalPurchase + purchase.getTotalPrice();
-                                            getStockHand(purchase);
-                                        }
-                                        break;
-                                    case ProfitLossFragment.MONTH_TYPE:
-                                        if (mDateConverter.isLastMonth(purchaseDate)) {
-                                            mTotalPurchase = mTotalPurchase + purchase.getTotalPrice();
-                                            getStockHand(purchase);
-                                        }
-                                        break;
-                                    case ProfitLossFragment.YEAR_TYPE:
-                                        if (mDateConverter.isLastYear(purchaseDate)) {
-                                            mTotalPurchase = mTotalPurchase + purchase.getTotalPrice();
-                                            getStockHand(purchase);
-                                        }
-                                        break;
+            purchaseRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    mTotalPurchase = 0;
+                    mTotalStockHand = 0;
+                    for (DataSnapshot data : dataSnapshot.getChildren()) {
+                        DateAmountPurchase purchase = data.getValue(DateAmountPurchase.class);
+                        switch (mProfitType) {
+                            case ProfitLossFragment.DAY_7_TYPE:
+                                if (mDateConverter.getDayCount(purchase.getDate()) <= 7) {
+                                    mTotalPurchase = mTotalPurchase + purchase.getAmount();
                                 }
-                            }
-                        }
-                        mBinding.totalPurchaseTextView.setText(String.valueOf(mTotalPurchase));
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                });
-                mExpenseRef.addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        mTotalCost = 0;
-                        for (DataSnapshot postData : dataSnapshot.getChildren()) {
-                            Expense expense = postData.getValue(Expense.class);
-                            switch (mProfitType) {
-                                case ProfitLossFragment.DAY_7_TYPE:
-                                    if (mDateConverter.getDayCount(expense.getDate()) <= 7) {
-                                        mTotalCost = mTotalCost + expense.getExpenseAmount();
-                                    }
-                                    break;
-                                case ProfitLossFragment.WEEK_TYPE:
-                                    if (mDateConverter.isLastWeek(expense.getDate())) {
-                                        mTotalCost = mTotalCost + expense.getExpenseAmount();
-                                    }
-                                    break;
-                                case ProfitLossFragment.DAY_30_TYPE:
-                                    if (mDateConverter.getDayCount(expense.getDate()) <= 30) {
-                                        mTotalCost = mTotalCost + expense.getExpenseAmount();
-                                    }
-                                    break;
-                                case ProfitLossFragment.MONTH_TYPE:
-                                    if (mDateConverter.isLastMonth(expense.getDate())) {
-                                        mTotalCost = mTotalCost + expense.getExpenseAmount();
-                                    }
-                                    break;
-                                case ProfitLossFragment.YEAR_TYPE:
-                                    if (mDateConverter.isLastYear(expense.getDate())) {
-                                        mTotalCost = mTotalCost + expense.getExpenseAmount();
-                                    }
-                                    break;
-                            }
-
-                        }
-
-                        mBinding.totalCostTextView.setText(String.valueOf(mTotalCost));
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                });
-
-                mSalaryRef.addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        mTotalSalary = 0;
-                        for (DataSnapshot postData : dataSnapshot.getChildren()) {
-                            Salary salary = postData.getValue(Salary.class);
-                            if (salary != null) {
-                                switch (mProfitType) {
-                                    case ProfitLossFragment.MONTH_TYPE:
-                                        if (mDateConverter.isLastMonth(salary.getDate())) {
-                                            mTotalSalary = mTotalSalary + salary.getAmount();
-                                        }
-                                        break;
+                                break;
+                            case ProfitLossFragment.WEEK_TYPE:
+                                if (mDateConverter.isLastWeek(purchase.getDate())) {
+                                    mTotalPurchase = mTotalPurchase + purchase.getAmount();
                                 }
-                            }
-                        }
-
-                        mBinding.totalEmpSalaryTextView.setText(String.valueOf(mTotalSalary));
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                });
-                mSalesRef.addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        mTotalSales = 0;
-                        mProductSell.clear();
-                        for (DataSnapshot postData : dataSnapshot.getChildren()) {
-                            Sales sales = postData.getValue(Sales.class);
-                            switch (mProfitType) {
-                                case ProfitLossFragment.DAY_7_TYPE:
-                                    if (mDateConverter.getDayCount(sales.getSalesDate()) <= 7) {
-                                        mProductSell.addAll(sales.getSelectedProduct());
-                                        mTotalSales = mTotalSales + sales.getTotal();
-                                    }
-                                    break;
-                                case ProfitLossFragment.WEEK_TYPE:
-                                    if (mDateConverter.isLastWeek(sales.getSalesDate())) {
-                                        mProductSell.addAll(sales.getSelectedProduct());
-                                        mTotalSales = mTotalSales + sales.getTotal();
-                                    }
-                                    break;
-                                case ProfitLossFragment.DAY_30_TYPE:
-                                    if (mDateConverter.getDayCount(sales.getSalesDate()) <= 30) {
-                                        mProductSell.addAll(sales.getSelectedProduct());
-                                        mTotalSales = mTotalSales + sales.getTotal();
-                                    }
-                                    break;
-                                case ProfitLossFragment.MONTH_TYPE:
-                                    if (mDateConverter.isLastMonth(sales.getSalesDate())) {
-                                        mProductSell.addAll(sales.getSelectedProduct());
-                                        mTotalSales = mTotalSales + sales.getTotal();
-                                    }
-                                    break;
-                                case ProfitLossFragment.YEAR_TYPE:
-                                    if (mDateConverter.isLastYear(sales.getSalesDate())) {
-                                        mProductSell.addAll(sales.getSelectedProduct());
-                                        mTotalSales = mTotalSales + sales.getTotal();
-                                    }
-                                    break;
-                            }
-
-                        }
-
-                        if (mStockList.size() > 0) {
-                            if (mProductSell.size() > 0) {
-                                mTotalStock = 0;
-                                for (ProductSell productSell : mProductSell) {
-                                    for (StockHand stockHand : mStockList) {
-                                        if (productSell.getProductId() == stockHand.getProductId()) {
-                                            stockHand.setSellQuantity(productSell.getQuantity());
-                                        }
-                                    }
+                                break;
+                            case ProfitLossFragment.DAY_30_TYPE:
+                                if (mDateConverter.getDayCount(purchase.getDate()) <= 30) {
+                                    mTotalPurchase = mTotalPurchase + purchase.getAmount();
                                 }
-                            }
-                            for (StockHand stockHand : mStockList) {
-                                int stockQty = stockHand.getPurchaseQuantity() - stockHand.getSellQuantity();
-                                double totalStock = stockHand.getBuyPrice() * stockQty;
-                                mTotalStock = mTotalStock + totalStock;
-                                Log.e(TAG, "Stock " + stockHand.getProductId() + " = " + mTotalStock);
-                            }
-
-                            mBinding.totalStockTextView.setText(String.valueOf(mTotalStock));
+                                break;
+                            case ProfitLossFragment.MONTH_TYPE:
+                                if (mDateConverter.isLastMonth(purchase.getDate())) {
+                                    mTotalPurchase = mTotalPurchase + purchase.getAmount();
+                                }
+                                break;
+                            case ProfitLossFragment.YEAR_TYPE:
+                                if (mDateConverter.isLastYear(purchase.getDate())) {
+                                    mTotalPurchase = mTotalPurchase + purchase.getAmount();
+                                }
+                                break;
                         }
-
-                        mTotalProfit = ((mTotalSales + mTotalStock) - mTotalPurchase) - mTotalCost;
-                        if (mProfitType == ProfitLossFragment.MONTH_TYPE) {
-                            mBinding.empSalLinearLayout.setVisibility(View.VISIBLE);
-                            mTotalProfit = mTotalProfit - mTotalSalary;
-                        }
-                        mBinding.totalSellAmountTextView.setText(String.valueOf(mTotalSales));
-                        mBinding.totalStockTextView.setText(String.valueOf(mTotalStock));
-                        if (mTotalProfit >= 0) {
-                            mBinding.linearLayout.setVisibility(View.VISIBLE);
-                            mBinding.progressBar.setVisibility(View.GONE);
-                            mBinding.totalProfitTextView.setText(String.valueOf(mTotalProfit));
-                        } else {
-                            mBinding.linearLayout.setVisibility(View.VISIBLE);
-                            mBinding.progressBar.setVisibility(View.GONE);
-                            mBinding.profitTextView.setText("Total Loss");
-                            mBinding.totalProfitTextView.setText(String.valueOf(mTotalProfit));
-                        }
-
-                        mTotalStock = 0;
                     }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                });
-            }
-
-            void getStockHand(Purchase purchase) {
-                if (productId == purchase.getProductId()) {
-                    mStockList.remove(stockHand);
-                    totalPurchaseQuantity = totalPurchaseQuantity + purchase.getQuantity();
-                    buyPrice = purchase.getActualPrice();
-                    stockHand = new StockHand(productId, totalPurchaseQuantity, buyPrice, sellQuantity);
-
-                } else {
-                    productId = purchase.getProductId();
-                    totalPurchaseQuantity = totalPurchaseQuantity + purchase.getQuantity();
-                    buyPrice = purchase.getActualPrice();
-                    stockHand = new StockHand(productId, totalPurchaseQuantity, buyPrice, sellQuantity);
+                    mBinding.totalPurchaseTextView.setText(String.valueOf(mTotalPurchase));
                 }
 
-                mStockList.add(stockHand);
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
 
-            }
-        }).start();
+                }
+            });
+            costRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    mTotalCost = 0;
+                    for (DataSnapshot data : dataSnapshot.getChildren()) {
+                        DateAmountCost cost = data.getValue(DateAmountCost.class);
+                        switch (mProfitType) {
+                            case ProfitLossFragment.DAY_7_TYPE:
+                                if (mDateConverter.getDayCount(cost.getDate()) <= 7) {
+                                    mTotalCost = mTotalCost + cost.getAmount();
+                                }
+                                break;
+                            case ProfitLossFragment.WEEK_TYPE:
+                                if (mDateConverter.isLastWeek(cost.getDate())) {
+                                    mTotalCost = mTotalCost + cost.getAmount();
+                                }
+                                break;
+                            case ProfitLossFragment.DAY_30_TYPE:
+                                if (mDateConverter.getDayCount(cost.getDate()) <= 30) {
+                                    mTotalCost = mTotalCost + cost.getAmount();
+                                }
+                                break;
+                            case ProfitLossFragment.MONTH_TYPE:
+                                if (mDateConverter.isLastMonth(cost.getDate())) {
+                                    mTotalCost = mTotalCost + cost.getAmount();
+                                }
+                                break;
+                            case ProfitLossFragment.YEAR_TYPE:
+                                if (mDateConverter.isLastYear(cost.getDate())) {
+                                    mTotalCost = mTotalCost + cost.getAmount();
+                                }
+                                break;
+                        }
+                    }
+                    mBinding.totalCostTextView.setText(String.valueOf(mTotalCost));
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+            salaryRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    mTotalSalary = 0;
+                    for (DataSnapshot data : dataSnapshot.getChildren()) {
+                        DateAmountSalary salary = data.getValue(DateAmountSalary.class);
+                        switch (mProfitType) {
+                            case ProfitLossFragment.DAY_7_TYPE:
+                                if (mDateConverter.getDayCount(salary.getDate()) <= 7) {
+                                    mTotalSalary = mTotalSalary + salary.getAmount();
+                                }
+                                break;
+                            case ProfitLossFragment.WEEK_TYPE:
+                                if (mDateConverter.isLastWeek(salary.getDate())) {
+                                    mTotalSalary = mTotalSalary + salary.getAmount();
+                                }
+                                break;
+                            case ProfitLossFragment.DAY_30_TYPE:
+                                if (mDateConverter.getDayCount(salary.getDate()) <= 30) {
+                                    mTotalSalary = mTotalSalary + salary.getAmount();
+                                }
+                                break;
+                            case ProfitLossFragment.MONTH_TYPE:
+                                if (mDateConverter.isLastMonth(salary.getDate())) {
+                                    mTotalSalary = mTotalSalary + salary.getAmount();
+                                }
+                                break;
+                            case ProfitLossFragment.YEAR_TYPE:
+                                if (mDateConverter.isLastYear(salary.getDate())) {
+                                    mTotalSalary = mTotalSalary + salary.getAmount();
+                                }
+                                break;
+                        }
+                    }
+                    mBinding.totalEmpSalaryTextView.setText(String.valueOf(mTotalSalary));
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+            salesRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    mTotalSales = 0;
+                    mTotalStockOut = 0;
+                    for (DataSnapshot data : dataSnapshot.getChildren()) {
+                        DateAmountSales sales = data.getValue(DateAmountSales.class);
+                        switch (mProfitType) {
+                            case ProfitLossFragment.DAY_7_TYPE:
+                                if (mDateConverter.getDayCount(sales.getDate()) <= 7) {
+                                    mTotalSales = mTotalSales + sales.getAmount();
+                                    mTotalStockOut = mTotalStockOut + sales.getStockOutAmount();
+                                }
+                                break;
+                            case ProfitLossFragment.WEEK_TYPE:
+                                if (mDateConverter.isLastWeek(sales.getDate())) {
+                                    mTotalSales = mTotalSales + sales.getAmount();
+                                    mTotalStockOut = mTotalStockOut + sales.getStockOutAmount();
+                                }
+                                break;
+                            case ProfitLossFragment.DAY_30_TYPE:
+                                if (mDateConverter.getDayCount(sales.getDate()) <= 30) {
+                                    mTotalSales = mTotalSales + sales.getAmount();
+                                    mTotalStockOut = mTotalStockOut + sales.getStockOutAmount();
+                                }
+                                break;
+                            case ProfitLossFragment.MONTH_TYPE:
+                                if (mDateConverter.isLastMonth(sales.getDate())) {
+                                    mTotalSales = mTotalSales + sales.getAmount();
+                                    mTotalStockOut = mTotalStockOut + sales.getStockOutAmount();
+                                }
+                                break;
+                            case ProfitLossFragment.YEAR_TYPE:
+                                if (mDateConverter.isLastYear(sales.getDate())) {
+                                    mTotalSales = mTotalSales + sales.getAmount();
+                                    mTotalStockOut = mTotalStockOut + sales.getStockOutAmount();
+                                }
+                                break;
+                        }
+                    }
+                    mBinding.totalSellAmountTextView.setText(String.valueOf(mTotalSales));
+                    mTotalStockHand = mTotalPurchase - mTotalStockOut;
+                    mBinding.totalStockTextView.setText(String.valueOf(mTotalStockHand));
+                    mTotalProfit = ((mTotalSales + mTotalStockHand) - mTotalPurchase) - mTotalCost;
+                    if (mProfitType == ProfitLossFragment.MONTH_TYPE || mProfitType == ProfitLossFragment.YEAR_TYPE) {
+                        mBinding.empSalLinearLayout.setVisibility(View.VISIBLE);
+                        mTotalProfit = mTotalProfit - mTotalSalary;
+                    }
+                    mBinding.totalSellAmountTextView.setText(String.valueOf(mTotalSales));
+                    mBinding.totalStockTextView.setText(String.valueOf(mTotalStockHand));
+                    if (mTotalProfit >= 0) {
+                        mBinding.linearLayout.setVisibility(View.VISIBLE);
+                        mBinding.progressBar.setVisibility(View.GONE);
+                        mBinding.totalProfitTextView.setText(String.valueOf(mTotalProfit));
+                    } else {
+                        mBinding.linearLayout.setVisibility(View.VISIBLE);
+                        mBinding.progressBar.setVisibility(View.GONE);
+                        mBinding.profitTextView.setText("Total Loss");
+                        mBinding.totalProfitTextView.setText(String.valueOf(mTotalProfit));
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+        }
+
+
     }
+
 }
+

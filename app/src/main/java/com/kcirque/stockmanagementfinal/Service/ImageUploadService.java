@@ -62,14 +62,12 @@ public class ImageUploadService extends IntentService {
         String fileName = intent.getStringExtra(EXTRA_FILE_NAME);
 
         mRootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
-        mRootRef.keepSynced(true);
         if (mUser != null) {
             mAdminRef = mRootRef.child(mUser.getUid());
         } else {
             mAdminRef = mRootRef.child(seller.getAdminUid());
         }
         mProductRef = mAdminRef.child(Constant.PRODUCT_REF);
-        mProductRef.keepSynced(true);
         mStorageRef = FirebaseStorage.getInstance().getReference(Constant.STORAGE_REF);
 
         final StorageReference fileReference = mStorageRef.child(fileName

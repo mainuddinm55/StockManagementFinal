@@ -1,6 +1,7 @@
 package com.kcirque.stockmanagementfinal.Fragment;
 
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
@@ -41,6 +42,7 @@ public class SellerAddFragment extends Fragment {
     private String mSellerMobile;
     private Context mContext;
     private FragmentLoader mFragmentLoader;
+    private ProgressDialog progressDialog;
 
     public static synchronized SellerAddFragment getInstance() {
         if (INSTANCE == null) {
@@ -81,6 +83,7 @@ public class SellerAddFragment extends Fragment {
                             mBinding.sellerPasswordEditText.setError("Password does not match");
                             return;
                         }
+                        showProgressDialog();
                         mSellerName = mBinding.sellerNameEditText.getText().toString();
                         mSellerEmail = mBinding.sellerEmailEditText.getText().toString();
                         mSellerMobile = mBinding.sellerMobileEditText.getText().toString();
@@ -96,6 +99,7 @@ public class SellerAddFragment extends Fragment {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
                                 if (task.isSuccessful()) {
+                                    dismissProgressDialog();
                                     Toast.makeText(mContext, "Seller Added", Toast.LENGTH_SHORT).show();
                                     mFragmentLoader.loadFragment(SellerFragment.getInstance(), true, Constant.SELLER_FRAGMENT_TAG);
                                 }
@@ -103,6 +107,8 @@ public class SellerAddFragment extends Fragment {
                         }).addOnFailureListener(new OnFailureListener() {
                             @Override
                             public void onFailure(@NonNull Exception e) {
+                                dismissProgressDialog();
+                                Toast.makeText(mContext, e.getMessage(), Toast.LENGTH_SHORT).show();
                                 Log.e(TAG, "onFailure: " + e.getMessage());
                             }
                         });
@@ -148,5 +154,17 @@ public class SellerAddFragment extends Fragment {
         mBinding.confirmPasswordEditText.setText(null);
         mBinding.sellerPasswordEditText.setText(null);
         mBinding.sellerMobileEditText.setText(null);
+    }
+
+    private void showProgressDialog() {
+        progressDialog = new ProgressDialog(mContext);
+        progressDialog.setTitle("Loading.....");
+        progressDialog.setMessage("Please wait.....");
+        progressDialog.show();
+    }
+
+    private void dismissProgressDialog() {
+        if (progressDialog != null)
+            progressDialog.dismiss();
     }
 }

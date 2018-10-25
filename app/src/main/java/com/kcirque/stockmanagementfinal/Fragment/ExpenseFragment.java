@@ -2,11 +2,14 @@ package com.kcirque.stockmanagementfinal.Fragment;
 
 
 import android.app.DatePickerDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
@@ -33,7 +36,9 @@ import com.kcirque.stockmanagementfinal.Adapter.ExpenseListAdapter;
 import com.kcirque.stockmanagementfinal.Common.Constant;
 import com.kcirque.stockmanagementfinal.Common.DateConverter;
 import com.kcirque.stockmanagementfinal.Common.SharedPref;
+import com.kcirque.stockmanagementfinal.Database.Model.DateAmountCost;
 import com.kcirque.stockmanagementfinal.Database.Model.Expense;
+import com.kcirque.stockmanagementfinal.Database.Model.Profit;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.Interface.FragmentLoader;
 import com.kcirque.stockmanagementfinal.Interface.RecyclerItemClickListener;
@@ -67,6 +72,7 @@ public class ExpenseFragment extends Fragment {
     private FirebaseAuth mAuth;
     private SharedPref mSharedPref;
     private DatabaseReference mAdminRef;
+    private ProgressDialog progressDialog;
 
     public ExpenseFragment() {
         // Required empty public constructor
@@ -100,6 +106,7 @@ public class ExpenseFragment extends Fragment {
         mBinding.expenseListRecyclerView.setHasFixedSize(true);
         mBinding.expenseListRecyclerView.setLayoutManager(new LinearLayoutManager(mContext));
         mDateConverter = new DateConverter();
+        mExpenseDate = mDateConverter.getCurrentDate();
         mRootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
         if (mUser != null) {
             mAdminRef = mRootRef.child(mUser.getUid());
@@ -160,17 +167,16 @@ public class ExpenseFragment extends Fragment {
 
     private void newExpenseDialog() {
         AlertDialog.Builder dialog = new AlertDialog.Builder(mContext);
-        View view = LayoutInflater.from(mContext).inflate(R.layout.add_new_expense, null);
+        final View view = LayoutInflater.from(mContext).inflate(R.layout.add_new_expense, null);
+        dialog.setTitle("ADD EXPENSE");
         dialog.setView(view);
-        dialog.setCancelable(false);
-        final EditText expenseNameET = view.findViewById(R.id.expenseNameET);
-        final EditText expenseAmountET = view.findViewById(R.id.expenseAmountET);
-        final EditText expenseCommentET = view.findViewById(R.id.expenseCommentET);
-        final TextView expenseDateET = view.findViewById(R.id.expenseDateTV);
-        Button saveBtn = view.findViewById(R.id.saveBtn);
-        Button cancelBtn = view.findViewById(R.id.cancelBtn);
-        final AlertDialog alertDialog = dialog.create();
-        expenseDateET.setOnClickListener(new View.OnClickListener() {
+        final EditText expenseNameET = view.findViewById(R.id.expense_name_edit_text);
+        final EditText expenseAmountET = view.findViewById(R.id.amount_edit_text);
+        final EditText expenseCommentET = view.findViewById(R.id.comment_edit_text);
+        final TextView expenseDateTextView = view.findViewById(R.id.date_text_view);
+        expenseDateTextView.setText(mDateConverter.getDateInString(mDateConverter.getCurrentDate()));
+        //final AlertDialog alertDialog = dialog.create();
+        expenseDateTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 DatePickerDialog datePickerDialog = new DatePickerDialog(mContext, new DatePickerDialog.OnDateSetListener() {
@@ -183,34 +189,31 @@ public class ExpenseFragment extends Fragment {
                             date = dayOfMonth + "/" + (month + 1) + "/" + year;
                         }
                         mExpenseDate = mDateConverter.getDateInUnix(date);
-                        expenseDateET.setText(date);
+                        expenseDateTextView.setText(date);
                     }
                 }, mYear, mMonth, mDay);
                 datePickerDialog.show();
             }
         });
 
-        saveBtn.setOnClickListener(new View.OnClickListener() {
+        dialog.setPositiveButton("SAVE", new DialogInterface.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(final DialogInterface dialog, int which) {
                 if (expenseNameET.getText().toString().isEmpty()) {
-                    expenseNameET.setError("Expense Name Required");
-                    expenseNameET.requestFocus();
+                    Snackbar.make(mBinding.rootView, "Please Enter ExpenseForRoom Name", Snackbar.LENGTH_SHORT).show();
                     return;
                 }
                 if (expenseAmountET.getText().toString().isEmpty()) {
-                    expenseAmountET.setError("Amount Required");
-                    expenseAmountET.requestFocus();
+                    Snackbar.make(mBinding.rootView, "Please Enter ExpenseForRoom Amount", Snackbar.LENGTH_SHORT).show();
                     return;
                 }
-                if (expenseDateET.getText().toString().isEmpty()) {
-                    expenseDateET.setError("Date Required");
-                    expenseDateET.requestFocus();
+                if (expenseDateTextView.getText().toString().isEmpty()) {
+                    Snackbar.make(mBinding.rootView, "Please Enter ExpenseForRoom Date", Snackbar.LENGTH_SHORT).show();
                     return;
                 }
-
+                showProgressDialog();
                 String expenseName = expenseNameET.getText().toString().trim();
-                double expenseAmount = Double.parseDouble(expenseAmountET.getText().toString().trim());
+                final double expenseAmount = Double.parseDouble(expenseAmountET.getText().toString().trim());
                 String comment = expenseCommentET.getText().toString().trim();
                 DatabaseReference expenseRef = mAdminRef.child(Constant.EXPENSE_REF);
                 String expenseKey = expenseRef.push().getKey();
@@ -221,30 +224,57 @@ public class ExpenseFragment extends Fragment {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         if (task.isSuccessful()) {
-                            Toast.makeText(mContext, "Expense Added", Toast.LENGTH_SHORT).show();
-                            mBinding.emptyExpenseTextView.setVisibility(View.GONE);
-                            alertDialog.dismiss();
+                            DateAmountCost profit = new DateAmountCost(mExpenseDate, expenseAmount);
+                            DatabaseReference profitRef = mAdminRef.child(Constant.PROFIT_REF);
+                            DatabaseReference costRef = profitRef.child(Constant.COST_REF);
+                            costRef.push().setValue(profit).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    Toast.makeText(mContext, "ExpenseForRoom Added", Toast.LENGTH_SHORT).show();
+                                    mBinding.emptyExpenseTextView.setVisibility(View.GONE);
+                                    dismissProgressDialog();
+                                    dialog.dismiss();
+                                }
+                            }).addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    dismissProgressDialog();
+                                    dialog.dismiss();
+                                }
+                            });
+
                         }
                     }
                 }).addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
                         Toast.makeText(mContext, "Failed", Toast.LENGTH_SHORT).show();
-                        alertDialog.dismiss();
+                        dismissProgressDialog();
+                        //alertDialog.dismiss();
                     }
                 });
-
             }
         });
 
-        cancelBtn.setOnClickListener(new View.OnClickListener() {
+        dialog.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                alertDialog.dismiss();
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
             }
         });
 
-        alertDialog.show();
+        dialog.show();
     }
 
+    private void showProgressDialog() {
+        progressDialog = new ProgressDialog(mContext);
+        progressDialog.setTitle("Loading.....");
+        progressDialog.setMessage("Please wait.....");
+        progressDialog.show();
+    }
+
+    private void dismissProgressDialog() {
+        if (progressDialog != null)
+            progressDialog.dismiss();
+    }
 }

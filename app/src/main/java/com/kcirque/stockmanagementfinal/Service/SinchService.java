@@ -6,6 +6,15 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.kcirque.stockmanagementfinal.Common.Constant;
+import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.IncomingCallActivity;
 import com.sinch.android.rtc.AudioController;
 import com.sinch.android.rtc.ClientRegistration;
@@ -16,6 +25,7 @@ import com.sinch.android.rtc.SinchError;
 import com.sinch.android.rtc.calling.Call;
 import com.sinch.android.rtc.calling.CallClient;
 import com.sinch.android.rtc.calling.CallClientListener;
+import com.sinch.android.rtc.video.VideoController;
 
 public class SinchService extends Service {
 
@@ -32,6 +42,7 @@ public class SinchService extends Service {
 
     private String mUserId;
     private StartFailedListener mFailedListener;
+    private String mCallerName;
 
     @Override
     public void onCreate() {
@@ -90,6 +101,10 @@ public class SinchService extends Service {
             return mSinchClient.getCallClient().callUser(userId);
         }
 
+        public Call callUserVideo(String userId) {
+            return mSinchClient.getCallClient().callUserVideo(userId);
+        }
+
         public String getUsername() {
             return mUserId;
         }
@@ -114,12 +129,21 @@ public class SinchService extends Service {
             return mSinchClient.getCallClient().getCall(username);
         }
 
+        public VideoController getVideoController() {
+            if (!isStarted()) {
+                return null;
+            }
+            return mSinchClient.getVideoController();
+        }
+
         public AudioController getAudioController() {
             if (!mSinchClient.isStarted()) {
                 return null;
             }
             return mSinchClient.getAudioController();
         }
+
+
     }
 
     public interface StartFailedListener {
@@ -183,10 +207,11 @@ public class SinchService extends Service {
 
         @Override
         public void onIncomingCall(CallClient callClient, Call call) {
-            Log.d(TAG, "Incoming call");
+            String text = call.getRemoteUserId();
+            Log.d(TAG, "Incoming call from " + text);
             Intent intent = new Intent(SinchService.this, IncomingCallActivity.class);
-
             intent.putExtra(CALL_ID, call.getCallId());
+            intent.putExtra(CALLER_NAME, mCallerName);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             SinchService.this.startActivity(intent);
         }

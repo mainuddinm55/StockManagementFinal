@@ -1,13 +1,17 @@
 package com.kcirque.stockmanagementfinal.Database.Model;
 
+
 import java.io.Serializable;
 
+
 public class Expense implements Serializable {
+
     private String key;
     private String expenseName;
     private double expenseAmount;
     private String comment;
     private long date;
+
 
     public Expense(String key, String expenseName, double expenseAmount, String comment, long date) {
         this.key = key;

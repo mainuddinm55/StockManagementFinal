@@ -38,6 +38,37 @@
                     android:text="@string/seller_name_text"
                     android:textAppearance="@style/TextAppearance.AppCompat.Large"
                     android:textColor="@android:color/white" />
+
+                <ImageButton
+                    android:id="@+id/call_btn"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignParentRight="true"
+                    android:layout_gravity="end"
+                    android:layout_margin="5dp"
+                    android:background="@drawable/ic_call"
+                    android:baselineAlignBottom="true"
+                    android:clickable="true"
+                    android:contentDescription="@string/call_seller"
+                    android:focusable="true"
+                    android:foreground="?selectableItemBackground" />
+
+                <ImageButton
+                    android:id="@+id/video_call_btn"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignParentRight="true"
+                    android:layout_gravity="end"
+                    android:layout_margin="5dp"
+                    android:background="@drawable/ic_video_call"
+                    android:baselineAlignBottom="true"
+                    android:clickable="true"
+                    android:contentDescription="@string/call_seller"
+                    android:focusable="true"
+                    android:foreground="?selectableItemBackground"
+                    android:scaleType="fitXY" />
             </android.support.v7.widget.Toolbar>
         </android.support.design.widget.AppBarLayout>
 

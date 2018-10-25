@@ -12,6 +12,11 @@ import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.kcirque.stockmanagementfinal.Common.AudioPlayer;
 import com.kcirque.stockmanagementfinal.Common.Constant;
 import com.kcirque.stockmanagementfinal.Common.SharedPref;
@@ -123,6 +128,7 @@ public class CallActivity extends BaseActivity {
 
         Call call = getSinchServiceInterface().getCall(mCallId);
         if (call != null) {
+
             mBinding.remoteUser.setText(mCallerName);
             mBinding.callState.setText(call.getState().toString());
         }

@@ -74,7 +74,6 @@ public class ProductDialogAdapter extends RecyclerView.Adapter<ProductDialogAdap
             mAdminRef = mRootRef.child(seller.getAdminUid());
         }
         mStockRef = mAdminRef.child(Constant.STOCK_HAND_REF);
-        mStockRef.keepSynced(true);
         final Product product = mProductList.get(i);
         Log.e(TAG, "run: " + mProductList.size());
 
@@ -88,7 +87,7 @@ public class ProductDialogAdapter extends RecyclerView.Adapter<ProductDialogAdap
                         StockHand stockHand = dataSnapshot.getValue(StockHand.class);
                         if (stockHand != null) {
                             mQuantity = stockHand.getPurchaseQuantity() - stockHand.getSellQuantity();
-                            recyclerItemClickListener.onClick(v, i, mQuantity);
+                            recyclerItemClickListener.onClick(v, i, stockHand);
                         }
                     }
 

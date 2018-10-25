@@ -2,6 +2,7 @@ package com.kcirque.stockmanagementfinal.Fragment;
 
 
 import android.app.DatePickerDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -40,7 +41,9 @@ import com.kcirque.stockmanagementfinal.Common.Constant;
 import com.kcirque.stockmanagementfinal.Common.DateConverter;
 import com.kcirque.stockmanagementfinal.Common.SharedPref;
 import com.kcirque.stockmanagementfinal.Database.Model.Customer;
+import com.kcirque.stockmanagementfinal.Database.Model.DateAmountSales;
 import com.kcirque.stockmanagementfinal.Database.Model.ProductSell;
+import com.kcirque.stockmanagementfinal.Database.Model.Profit;
 import com.kcirque.stockmanagementfinal.Database.Model.Sales;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.Database.Model.StockHand;
@@ -90,6 +93,8 @@ public class SalesFragment extends Fragment {
     private FragmentLoader mFragmentLoader;
     private String mCustomerKey;
     private double mTotalDue;
+    private double mTotalStockOutAmount;
+    private ProgressDialog progressDialog;
 
     public static synchronized SalesFragment getInstance() {
         if (INSTANCE == null) {
@@ -127,16 +132,14 @@ public class SalesFragment extends Fragment {
         Seller seller = mSharedPref.getSeller();
         mAuth = FirebaseAuth.getInstance();
         mUser = mAuth.getCurrentUser();
-        getActivity().setTitle("Sales Product");
+        getActivity().setTitle("Sales ProductForRoom");
         DatabaseReference mRootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
-        mRootRef.keepSynced(true);
         if (mUser != null) {
             mAdminRef = mRootRef.child(mUser.getUid());
         } else {
             mAdminRef = mRootRef.child(seller.getAdminUid());
         }
         mCustomerRef = mAdminRef.child(Constant.CUSTOMER_REF);
-        mCustomerRef.keepSynced(true);
         mSalesRef = mAdminRef.child(Constant.SALES_REF);
         mStockRef = mAdminRef.child(Constant.STOCK_HAND_REF);
         mDateConverter = new DateConverter();
@@ -261,9 +264,9 @@ public class SalesFragment extends Fragment {
                     return;
                 }
                 if (mProductSellList.size() < 1) {
-                    mBinding.addProductTextView.setError("Product required");
+                    mBinding.addProductTextView.setError("ProductForRoom required");
                     mBinding.addProductTextView.requestFocus();
-                    Snackbar.make(v, "Please add Product", Snackbar.LENGTH_SHORT).show();
+                    Snackbar.make(v, "Please add ProductForRoom", Snackbar.LENGTH_SHORT).show();
                     return;
                 }
 
@@ -298,7 +301,7 @@ public class SalesFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        Log.e(TAG, "onActivityCreated: " );
+        Log.e(TAG, "onActivityCreated: ");
     }
 
 
@@ -361,6 +364,7 @@ public class SalesFragment extends Fragment {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == GET_PRODUCT_REQUEST_CODE && data != null) {
             ProductSell productSell = (ProductSell) data.getSerializableExtra(Constant.EXTRA_PRODUCT_SELL);
+            double buyPrice = data.getDoubleExtra(Constant.EXTRA_BUY_PRICE, 0);
             /*if (mProductSellList.size() > 0) {
                 for (ProductSell sell : mProductSellList){
                     if (sell.getProductId()==productSell.getProductId()){
@@ -371,6 +375,7 @@ public class SalesFragment extends Fragment {
             mSubTotal = mSubTotal + (productSell.getQuantity() * productSell.getPrice());
             mTotal = mSubTotal - mDiscount;
             mDue = mTotal - mPaid;
+            mTotalStockOutAmount = mTotalStockOutAmount + buyPrice;
             mBinding.totalAmountTextview.setText(String.valueOf(mTotal));
             mProductSellList.add(productSell);
             mBinding.subTotalAmountTextView.setText(String.valueOf(mSubTotal));
@@ -382,7 +387,7 @@ public class SalesFragment extends Fragment {
     }
 
     private void sellProduct() {
-        mBinding.progressBar.setVisibility(View.VISIBLE);
+        showProgressDialog();
         String key = mSalesRef.push().getKey();
         Sales sales = new Sales(key, mCustomerId, mCustomerName, mSalesDate, mProductSellList, mSubTotal, mDiscount, mTotal, mPaid, mDue);
         mSalesRef.child(key).setValue(sales).addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -411,16 +416,27 @@ public class SalesFragment extends Fragment {
                             }
                         });
                     }
-                    Snackbar.make(mBinding.rootView, "Product Sell", Snackbar.LENGTH_SHORT).show();
-                    mBinding.progressBar.setVisibility(View.GONE);
-                    mFragmentLoader.loadFragment(HomeFragment.getInstance(), false, Constant.HOME_FRAGMENT_TAG);
+                    DateAmountSales dateAmountSales = new DateAmountSales(mSalesDate, mTotal, mTotalStockOutAmount);
+                    DatabaseReference profitRef = mAdminRef.child(Constant.PROFIT_REF);
+                    DatabaseReference salesRef = profitRef.child(Constant.SALES_REF);
+                    salesRef.push().setValue(dateAmountSales).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()) {
+                                Snackbar.make(mBinding.rootView, "ProductForRoom Sell", Snackbar.LENGTH_SHORT).show();
+                                dismissProgressDialog();
+                                mFragmentLoader.loadFragment(HomeFragment.getInstance(), false, Constant.HOME_FRAGMENT_TAG);
+                            }
+                        }
+                    });
+
                 }
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
                 Snackbar.make(mBinding.rootView, e.getMessage(), Snackbar.LENGTH_SHORT).show();
-                mBinding.progressBar.setVisibility(View.GONE);
+                dismissProgressDialog();
             }
         });
     }
@@ -428,7 +444,7 @@ public class SalesFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        Log.e(TAG, "onAttach: " );
+        Log.e(TAG, "onAttach: ");
         mContext = context;
         mFragmentLoader = (FragmentLoader) context;
     }
@@ -439,5 +455,16 @@ public class SalesFragment extends Fragment {
         mBinding.paidAmountEdittext.setText(null);
         mBinding.dueAmountTextview.setText(null);
         super.onPause();
+    }
+    private void showProgressDialog() {
+        progressDialog = new ProgressDialog(mContext);
+        progressDialog.setTitle("Loading.....");
+        progressDialog.setMessage("Please wait.....");
+        progressDialog.show();
+    }
+
+    private void dismissProgressDialog() {
+        if (progressDialog != null)
+            progressDialog.dismiss();
     }
 }

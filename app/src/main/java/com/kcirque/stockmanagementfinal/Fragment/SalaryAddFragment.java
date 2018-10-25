@@ -2,6 +2,7 @@ package com.kcirque.stockmanagementfinal.Fragment;
 
 
 import android.app.DatePickerDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
@@ -17,6 +18,7 @@ import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -28,6 +30,8 @@ import com.google.firebase.database.ValueEventListener;
 import com.kcirque.stockmanagementfinal.Adapter.SellerSpinnerAdapter;
 import com.kcirque.stockmanagementfinal.Common.Constant;
 import com.kcirque.stockmanagementfinal.Common.DateConverter;
+import com.kcirque.stockmanagementfinal.Database.Model.DateAmountSalary;
+import com.kcirque.stockmanagementfinal.Database.Model.Profit;
 import com.kcirque.stockmanagementfinal.Database.Model.Salary;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.Interface.FragmentLoader;
@@ -54,6 +58,8 @@ public class SalaryAddFragment extends Fragment {
     private String mSellerName;
     private long mDate;
     private DateConverter mDateConverter;
+    private int salaryMonth;
+    private ProgressDialog progressDialog;
 
     public SalaryAddFragment() {
         // Required empty public constructor
@@ -79,14 +85,12 @@ public class SalaryAddFragment extends Fragment {
         mDateConverter = new DateConverter();
         FirebaseAuth auth = FirebaseAuth.getInstance();
         final FirebaseUser user = auth.getCurrentUser();
-        getActivity().setTitle("Employee Salary");
+        getActivity().setTitle("Employee SalaryForRoom");
         DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
-        DatabaseReference adminRef;
-        rootRef.keepSynced(true);
+        final DatabaseReference adminRef;
         adminRef = rootRef.child(user.getUid());
         final DatabaseReference salaryRef = adminRef.child(Constant.SALARY_REF);
         DatabaseReference sellerRef = rootRef.child(Constant.SELLER_REF);
-        salaryRef.keepSynced(true);
         mDate = mDateConverter.getCurrentDate();
         mBinding.dateTextView.setText(mDateConverter.getDateInString(mDateConverter.getCurrentDate()));
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(mContext, android.R.layout.simple_spinner_dropdown_item, months);
@@ -133,6 +137,7 @@ public class SalaryAddFragment extends Fragment {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 mMonth = months[position];
+                salaryMonth = position;
             }
 
             @Override
@@ -187,24 +192,40 @@ public class SalaryAddFragment extends Fragment {
             public void onClick(final View v) {
                 for (Salary salary : mSalaryList) {
                     if (salary.getEmpKey().equals(mSellerKey) && salary.getMonth().equals(mMonth)) {
-                        Snackbar.make(v, "Salary Already added", Snackbar.LENGTH_SHORT).show();
+                        Snackbar.make(v, "SalaryForRoom Already added", Snackbar.LENGTH_SHORT).show();
                         return;
                     }
                 }
                 if (mBinding.amountEditText.getText().toString().isEmpty() || Double.parseDouble(mBinding.amountEditText.getText().toString()) <= 0) {
-                    mBinding.amountEditText.setError("Salary Amount Required");
+                    mBinding.amountEditText.setError("SalaryForRoom Amount Required");
                     mBinding.amountEditText.requestFocus();
                     return;
                 }
+                showProgressDialog();
                 String key = salaryRef.push().getKey();
-                double amount = Double.parseDouble(mBinding.amountEditText.getText().toString());
+                final double amount = Double.parseDouble(mBinding.amountEditText.getText().toString());
                 Salary empSalary = new Salary(key, mSellerKey, mSellerName, mMonth, amount, mDate);
                 salaryRef.child(key).setValue(empSalary).addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         if (task.isSuccessful()) {
-                            Snackbar.make(v, "Salary Added", Snackbar.LENGTH_SHORT).show();
-                            mFragmentLoader.loadFragment(SalaryFragment.getInstance(), true, Constant.SALARY_FRAGMENT_TAG);
+                            dismissProgressDialog();
+                            DateAmountSalary dateAmountSalary = new DateAmountSalary(mDate, amount, salaryMonth);
+                            DatabaseReference profitRef = adminRef.child(Constant.PROFIT_REF);
+                            DatabaseReference salaryRef = profitRef.child(Constant.SALARY_REF);
+                            salaryRef.push().setValue(dateAmountSalary).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    Snackbar.make(v, "SalaryForRoom Added", Snackbar.LENGTH_SHORT).show();
+                                    mFragmentLoader.loadFragment(SalaryFragment.getInstance(), true, Constant.SALARY_FRAGMENT_TAG);
+                                }
+                            }).addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    dismissProgressDialog();
+                                }
+                            });
+
                         }
                     }
                 });
@@ -217,5 +238,16 @@ public class SalaryAddFragment extends Fragment {
         super.onAttach(context);
         mContext = context;
         mFragmentLoader = (FragmentLoader) context;
+    }
+    private void showProgressDialog() {
+        progressDialog = new ProgressDialog(mContext);
+        progressDialog.setTitle("Loading.....");
+        progressDialog.setMessage("Please wait.....");
+        progressDialog.show();
+    }
+
+    private void dismissProgressDialog() {
+        if (progressDialog != null)
+            progressDialog.dismiss();
     }
 }

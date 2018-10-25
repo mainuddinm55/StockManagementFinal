@@ -88,19 +88,18 @@ public class DailyPurchaseFragment extends Fragment {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 mPurchaseList.clear();
                 mTotalPurchase = 0;
-                for (DataSnapshot postData : dataSnapshot.getChildren()){
-                    for (DataSnapshot data : postData.getChildren()){
-                        Purchase purchase = data.getValue(Purchase.class);
-                        if (purchase !=null && mDateConverter.isToday(purchase.getPurchaseDate())){
-                            mPurchaseList.add(purchase);
-                            mTotalPurchase = mTotalPurchase + purchase.getTotalPrice();
-                        }
+                for (DataSnapshot postData : dataSnapshot.getChildren()) {
+                    Purchase purchase = postData.getValue(Purchase.class);
+                    if (purchase != null && mDateConverter.isToday(purchase.getPurchaseDate())) {
+                        mPurchaseList.add(purchase);
+                        mTotalPurchase = mTotalPurchase + purchase.getTotalPrice();
+
                     }
                 }
 
-                if (mPurchaseList.size()>0){
+                if (mPurchaseList.size() > 0) {
                     mBinding.progressBar.setVisibility(View.GONE);
-                    PurchaseAdapter adapter = new PurchaseAdapter(mContext,mPurchaseList);
+                    PurchaseAdapter adapter = new PurchaseAdapter(mContext, mPurchaseList);
                     mBinding.purchaseListRecyclerView.setAdapter(adapter);
                     mBinding.totalLinearLayout.setVisibility(View.VISIBLE);
                     mBinding.totalAmountTextView.setText(String.valueOf(mTotalPurchase));

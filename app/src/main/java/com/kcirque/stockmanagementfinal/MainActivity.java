@@ -1,16 +1,22 @@
 package com.kcirque.stockmanagementfinal;
 
+import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.design.widget.NavigationView;
-import android.support.transition.Fade;
-import android.support.transition.Slide;
+import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
@@ -18,19 +24,18 @@ import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.ajts.androidmads.library.SQLiteToExcel;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
@@ -39,6 +44,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -46,12 +52,23 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.kcirque.stockmanagementfinal.Common.BadgeDrawerArrowDrawable;
 import com.kcirque.stockmanagementfinal.Common.Constant;
+import com.kcirque.stockmanagementfinal.Common.DateConverter;
 import com.kcirque.stockmanagementfinal.Common.SharedPref;
 import com.kcirque.stockmanagementfinal.Database.Model.Category;
 import com.kcirque.stockmanagementfinal.Database.Model.Chat;
+import com.kcirque.stockmanagementfinal.Database.Model.Customer;
+import com.kcirque.stockmanagementfinal.Database.Model.DateAmountCost;
+import com.kcirque.stockmanagementfinal.Database.Model.DateAmountPurchase;
+import com.kcirque.stockmanagementfinal.Database.Model.DateAmountSalary;
+import com.kcirque.stockmanagementfinal.Database.Model.DateAmountSales;
+import com.kcirque.stockmanagementfinal.Database.Model.Expense;
+import com.kcirque.stockmanagementfinal.Database.Model.Product;
+import com.kcirque.stockmanagementfinal.Database.Model.Profit;
+import com.kcirque.stockmanagementfinal.Database.Model.Purchase;
+import com.kcirque.stockmanagementfinal.Database.Model.Salary;
+import com.kcirque.stockmanagementfinal.Database.Model.Sales;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.Database.Model.StockHand;
-import com.kcirque.stockmanagementfinal.Fragment.DailyCostFragment;
 import com.kcirque.stockmanagementfinal.Fragment.DueFragment;
 import com.kcirque.stockmanagementfinal.Fragment.ExpenseFragment;
 import com.kcirque.stockmanagementfinal.Fragment.HomeFragment;
@@ -61,11 +78,23 @@ import com.kcirque.stockmanagementfinal.Fragment.SellerFragment;
 import com.kcirque.stockmanagementfinal.Fragment.SettingFragment;
 import com.kcirque.stockmanagementfinal.Fragment.StockOutFragment;
 import com.kcirque.stockmanagementfinal.Interface.FragmentLoader;
+import com.kcirque.stockmanagementfinal.SQLiteDB.DatabaseHelper;
+import com.kcirque.stockmanagementfinal.SQLiteDB.Model.XLCustomer;
+import com.kcirque.stockmanagementfinal.SQLiteDB.Model.XLExpense;
+import com.kcirque.stockmanagementfinal.SQLiteDB.Model.XLProduct;
+import com.kcirque.stockmanagementfinal.SQLiteDB.Model.XLProfit;
+import com.kcirque.stockmanagementfinal.SQLiteDB.Model.XLPurchase;
+import com.kcirque.stockmanagementfinal.SQLiteDB.Model.XLSalary;
+import com.kcirque.stockmanagementfinal.SQLiteDB.Model.XLSales;
+import com.kcirque.stockmanagementfinal.SQLiteDB.Model.XLStockHand;
 import com.kcirque.stockmanagementfinal.Service.SinchService;
 import com.sinch.android.rtc.SinchError;
 
+import org.apache.poi.poifs.property.Child;
+
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -104,6 +133,9 @@ public class MainActivity extends BaseActivity
 
     private View mHeaderView;
     private ValueEventListener listener;
+    private int mReminderCount;
+    private ProgressDialog progressDialog;
+
 
     @Override
     protected void attachBaseContext(Context newBase) {
@@ -155,8 +187,28 @@ public class MainActivity extends BaseActivity
         mCategoryRef = mAdminRef.child(Constant.CATEGORY_REF);
         mChatRef = mAdminRef.child(Constant.CHAT_REF);
 
+        DatabaseReference registrationRef = mAdminRef.child(Constant.REGISTRATION_REF);
 
-        mAdminRef.child(Constant.COMPANY_NAME_REF).addListenerForSingleValueEvent(new ValueEventListener() {
+        registrationRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                DateConverter dateConverter = new DateConverter();
+                long expiredDate = dataSnapshot.getValue(long.class);
+                if (dateConverter.getCurrentDate() >= expiredDate) {
+                    AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this);
+                    View view = LayoutInflater.from(MainActivity.this).inflate(R.layout.registration_expired, null);
+                    dialog.setView(view);
+                    dialog.setCancelable(false);
+                    dialog.show();
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+        mAdminRef.child(Constant.COMPANY_NAME_REF).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 String title = dataSnapshot.getValue(String.class);
@@ -168,7 +220,7 @@ public class MainActivity extends BaseActivity
 
             }
         });
-        mAdminRef.child(Constant.LOGO_URL_REF).addListenerForSingleValueEvent(new ValueEventListener() {
+        mAdminRef.child(Constant.LOGO_URL_REF).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 String ulr = dataSnapshot.getValue(String.class);
@@ -183,6 +235,19 @@ public class MainActivity extends BaseActivity
 
             }
         });
+        mAdminRef.child(Constant.REMINDER_COUNT_REF).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                String count = dataSnapshot.getValue(String.class);
+                mReminderCount = Integer.valueOf(count);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
 
         mStockRef.addValueEventListener(new ValueEventListener() {
             @RequiresApi(api = Build.VERSION_CODES.KITKAT)
@@ -194,7 +259,7 @@ public class MainActivity extends BaseActivity
                     StockHand stockHand = postData.getValue(StockHand.class);
                     if (stockHand != null && stockHand.getSellQuantity() > 0) {
                         int stock = stockHand.getPurchaseQuantity() - stockHand.getSellQuantity();
-                        if (stock < 5) {
+                        if (stock < mReminderCount) {
                             mStockHandWarning.add(stockHand);
                             mCount++;
                         }
@@ -221,6 +286,7 @@ public class MainActivity extends BaseActivity
 
         HomeFragment fragment = HomeFragment.getInstance();
         loadFragment(fragment, false, Constant.HOME_FRAGMENT_TAG);
+
 
     }
 
@@ -342,6 +408,9 @@ public class MainActivity extends BaseActivity
                 fragment = SettingFragment.getInstance();
                 tag = Constant.SETTING_FRAGMENT_TAG;
                 break;
+            case R.id.nav_export_to_xl:
+                exportToXL();
+                break;
             case R.id.nav_logout:
                 if (mUser != null) {
                     mAuth.signOut();
@@ -360,6 +429,17 @@ public class MainActivity extends BaseActivity
         mDrawer.closeDrawers();
     }
 
+    private void exportToXL() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 100);
+        } else {
+            showProgressDialog();
+            ExportXL exportXL = new ExportXL(this);
+            Thread thread = new Thread(exportXL);
+            thread.start();
+        }
+    }
+
     private void hideItem() {
         Menu nav_Menu = mNavigationView.getMenu();
         if (mUser == null) {
@@ -374,7 +454,7 @@ public class MainActivity extends BaseActivity
     public void loadFragment(Fragment fragment, boolean isBack, String tag) {
 
         FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.setCustomAnimations(R.anim.fade_in,R.anim.fade_out);
+        ft.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
         ft.replace(R.id.main_fragment_container, fragment, tag);
         if (isBack) {
             ft.addToBackStack(null);
@@ -413,18 +493,15 @@ public class MainActivity extends BaseActivity
         });
         AlertDialog.Builder categoryDialog = new AlertDialog.Builder(this);
         categoryDialog.setCancelable(false);
+        categoryDialog.setTitle("ADD CATEGORY");
         View view = getLayoutInflater().inflate(R.layout.add_category, null);
         categoryDialog.setView(view);
-        final AlertDialog dialog = categoryDialog.create();
         final EditText categoryNameEditText = view.findViewById(R.id.category_name_edit_text);
-        Button addCategoryBtn = view.findViewById(R.id.add_btn);
-        Button cancelBtn = view.findViewById(R.id.cancel_btn);
-        addCategoryBtn.setOnClickListener(new View.OnClickListener() {
+        categoryDialog.setPositiveButton("ADD", new DialogInterface.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(final DialogInterface dialog, int which) {
                 if (categoryNameEditText.getText().toString().trim().isEmpty()) {
-                    categoryNameEditText.setError("Name is Required");
-                    categoryNameEditText.requestFocus();
+                    Snackbar.make(mDrawer, "Please Enter Category Name", Snackbar.LENGTH_SHORT).show();
                     return;
                 }
 
@@ -445,18 +522,19 @@ public class MainActivity extends BaseActivity
                     @Override
                     public void onFailure(@NonNull Exception e) {
                         Log.e(TAG, e.getMessage());
+                        dialog.dismiss();
                     }
                 });
             }
         });
 
-        cancelBtn.setOnClickListener(new View.OnClickListener() {
+        categoryDialog.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(DialogInterface dialog, int which) {
                 dialog.dismiss();
             }
         });
-        dialog.show();
+        categoryDialog.show();
     }
 
     public void unreadMessage() {
@@ -535,6 +613,546 @@ public class MainActivity extends BaseActivity
         if (!getSinchServiceInterface().isStarted()) {
             getSinchServiceInterface().startClient(username);
         }
+    }
+
+    public static boolean isNetworkAvailable(Context context) {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
+
+    private class ExportXL implements Runnable {
+        private Context mContext;
+        private int expenseId = 1;
+
+        List<DateAmountPurchase> purchaseList = new ArrayList<>();
+        List<DateAmountSalary> salaryList = new ArrayList<>();
+        List<DateAmountCost> costList = new ArrayList<>();
+        List<DateAmountSales> salesList = new ArrayList<>();
+
+        HashSet<Integer> yearList = new HashSet<>();
+        HashSet<Integer> monthList = new HashSet<>();
+
+
+        private int purchaseId = 1;
+        private int salaryId = 1;
+        private int salesId = 1;
+        private int stockHandId = 1;
+        private int profitId = 1;
+
+        boolean exporting = true;
+
+        public ExportXL(Context context) {
+            this.mContext = context;
+        }
+
+        @Override
+        public void run() {
+            final DateConverter dateConverter = new DateConverter();
+            final DatabaseReference expenseRef = mAdminRef.child(Constant.EXPENSE_REF);
+            final DatabaseReference customerRef = mAdminRef.child(Constant.CUSTOMER_REF);
+            final DatabaseReference productRef = mAdminRef.child(Constant.PRODUCT_REF);
+            final DatabaseReference profitRef = mAdminRef.child(Constant.PROFIT_REF);
+            final DatabaseReference purchaseRef = mAdminRef.child(Constant.PURCHASE_REF);
+            final DatabaseReference salaryRef = mAdminRef.child(Constant.SALARY_REF);
+            final DatabaseReference salesRef = mAdminRef.child(Constant.SALES_REF);
+            final DatabaseReference stockHandRef = mAdminRef.child(Constant.STOCK_HAND_REF);
+
+            final DatabaseHelper database = new DatabaseHelper(mContext);
+            database.deleteAllStockHand();
+            database.deleteAllSales();
+            database.deleteAllSalary();
+            database.deleteAllPurchase();
+            database.deleteAllProduct();
+            database.deleteAllProfit();
+            database.deleteAllExpense();
+            database.deleteAllCustomer();
+
+            final ChildEventListener expenseListener = new ChildEventListener() {
+                @Override
+                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                    Expense expense = dataSnapshot.getValue(Expense.class);
+                    if (expense != null) {
+                        XLExpense xlExpense = new XLExpense(expenseId, expense.getExpenseName(), expense.getExpenseAmount(), expense.getComment(), dateConverter.getDateInString(expense.getDate()));
+                        database.insertExpense(xlExpense);
+                        expenseId++;
+                    }
+                }
+
+                @Override
+                public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+                }
+
+                @Override
+                public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+                }
+
+                @Override
+                public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    Log.e(TAG, "onCancelled: " + databaseError.getMessage());
+                }
+            };
+            final ChildEventListener customerListener = new ChildEventListener() {
+                @Override
+                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                    Customer customer = dataSnapshot.getValue(Customer.class);
+                    if (customer != null) {
+                        String accountType = "Normal";
+                        if (customer.isMercantile()) {
+                            accountType = "Mercantile";
+                        }
+                        XLCustomer xlCustomer = new XLCustomer(customer.getCustomerId(), customer.getCustomerName(), customer.getAddress(), customer.getEmail(), customer.getMobile(), accountType, customer.getDue());
+                        database.insertCustomer(xlCustomer);
+                    }
+                }
+
+                @Override
+                public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+                }
+
+                @Override
+                public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+                }
+
+                @Override
+                public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            };
+            final ChildEventListener productListener = new ChildEventListener() {
+                @Override
+                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                    Product product = dataSnapshot.getValue(Product.class);
+                    if (product != null) {
+                        XLProduct xlProduct = new XLProduct(product.getProductId(), product.getProductName(), product.getProductCode(), product.getProductCategoryId(), product.getDescription());
+                        database.insertProduct(xlProduct);
+                    }
+                }
+
+                @Override
+                public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+                }
+
+                @Override
+                public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+                }
+
+                @Override
+                public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            };
+            final ChildEventListener purchaseListener = new ChildEventListener() {
+                @Override
+                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+
+                    Purchase purchase = dataSnapshot.getValue(Purchase.class);
+                    if (purchase != null) {
+                        XLPurchase xlPurchase = new XLPurchase(purchaseId, purchase.getProductId(), purchase.getCompanyName(), purchase.getActualPrice(), purchase.getSellingPrice(), purchase.getQuantity(), dateConverter.getDateInString(purchase.getPurchaseDate()), purchase.getTotalPrice(), purchase.getPaidAmount(), purchase.getDueAmount());
+                        database.insertPurchase(xlPurchase);
+                        purchaseId++;
+                    }
+
+                }
+
+                @Override
+                public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+                }
+
+                @Override
+                public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+                }
+
+                @Override
+                public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            };
+            final ChildEventListener salaryListener = new ChildEventListener() {
+                @Override
+                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                    Salary salary = dataSnapshot.getValue(Salary.class);
+                    if (salary != null) {
+                        XLSalary xlSalary = new XLSalary(salaryId, salary.getEmpKey(), salary.getEmpName(), salary.getMonth(), salary.getAmount(), dateConverter.getDateInString(salary.getDate()));
+                        database.insertSalary(xlSalary);
+                        salaryId++;
+                    }
+                }
+
+                @Override
+                public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+                }
+
+                @Override
+                public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+                }
+
+                @Override
+                public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            };
+            final ChildEventListener salesListener = new ChildEventListener() {
+                @Override
+                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                    Sales sales = dataSnapshot.getValue(Sales.class);
+                    if (sales != null) {
+                        XLSales xlSales = new XLSales(salesId, sales.getCustomerId(), sales.getCustomerName(), dateConverter.getDateInString(sales.getSalesDate()), sales.getSubtotal(), sales.getDiscount(), sales.getTotal(), sales.getPaid(), sales.getDue());
+                        database.insertSales(xlSales);
+                        salesId++;
+                    }
+                }
+
+                @Override
+                public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+                }
+
+                @Override
+                public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+                }
+
+                @Override
+                public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            };
+            final ChildEventListener stockHandListener = new ChildEventListener() {
+                @Override
+                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                    StockHand stockHand = dataSnapshot.getValue(StockHand.class);
+                    if (stockHand != null) {
+                        XLStockHand xlStockHand = new XLStockHand(stockHandId, stockHand.getProductId(), stockHand.getPurchaseQuantity(), stockHand.getSellQuantity());
+                        database.insertStockHand(xlStockHand);
+                        stockHandId++;
+                    }
+                }
+
+                @Override
+                public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+                }
+
+                @Override
+                public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+                }
+
+                @Override
+                public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            };
+            final ChildEventListener profitListener = new ChildEventListener() {
+                @Override
+                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                    profitRef.child(Constant.COST_REF).addChildEventListener(new ChildEventListener() {
+                        @Override
+                        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                            DateAmountCost dateAmountCost = dataSnapshot.getValue(DateAmountCost.class);
+                            yearList.add(dateConverter.getYear(dateAmountCost.getDate()));
+                            monthList.add(dateConverter.getMonth(dateAmountCost.getDate()));
+                            costList.add(dateAmountCost);
+                        }
+
+                        @Override
+                        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+                        }
+
+                        @Override
+                        public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+                        }
+
+                        @Override
+                        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
+                    profitRef.child(Constant.SALARY_REF).addChildEventListener(new ChildEventListener() {
+                        @Override
+                        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                            DateAmountSalary dateAmountSalary = dataSnapshot.getValue(DateAmountSalary.class);
+                            yearList.add(dateConverter.getYear(dateAmountSalary.getDate()));
+                            monthList.add(dateConverter.getMonth(dateAmountSalary.getDate()));
+                            salaryList.add(dateAmountSalary);
+                        }
+
+                        @Override
+                        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+                        }
+
+                        @Override
+                        public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+                        }
+
+                        @Override
+                        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
+                    profitRef.child(Constant.PURCHASE_REF).addChildEventListener(new ChildEventListener() {
+                        @Override
+                        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                            DateAmountPurchase dateAmountPurchase = dataSnapshot.getValue(DateAmountPurchase.class);
+                            yearList.add(dateConverter.getYear(dateAmountPurchase.getDate()));
+                            monthList.add(dateConverter.getMonth(dateAmountPurchase.getDate()));
+                            purchaseList.add(dateAmountPurchase);
+                        }
+
+                        @Override
+                        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+                        }
+
+                        @Override
+                        public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+                        }
+
+                        @Override
+                        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
+                    profitRef.child(Constant.SALES_REF).addChildEventListener(new ChildEventListener() {
+                        @Override
+                        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                            DateAmountSales dateAmountSales = dataSnapshot.getValue(DateAmountSales.class);
+                            yearList.add(dateConverter.getYear(dateAmountSales.getDate()));
+                            monthList.add(dateConverter.getMonth(dateAmountSales.getDate()));
+                            salesList.add(dateAmountSales);
+                        }
+
+                        @Override
+                        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+                        }
+
+                        @Override
+                        public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+                        }
+
+                        @Override
+                        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
+
+                    profitRef.addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+
+                            if (exporting) {
+                                for (int year : yearList) {
+                                    Log.e(TAG, "Year Size " + yearList.size());
+                                    for (int month : monthList) {
+                                        Log.e(TAG, "Month Size " + monthList.size());
+                                        double totalPurchase = 0;
+                                        double totalStockHand = 0;
+                                        double totalStockOut = 0;
+                                        double totalCost = 0;
+                                        double totalSalary = 0;
+                                        double totalSales = 0;
+                                        double totalProfit = 0;
+
+                                        for (DateAmountPurchase purchase : purchaseList) {
+                                            if (month == dateConverter.getMonth(purchase.getDate()) && year == dateConverter.getYear(purchase.getDate())) {
+                                                totalPurchase = totalPurchase + purchase.getAmount();
+                                            }
+
+                                        }
+                                        for (DateAmountSalary salary : salaryList) {
+                                            if (month == dateConverter.getMonth(salary.getDate()) && year == dateConverter.getYear(salary.getDate())) {
+                                                totalSalary = totalSalary + salary.getAmount();
+                                            }
+                                        }
+                                        for (DateAmountCost cost : costList) {
+                                            if (month == dateConverter.getMonth(cost.getDate()) && year == dateConverter.getYear(cost.getDate())) {
+                                                totalCost = totalCost + cost.getAmount();
+                                            }
+                                        }
+                                        for (DateAmountSales sales : salesList) {
+                                            if (month == dateConverter.getMonth(sales.getDate()) && year == dateConverter.getYear(sales.getDate())) {
+                                                totalSales = totalSales + sales.getAmount();
+                                                totalStockOut = totalStockOut + sales.getStockOutAmount();
+                                            }
+                                        }
+
+                                        totalStockHand = totalPurchase - totalStockOut;
+                                        totalProfit = (totalSales + totalStockHand) - (totalCost + totalPurchase + totalSalary);
+                                        XLProfit xlProfit = new XLProfit(profitId, month, year, totalPurchase, totalStockHand, totalSales, totalCost, totalSalary, totalProfit);
+                                        database.insertProfit(xlProfit);
+                                        Log.e(TAG, "getXLProfit: " + profitId);
+                                        profitId++;
+                                    }
+                                }
+                                exporting = false;
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
+
+                }
+
+                @Override
+                public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+                }
+
+                @Override
+                public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+                }
+
+                @Override
+                public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            };
+
+            expenseRef.addChildEventListener(expenseListener);
+            customerRef.addChildEventListener(customerListener);
+            productRef.addChildEventListener(productListener);
+            purchaseRef.addChildEventListener(purchaseListener);
+            salaryRef.addChildEventListener(salaryListener);
+            salesRef.addChildEventListener(salesListener);
+            stockHandRef.addChildEventListener(stockHandListener);
+            profitRef.addChildEventListener(profitListener);
+
+            mAdminRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    SQLiteToExcel sqLiteToExcel = new SQLiteToExcel(mContext, DatabaseHelper.DATABASE_NAME);
+                    sqLiteToExcel.exportAllTables("stock_management_system.xls", new SQLiteToExcel.ExportListener() {
+                        @Override
+                        public void onStart() {
+
+                        }
+
+                        @Override
+                        public void onCompleted(String filePath) {
+                            dismissProgressDialog();
+                            expenseRef.removeEventListener(expenseListener);
+                            customerRef.removeEventListener(customerListener);
+                            productRef.removeEventListener(productListener);
+                            purchaseRef.removeEventListener(purchaseListener);
+                            salaryRef.removeEventListener(salaryListener);
+                            salesRef.removeEventListener(salesListener);
+                            stockHandRef.removeEventListener(stockHandListener);
+                            profitRef.removeEventListener(profitListener);
+                            Toast.makeText(mContext, filePath, Toast.LENGTH_SHORT).show();
+                        }
+
+                        @Override
+                        public void onError(Exception e) {
+                            dismissProgressDialog();
+                            Toast.makeText(mContext, e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+
+        }
+
+    }
+
+
+    private void showProgressDialog() {
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setTitle("Exporting.....");
+        progressDialog.setMessage("Please wait.....");
+        progressDialog.show();
+    }
+
+    private void dismissProgressDialog() {
+        if (progressDialog != null)
+            progressDialog.dismiss();
     }
 
 }

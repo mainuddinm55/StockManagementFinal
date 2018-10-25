@@ -77,8 +77,9 @@
                         </option>
                         <option name="values">
                           <map>
-                            <entry key="outputName" value="ic_edit" />
-                            <entry key="sourceFile" value="C:\Users\K-06\Downloads\chart.psd" />
+                            <entry key="assetSourceType" value="FILE" />
+                            <entry key="outputName" value="ic_video_call" />
+                            <entry key="sourceFile" value="C:\Users\K-06\Downloads\video_call.svg" />
                           </map>
                         </option>
                       </PersistentState>

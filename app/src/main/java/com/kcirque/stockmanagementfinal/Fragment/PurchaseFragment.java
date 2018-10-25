@@ -2,6 +2,7 @@ package com.kcirque.stockmanagementfinal.Fragment;
 
 
 import android.app.DatePickerDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
@@ -19,8 +20,10 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
 import android.widget.DatePicker;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -33,7 +36,9 @@ import com.kcirque.stockmanagementfinal.Adapter.AutoCompleteProductAdapter;
 import com.kcirque.stockmanagementfinal.Common.Constant;
 import com.kcirque.stockmanagementfinal.Common.DateConverter;
 import com.kcirque.stockmanagementfinal.Common.SharedPref;
+import com.kcirque.stockmanagementfinal.Database.Model.DateAmountPurchase;
 import com.kcirque.stockmanagementfinal.Database.Model.Product;
+import com.kcirque.stockmanagementfinal.Database.Model.Profit;
 import com.kcirque.stockmanagementfinal.Database.Model.Purchase;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.Database.Model.StockHand;
@@ -85,6 +90,7 @@ public class PurchaseFragment extends Fragment {
     private String mProductKey;
     private Bundle bundle;
     private String mProductName;
+    private ProgressDialog progressDialog;
 
     public static synchronized PurchaseFragment getInstance() {
         if (INSTANCE == null) {
@@ -111,17 +117,7 @@ public class PurchaseFragment extends Fragment {
             mProductId = product.getProductId();
             mProductName = product.getProductName();
 
-        }/* else {
-            mBinding.productNameAct.setText(null);
         }
-        mBinding.companyNameEdittext.setText(null);
-        mBinding.buyPriceEdittext.setText(null);
-        mBinding.sellPriceEdittext.setText(null);
-        mBinding.quantityEdittext.setText(null);
-        mBinding.totalAmountTextview.setText(null);
-        mBinding.paidAmountEdittext.setText(null);
-        mBinding.dueAmountTextview.setText(null);
-        mBinding.purchaseDateEdittext.setText(null);*/
         return mBinding.getRoot();
     }
 
@@ -131,23 +127,18 @@ public class PurchaseFragment extends Fragment {
         Seller seller = mSharedPref.getSeller();
         mAuth = FirebaseAuth.getInstance();
         mUser = mAuth.getCurrentUser();
-        getActivity().setTitle("Product Stock In");
+        getActivity().setTitle("ProductForRoom Stock In");
         DatabaseReference mRootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
-        mRootRef.keepSynced(true);
         if (mUser != null) {
             mAdminRef = mRootRef.child(mUser.getUid());
         } else {
             mAdminRef = mRootRef.child(seller.getAdminUid());
         }
         mProductRef = mAdminRef.child(Constant.PRODUCT_REF);
-        mProductRef.keepSynced(true);
         mPurchaseRef = mAdminRef.child(Constant.PURCHASE_REF);
-        mPurchaseRef.keepSynced(true);
         mStockRef = mAdminRef.child(Constant.STOCK_HAND_REF);
 
-
         mDateConverter = new DateConverter();
-
 
         mProductRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -365,7 +356,7 @@ public class PurchaseFragment extends Fragment {
 
             @Override
             public CharSequence fixText(CharSequence invalidText) {
-                mBinding.productNameAct.setError("Enter Valid Product Name");
+                mBinding.productNameAct.setError("Enter Valid ProductForRoom Name");
                 mBinding.productNameAct.requestFocus();
                 return "";
             }
@@ -380,7 +371,7 @@ public class PurchaseFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 if (mBinding.productNameAct.getText().toString().length() < 1) {
-                    mBinding.productNameAct.setError("Product Name Required");
+                    mBinding.productNameAct.setError("ProductForRoom Name Required");
                     mBinding.productNameAct.requestFocus();
                     return;
                 } else if (!mBinding.productNameAct.getValidator().isValid(mBinding.productNameAct.getText().toString())) {
@@ -410,7 +401,7 @@ public class PurchaseFragment extends Fragment {
                     return;
                 }
                 if (mBinding.purchaseDateEdittext.getText().toString().length() < 1) {
-                    mBinding.purchaseDateEdittext.setError("Purchase date required");
+                    mBinding.purchaseDateEdittext.setError("PurchaseForRoom date required");
                     mBinding.purchaseDateEdittext.requestFocus();
                     return;
                 }
@@ -419,15 +410,17 @@ public class PurchaseFragment extends Fragment {
                     mBinding.paidAmountEdittext.requestFocus();
                     return;
                 }
+                showProgressDialog();
                 String companyName = mBinding.companyNameEdittext.getText().toString().trim();
                 double sellPrice = Double.parseDouble(mBinding.sellPriceEdittext.getText().toString());
                 double paidAmt = Double.parseDouble(mBinding.paidAmountEdittext.getText().toString());
                 String key = mPurchaseRef.push().getKey();
                 final Purchase purchase = new Purchase(key, mProductId, mProductName, companyName, mBuyPrice, sellPrice, mQuantity, mPurchaseDate, mTotalAmount, paidAmt, mDueAmount);
-                mPurchaseRef.child(String.valueOf(mProductId)).child(key).setValue(purchase).addOnCompleteListener(new OnCompleteListener<Void>() {
+                mPurchaseRef.child(key).setValue(purchase).addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         if (task.isSuccessful()) {
+                            dismissProgressDialog();
                             mStockRef.child(String.valueOf(mProductId)).addListenerForSingleValueEvent(new ValueEventListener() {
                                 @Override
                                 public void onDataChange(DataSnapshot dataSnapshot) {
@@ -438,11 +431,9 @@ public class PurchaseFragment extends Fragment {
                                     mProductRef.child(mProductKey).child("buyPrice").setValue(purchase.getActualPrice());
                                     mProductRef.child(mProductKey).child("sellPrice").setValue(purchase.getSellingPrice());
                                     mProductRef.child(mProductKey).child("company").setValue(purchase.getCompanyName());
-                                    Snackbar.make(mBinding.rootView, "Purchase Added", Snackbar.LENGTH_SHORT).show();
                                     mStockRef.child(String.valueOf(mProductId)).child("buyPrice").setValue(purchase.getActualPrice());
                                     mStockRef.child(String.valueOf(mProductId)).child("productId").setValue(purchase.getProductId());
                                     mStockRef.child(String.valueOf(mProductId)).child("purchaseQuantity").setValue(quantity + mQuantity);
-                                    mFragmentLoader.loadFragment(HomeFragment.getInstance(), false, Constant.HOME_FRAGMENT_TAG);
                                 }
 
                                 @Override
@@ -451,6 +442,22 @@ public class PurchaseFragment extends Fragment {
                                 }
                             });
 
+                            DateAmountPurchase dateAmountPurchase = new DateAmountPurchase(mPurchaseDate, mTotalAmount);
+                            DatabaseReference profitRef = mAdminRef.child(Constant.PROFIT_REF);
+                            DatabaseReference purchaseRef = profitRef.child(Constant.PURCHASE_REF);
+                            purchaseRef.push().setValue(dateAmountPurchase).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    Snackbar.make(mBinding.rootView, "PurchaseForRoom Added", Snackbar.LENGTH_SHORT).show();
+                                    mFragmentLoader.loadFragment(HomeFragment.getInstance(), false, Constant.HOME_FRAGMENT_TAG);
+                                }
+                            }).addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    dismissProgressDialog();
+                                    Toast.makeText(mContext, e.getMessage(), Toast.LENGTH_SHORT).show();
+                                }
+                            });
                         }
                     }
                 });
@@ -474,5 +481,17 @@ public class PurchaseFragment extends Fragment {
         super.onAttach(context);
         mContext = context;
         mFragmentLoader = (FragmentLoader) context;
+    }
+
+    private void showProgressDialog() {
+        progressDialog = new ProgressDialog(mContext);
+        progressDialog.setTitle("Loading.....");
+        progressDialog.setMessage("Please wait.....");
+        progressDialog.show();
+    }
+
+    private void dismissProgressDialog() {
+        if (progressDialog != null)
+            progressDialog.dismiss();
     }
 }

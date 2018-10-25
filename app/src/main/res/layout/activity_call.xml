@@ -13,7 +13,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:layout_weight="1"
             android:background="#fffafafa"
             android:orientation="vertical">
 
@@ -49,14 +48,18 @@
         </LinearLayout>
 
 
-        <Button
+        <ImageButton
+            android:foreground="?attr/selectableItemBackground"
             android:id="@+id/hangupButton"
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:layout_alignParentBottom="true"
             android:layout_centerInParent="true"
             android:layout_marginBottom="20dp"
-            android:background="@drawable/call_end" />
+            android:src="@drawable/call_end"
+            android:scaleType="fitXY"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/call_seller"/>
 
     </RelativeLayout>
 </layout>
