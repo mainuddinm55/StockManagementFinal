@@ -57,7 +57,7 @@ public class SaleProductActivity extends AppCompatActivity {
         setContentView(R.layout.activity_sale_product);
         mBinding = DataBindingUtil.setContentView(SaleProductActivity.this, R.layout.activity_sale_product);
 
-        mBinding.toolbar.setTitle("Choose ProductForRoom");
+        mBinding.toolbar.setTitle("Choose Product");
         setSupportActionBar(mBinding.toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -88,7 +88,7 @@ public class SaleProductActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (mBinding.productNameTextView.getText().toString().isEmpty()) {
-                    mBinding.productNameTextView.setError("Select a ProductForRoom");
+                    mBinding.productNameTextView.setError("Select a Product");
                     mBinding.productNameTextView.requestFocus();
                     return;
                 }
@@ -138,7 +138,7 @@ public class SaleProductActivity extends AppCompatActivity {
         customerDialog.setView(v);
         final RecyclerView customerRecyclerView = v.findViewById(R.id.customer_list_recycler_view);
         TextView titleTextView = v.findViewById(R.id.text_view_list_item);
-        titleTextView.setText("ProductForRoom");
+        titleTextView.setText("Product");
         customerRecyclerView.setHasFixedSize(true);
         customerRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         final AlertDialog dialog = customerDialog.create();

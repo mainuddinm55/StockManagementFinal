@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context=".Fragment.OverAllProfitLossFragment">
+    tools:context=".Fragment.MessageFragment">
 
     <RelativeLayout
         android:id="@+id/root_view"
@@ -9,9 +10,20 @@
         android:layout_height="match_parent">
 
         <android.support.v7.widget.RecyclerView
-            android:id="@+id/over_all_profit_loss_recycler_view"
+            android:id="@+id/seller_list_recycler_view"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:padding="5dp"
+            tools:itemCount="20" />
+
+        <TextView
+            android:id="@+id/empty_seller_text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="@string/empty_seller_text"
+            android:textAppearance="@style/TextAppearance.AppCompat.Headline"
+            android:visibility="gone" />
 
         <ProgressBar
             android:id="@+id/progress_bar"
@@ -20,6 +32,4 @@
             android:layout_centerInParent="true"
             android:visibility="gone" />
     </RelativeLayout>
-
-
 </layout>

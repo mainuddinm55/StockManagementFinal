@@ -78,6 +78,7 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/password_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
@@ -106,6 +107,7 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/confirm_password_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
@@ -161,7 +163,35 @@
 
                 </LinearLayout>
 
+                <TextView
+                    android:padding="5dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                    android:textColor="@android:color/black"
+                    android:text="@string/status_text"/>
+                <RadioGroup
+                    android:id="@+id/status_radio_group"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="10dp">
 
+                    <RadioButton
+                        android:id="@+id/active_radio_btn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:checked="true"
+                        android:text="@string/active_text" />
+
+                    <RadioButton
+                        android:id="@+id/deactivate_radio_btn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/deactivate_text" />
+                </RadioGroup>
                 <Button
                     android:id="@+id/add_seller_btn"
                     android:layout_width="match_parent"

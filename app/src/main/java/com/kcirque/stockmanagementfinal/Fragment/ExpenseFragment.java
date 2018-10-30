@@ -42,6 +42,7 @@ import com.kcirque.stockmanagementfinal.Database.Model.Profit;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.Interface.FragmentLoader;
 import com.kcirque.stockmanagementfinal.Interface.RecyclerItemClickListener;
+import com.kcirque.stockmanagementfinal.MainActivity;
 import com.kcirque.stockmanagementfinal.R;
 import com.kcirque.stockmanagementfinal.databinding.FragmentExpenseBinding;
 
@@ -102,53 +103,57 @@ public class ExpenseFragment extends Fragment {
         mUser = mAuth.getCurrentUser();
         getActivity().setTitle("Expenses");
 
-        mBinding.progressBar.setVisibility(View.VISIBLE);
-        mBinding.expenseListRecyclerView.setHasFixedSize(true);
-        mBinding.expenseListRecyclerView.setLayoutManager(new LinearLayoutManager(mContext));
-        mDateConverter = new DateConverter();
-        mExpenseDate = mDateConverter.getCurrentDate();
-        mRootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
-        if (mUser != null) {
-            mAdminRef = mRootRef.child(mUser.getUid());
+        if (MainActivity.isNetworkAvailable(mContext)) {
+            mBinding.progressBar.setVisibility(View.VISIBLE);
+            mBinding.expenseListRecyclerView.setHasFixedSize(true);
+            mBinding.expenseListRecyclerView.setLayoutManager(new LinearLayoutManager(mContext));
+            mDateConverter = new DateConverter();
+            mExpenseDate = mDateConverter.getCurrentDate();
+            mRootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
+            if (mUser != null) {
+                mAdminRef = mRootRef.child(mUser.getUid());
+            } else {
+                mAdminRef = mRootRef.child(seller.getAdminUid());
+            }
+            DatabaseReference expenseRef = mAdminRef.child(Constant.EXPENSE_REF);
+            expenseRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    mExpenseList.clear();
+                    for (DataSnapshot postData : dataSnapshot.getChildren()) {
+                        Expense expense = postData.getValue(Expense.class);
+                        mExpenseList.add(expense);
+                    }
+                    if (mExpenseList.size() > 0) {
+                        mBinding.progressBar.setVisibility(View.GONE);
+                        ExpenseListAdapter adapter = new ExpenseListAdapter(mContext, mExpenseList);
+                        mBinding.expenseListRecyclerView.setAdapter(adapter);
+                        adapter.setRecyclerItemClickListener(new RecyclerItemClickListener() {
+                            @Override
+                            public void onClick(View view, int position, Object object) {
+                                Expense expense = (Expense) object;
+                                ExpenseDetailsFragment fragment = ExpenseDetailsFragment.getInstance();
+                                Bundle bundle = new Bundle();
+                                bundle.putSerializable(Constant.EXTRA_EXPENSE, expense);
+                                fragment.setArguments(bundle);
+                                mFragmentLoader.loadFragment(fragment, true, Constant.EXPENSE_DETAILS_FRAGMENT_TAG);
+                            }
+                        });
+                    } else {
+                        mBinding.emptyExpenseTextView.setVisibility(View.VISIBLE);
+                        mBinding.progressBar.setVisibility(View.GONE);
+
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
         } else {
-            mAdminRef = mRootRef.child(seller.getAdminUid());
+            Snackbar.make(mBinding.rootView, "No internet connection", Snackbar.LENGTH_SHORT).show();
         }
-        DatabaseReference expenseRef = mAdminRef.child(Constant.EXPENSE_REF);
-        expenseRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                mExpenseList.clear();
-                for (DataSnapshot postData : dataSnapshot.getChildren()) {
-                    Expense expense = postData.getValue(Expense.class);
-                    mExpenseList.add(expense);
-                }
-                if (mExpenseList.size() > 0) {
-                    mBinding.progressBar.setVisibility(View.GONE);
-                    ExpenseListAdapter adapter = new ExpenseListAdapter(mContext, mExpenseList);
-                    mBinding.expenseListRecyclerView.setAdapter(adapter);
-                    adapter.setRecyclerItemClickListener(new RecyclerItemClickListener() {
-                        @Override
-                        public void onClick(View view, int position, Object object) {
-                            Expense expense = (Expense) object;
-                            ExpenseDetailsFragment fragment = ExpenseDetailsFragment.getInstance();
-                            Bundle bundle = new Bundle();
-                            bundle.putSerializable(Constant.EXTRA_EXPENSE, expense);
-                            fragment.setArguments(bundle);
-                            mFragmentLoader.loadFragment(fragment, true, Constant.EXPENSE_DETAILS_FRAGMENT_TAG);
-                        }
-                    });
-                } else {
-                    mBinding.emptyExpenseTextView.setVisibility(View.VISIBLE);
-                    mBinding.progressBar.setVisibility(View.GONE);
-
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
         mBinding.addExpenseBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -220,39 +225,44 @@ public class ExpenseFragment extends Fragment {
 
                 Expense expense = new Expense(expenseKey, expenseName, expenseAmount, comment, mExpenseDate);
 
-                expenseRef.child(expenseKey).setValue(expense).addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        if (task.isSuccessful()) {
-                            DateAmountCost profit = new DateAmountCost(mExpenseDate, expenseAmount);
-                            DatabaseReference profitRef = mAdminRef.child(Constant.PROFIT_REF);
-                            DatabaseReference costRef = profitRef.child(Constant.COST_REF);
-                            costRef.push().setValue(profit).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                @Override
-                                public void onComplete(@NonNull Task<Void> task) {
-                                    Toast.makeText(mContext, "ExpenseForRoom Added", Toast.LENGTH_SHORT).show();
-                                    mBinding.emptyExpenseTextView.setVisibility(View.GONE);
-                                    dismissProgressDialog();
-                                    dialog.dismiss();
-                                }
-                            }).addOnFailureListener(new OnFailureListener() {
-                                @Override
-                                public void onFailure(@NonNull Exception e) {
-                                    dismissProgressDialog();
-                                    dialog.dismiss();
-                                }
-                            });
+                if (MainActivity.isNetworkAvailable(mContext)) {
+                    expenseRef.child(expenseKey).setValue(expense).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()) {
+                                DateAmountCost profit = new DateAmountCost(mExpenseDate, expenseAmount);
+                                DatabaseReference profitRef = mAdminRef.child(Constant.PROFIT_REF);
+                                DatabaseReference costRef = profitRef.child(Constant.COST_REF);
+                                costRef.push().setValue(profit).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        Toast.makeText(mContext, "ExpenseForRoom Added", Toast.LENGTH_SHORT).show();
+                                        mBinding.emptyExpenseTextView.setVisibility(View.GONE);
+                                        dismissProgressDialog();
+                                        dialog.dismiss();
+                                    }
+                                }).addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        dismissProgressDialog();
+                                        dialog.dismiss();
+                                    }
+                                });
 
+                            }
                         }
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Toast.makeText(mContext, "Failed", Toast.LENGTH_SHORT).show();
-                        dismissProgressDialog();
-                        //alertDialog.dismiss();
-                    }
-                });
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Toast.makeText(mContext, "Failed", Toast.LENGTH_SHORT).show();
+                            dismissProgressDialog();
+                            //alertDialog.dismiss();
+                        }
+                    });
+                } else {
+                    dismissProgressDialog();
+                    Snackbar.make(mBinding.rootView, "No internet connection", Snackbar.LENGTH_SHORT).show();
+                }
             }
         });
 

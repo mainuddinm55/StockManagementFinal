@@ -9,14 +9,16 @@ public class Seller implements Serializable {
     private String password;
     private String adminUid;
     private String mobile;
+    private String status;
 
-    public Seller(String key, String name, String email, String password, String adminUid, String mobile) {
+    public Seller(String key, String name, String email, String password, String adminUid, String mobile, String status) {
         this.key = key;
         this.name = name;
         this.email = email;
         this.password = password;
         this.adminUid = adminUid;
         this.mobile = mobile;
+        this.status = status;
     }
 
     public Seller() {
@@ -69,5 +71,13 @@ public class Seller implements Serializable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

@@ -120,7 +120,7 @@ public class ProductAddFragment extends Fragment {
         mAuth = FirebaseAuth.getInstance();
         mUser = mAuth.getCurrentUser();
         mRootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
-        getActivity().setTitle("Add a ProductForRoom");
+        getActivity().setTitle("Add a Product");
         if (mUser != null) {
             mAdminRef = mRootRef.child(mUser.getUid());
         } else {
@@ -129,43 +129,47 @@ public class ProductAddFragment extends Fragment {
         mCategoryRef = mAdminRef.child(Constant.CATEGORY_REF);
         mProductRef = mAdminRef.child(Constant.PRODUCT_REF);
 
-        mProductRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                mProductId = (int) dataSnapshot.getChildrenCount() + 1;
-            }
+        if (MainActivity.isNetworkAvailable(mContext)) {
+            mProductRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    mProductId = (int) dataSnapshot.getChildrenCount() + 1;
+                }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
 
-            }
-        });
+                }
+            });
+        } else {
+            Snackbar.make(mBinding.rootView, "No internet connection", Snackbar.LENGTH_SHORT).show();
+        }
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
 
-                mCategoryRef.addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        mCategoryList.clear();
-                        for (DataSnapshot postData : dataSnapshot.getChildren()) {
-                            Category category = postData.getValue(Category.class);
-                            mCategoryList.add(category);
-                        }
-                        if (mCategoryList.size() > 0) {
-                            CategorySpinnerAdapter adapter = new CategorySpinnerAdapter(mContext, mCategoryList);
-                            mBinding.categorySpinner.setAdapter(adapter);
-                        }
+        if (MainActivity.isNetworkAvailable(mContext)) {
+            mCategoryRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    mCategoryList.clear();
+                    for (DataSnapshot postData : dataSnapshot.getChildren()) {
+                        Category category = postData.getValue(Category.class);
+                        mCategoryList.add(category);
                     }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                    if (mCategoryList.size() > 0) {
+                        CategorySpinnerAdapter adapter = new CategorySpinnerAdapter(mContext, mCategoryList);
+                        mBinding.categorySpinner.setAdapter(adapter);
                     }
-                });
-            }
-        }).start();
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
+        } else {
+            Snackbar.make(mBinding.rootView, "No internet connection", Snackbar.LENGTH_SHORT).show();
+        }
+
 
         mBinding.productImageLayout.setOnClickListener(takePhoto);
         mBinding.productImageButton.setOnClickListener(takePhoto);
@@ -188,12 +192,12 @@ public class ProductAddFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 if (mBinding.productNameEdittext.getText().toString().trim().isEmpty()) {
-                    mBinding.productNameEdittext.setError("ProductForRoom Name Required");
+                    mBinding.productNameEdittext.setError("Product Name Required");
                     mBinding.productNameEdittext.requestFocus();
                     return;
                 }
                 if (mBinding.productCodeEdittext.getText().toString().trim().isEmpty()) {
-                    mBinding.productCodeEdittext.setError("ProductForRoom Code Required");
+                    mBinding.productCodeEdittext.setError("Product Code Required");
                     mBinding.productCodeEdittext.requestFocus();
                     return;
                 }
@@ -218,13 +222,13 @@ public class ProductAddFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        Log.e(TAG, "onStart: " );
+        Log.e(TAG, "onStart: ");
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        Log.e(TAG, "onResume: " );
+        Log.e(TAG, "onResume: ");
         mBinding.productCodeEdittext.setText(null);
         mBinding.productNameEdittext.setText(null);
         mBinding.productDescEdittext.setText(null);
@@ -233,13 +237,13 @@ public class ProductAddFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-        Log.e(TAG, "onPause: " );
+        Log.e(TAG, "onPause: ");
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Log.e(TAG, "onDestroy: " );
+        Log.e(TAG, "onDestroy: ");
     }
 
     private void showNoImageWarningDialog() {
@@ -267,27 +271,31 @@ public class ProductAddFragment extends Fragment {
 
         Product product = new Product(mKey, mProductId, productName, productCode, mCategoryId, desc, "");
 
-        mProductRef.child(mKey).setValue(product)
-                .addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        if (task.isSuccessful()) {
-                            dismissProgressDialog();
-                            Snackbar.make(mBinding.rootView, "ProductForRoom Added", Snackbar.LENGTH_SHORT).show();
-                            //Toast.makeText(AddProductActivity.this, "ProductForRoom Added", Toast.LENGTH_SHORT).show();
-                            mFragmentLoader.loadFragment(ProductListFragment.getInstance(), true, Constant.PRODUCT_LIST_FRAGMENT_TAG);
+        if (MainActivity.isNetworkAvailable(mContext)) {
+            mProductRef.child(mKey).setValue(product)
+                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()) {
+                                dismissProgressDialog();
+                                Snackbar.make(mBinding.rootView, "Product Added", Snackbar.LENGTH_SHORT).show();
+                                //Toast.makeText(AddProductActivity.this, "ProductForRoom Added", Toast.LENGTH_SHORT).show();
+                                mFragmentLoader.loadFragment(ProductListFragment.getInstance(), true, Constant.PRODUCT_LIST_FRAGMENT_TAG);
 
+                            }
                         }
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        dismissProgressDialog();
-                        Toast.makeText(mContext, e.getMessage(), Toast.LENGTH_SHORT).show();
-                        Log.e(TAG, "onFailure: " + e.getMessage());
-                    }
-                });
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            dismissProgressDialog();
+                            Toast.makeText(mContext, e.getMessage(), Toast.LENGTH_SHORT).show();
+                            Log.e(TAG, "onFailure: " + e.getMessage());
+                        }
+                    });
+        } else {
+            Snackbar.make(mBinding.rootView, "No internet connection", Snackbar.LENGTH_SHORT).show();
+        }
     }
 
     @Override
@@ -307,6 +315,7 @@ public class ProductAddFragment extends Fragment {
             mBinding.productImageview.setImageURI(mImageUri);
         }
     }
+
     private void showProgressDialog() {
         progressDialog = new ProgressDialog(mContext);
         progressDialog.setTitle("Loading.....");

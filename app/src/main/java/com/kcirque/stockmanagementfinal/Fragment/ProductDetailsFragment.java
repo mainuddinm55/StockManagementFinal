@@ -14,8 +14,18 @@ import android.view.ViewGroup;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.kcirque.stockmanagementfinal.Common.Constant;
+import com.kcirque.stockmanagementfinal.Common.SharedPref;
 import com.kcirque.stockmanagementfinal.Database.Model.Product;
+import com.kcirque.stockmanagementfinal.Database.Model.Seller;
+import com.kcirque.stockmanagementfinal.Database.Model.StockHand;
 import com.kcirque.stockmanagementfinal.R;
 import com.kcirque.stockmanagementfinal.databinding.FragmentProductDetailsBinding;
 
@@ -51,6 +61,18 @@ public class ProductDetailsFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         Bundle bundle = getArguments();
+        SharedPref sharedPref = new SharedPref(mContext);
+        Seller seller = sharedPref.getSeller();
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        getActivity().setTitle("Stock Hand");
+        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
+        DatabaseReference adminRef;
+        if (user != null) {
+            adminRef = rootRef.child(user.getUid());
+        } else {
+            adminRef = rootRef.child(seller.getAdminUid());
+        }
+        DatabaseReference stockHandRef = adminRef.child(Constant.STOCK_HAND_REF);
         if (bundle != null) {
 
             Product product = (Product) bundle.getSerializable(Constant.EXTRA_PRODUCT);
@@ -71,11 +93,28 @@ public class ProductDetailsFragment extends Fragment {
             mBinding.sellPriceTextTextView.setText(mContext.getResources().getString(R.string.purchase_sell_price_text));
             mBinding.sellPriceTextView.setText(String.valueOf(product.getSellPrice()));
             mBinding.productDescTextTextView.setText(mContext.getResources().getString(R.string.product_desc_text));
+            mBinding.statusTextTextView.setText(mContext.getResources().getString(R.string.status_text));
             if (!product.getDescription().isEmpty()) {
                 mBinding.productDescTextView.setText(product.getDescription());
             } else {
                 mBinding.productDescTextView.setText("N/A");
             }
+            stockHandRef.child(String.valueOf(product.getProductId())).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    StockHand stockHand = dataSnapshot.getValue(StockHand.class);
+                    if (stockHand != null && (stockHand.getPurchaseQuantity() - stockHand.getSellQuantity()) > 0) {
+                        mBinding.statusTextView.setText("Stock Available");
+                    } else {
+                        mBinding.statusTextView.setText("Stock Out");
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
         }
     }
 

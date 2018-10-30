@@ -127,7 +127,7 @@ public class PurchaseFragment extends Fragment {
         Seller seller = mSharedPref.getSeller();
         mAuth = FirebaseAuth.getInstance();
         mUser = mAuth.getCurrentUser();
-        getActivity().setTitle("ProductForRoom Stock In");
+        getActivity().setTitle("Product Stock In");
         DatabaseReference mRootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
         if (mUser != null) {
             mAdminRef = mRootRef.child(mUser.getUid());
@@ -140,26 +140,30 @@ public class PurchaseFragment extends Fragment {
 
         mDateConverter = new DateConverter();
 
-        mProductRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                mProductList.clear();
-                for (DataSnapshot postData : dataSnapshot.getChildren()) {
-                    Product product = postData.getValue(Product.class);
-                    mProductList.add(product);
+        if (MainActivity.isNetworkAvailable(mContext)) {
+            mProductRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    mProductList.clear();
+                    for (DataSnapshot postData : dataSnapshot.getChildren()) {
+                        Product product = postData.getValue(Product.class);
+                        mProductList.add(product);
+                    }
+
+                    if (mProductList.size() > 0) {
+                        AutoCompleteProductAdapter aptAdapter = new AutoCompleteProductAdapter(mContext, mProductList);
+                        mBinding.productNameAct.setAdapter(aptAdapter);
+                    }
                 }
 
-                if (mProductList.size() > 0) {
-                    AutoCompleteProductAdapter aptAdapter = new AutoCompleteProductAdapter(mContext, mProductList);
-                    mBinding.productNameAct.setAdapter(aptAdapter);
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
                 }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
+            });
+        } else {
+            Snackbar.make(mBinding.rootView, "No internet connection", Snackbar.LENGTH_SHORT).show();
+        }
 
         mBinding.productNameAct.setOnItemClickListener(new AdapterView.OnItemClickListener()
 
@@ -356,7 +360,7 @@ public class PurchaseFragment extends Fragment {
 
             @Override
             public CharSequence fixText(CharSequence invalidText) {
-                mBinding.productNameAct.setError("Enter Valid ProductForRoom Name");
+                mBinding.productNameAct.setError("Enter Valid Product Name");
                 mBinding.productNameAct.requestFocus();
                 return "";
             }
@@ -371,7 +375,7 @@ public class PurchaseFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 if (mBinding.productNameAct.getText().toString().length() < 1) {
-                    mBinding.productNameAct.setError("ProductForRoom Name Required");
+                    mBinding.productNameAct.setError("Product Name Required");
                     mBinding.productNameAct.requestFocus();
                     return;
                 } else if (!mBinding.productNameAct.getValidator().isValid(mBinding.productNameAct.getText().toString())) {
@@ -401,7 +405,7 @@ public class PurchaseFragment extends Fragment {
                     return;
                 }
                 if (mBinding.purchaseDateEdittext.getText().toString().length() < 1) {
-                    mBinding.purchaseDateEdittext.setError("PurchaseForRoom date required");
+                    mBinding.purchaseDateEdittext.setError("Purchase date required");
                     mBinding.purchaseDateEdittext.requestFocus();
                     return;
                 }
@@ -410,57 +414,61 @@ public class PurchaseFragment extends Fragment {
                     mBinding.paidAmountEdittext.requestFocus();
                     return;
                 }
-                showProgressDialog();
-                String companyName = mBinding.companyNameEdittext.getText().toString().trim();
-                double sellPrice = Double.parseDouble(mBinding.sellPriceEdittext.getText().toString());
-                double paidAmt = Double.parseDouble(mBinding.paidAmountEdittext.getText().toString());
-                String key = mPurchaseRef.push().getKey();
-                final Purchase purchase = new Purchase(key, mProductId, mProductName, companyName, mBuyPrice, sellPrice, mQuantity, mPurchaseDate, mTotalAmount, paidAmt, mDueAmount);
-                mPurchaseRef.child(key).setValue(purchase).addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        if (task.isSuccessful()) {
-                            dismissProgressDialog();
-                            mStockRef.child(String.valueOf(mProductId)).addListenerForSingleValueEvent(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(DataSnapshot dataSnapshot) {
-                                    StockHand stockHand = dataSnapshot.getValue(StockHand.class);
-                                    if (stockHand != null) {
-                                        quantity = stockHand.getPurchaseQuantity();
+                if (MainActivity.isNetworkAvailable(mContext)) {
+                    showProgressDialog();
+                    String companyName = mBinding.companyNameEdittext.getText().toString().trim();
+                    double sellPrice = Double.parseDouble(mBinding.sellPriceEdittext.getText().toString());
+                    double paidAmt = Double.parseDouble(mBinding.paidAmountEdittext.getText().toString());
+                    String key = mPurchaseRef.push().getKey();
+                    final Purchase purchase = new Purchase(key, mProductId, mProductName, companyName, mBuyPrice, sellPrice, mQuantity, mPurchaseDate, mTotalAmount, paidAmt, mDueAmount);
+                    mPurchaseRef.child(key).setValue(purchase).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()) {
+                                dismissProgressDialog();
+                                mStockRef.child(String.valueOf(mProductId)).addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                        StockHand stockHand = dataSnapshot.getValue(StockHand.class);
+                                        if (stockHand != null) {
+                                            quantity = stockHand.getPurchaseQuantity();
+                                        }
+                                        mProductRef.child(mProductKey).child("buyPrice").setValue(purchase.getActualPrice());
+                                        mProductRef.child(mProductKey).child("sellPrice").setValue(purchase.getSellingPrice());
+                                        mProductRef.child(mProductKey).child("company").setValue(purchase.getCompanyName());
+                                        mStockRef.child(String.valueOf(mProductId)).child("buyPrice").setValue(purchase.getActualPrice());
+                                        mStockRef.child(String.valueOf(mProductId)).child("productId").setValue(purchase.getProductId());
+                                        mStockRef.child(String.valueOf(mProductId)).child("purchaseQuantity").setValue(quantity + mQuantity);
                                     }
-                                    mProductRef.child(mProductKey).child("buyPrice").setValue(purchase.getActualPrice());
-                                    mProductRef.child(mProductKey).child("sellPrice").setValue(purchase.getSellingPrice());
-                                    mProductRef.child(mProductKey).child("company").setValue(purchase.getCompanyName());
-                                    mStockRef.child(String.valueOf(mProductId)).child("buyPrice").setValue(purchase.getActualPrice());
-                                    mStockRef.child(String.valueOf(mProductId)).child("productId").setValue(purchase.getProductId());
-                                    mStockRef.child(String.valueOf(mProductId)).child("purchaseQuantity").setValue(quantity + mQuantity);
-                                }
 
-                                @Override
-                                public void onCancelled(DatabaseError databaseError) {
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {
 
-                                }
-                            });
+                                    }
+                                });
 
-                            DateAmountPurchase dateAmountPurchase = new DateAmountPurchase(mPurchaseDate, mTotalAmount);
-                            DatabaseReference profitRef = mAdminRef.child(Constant.PROFIT_REF);
-                            DatabaseReference purchaseRef = profitRef.child(Constant.PURCHASE_REF);
-                            purchaseRef.push().setValue(dateAmountPurchase).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                @Override
-                                public void onComplete(@NonNull Task<Void> task) {
-                                    Snackbar.make(mBinding.rootView, "PurchaseForRoom Added", Snackbar.LENGTH_SHORT).show();
-                                    mFragmentLoader.loadFragment(HomeFragment.getInstance(), false, Constant.HOME_FRAGMENT_TAG);
-                                }
-                            }).addOnFailureListener(new OnFailureListener() {
-                                @Override
-                                public void onFailure(@NonNull Exception e) {
-                                    dismissProgressDialog();
-                                    Toast.makeText(mContext, e.getMessage(), Toast.LENGTH_SHORT).show();
-                                }
-                            });
+                                DateAmountPurchase dateAmountPurchase = new DateAmountPurchase(mPurchaseDate, mTotalAmount);
+                                DatabaseReference profitRef = mAdminRef.child(Constant.PROFIT_REF);
+                                DatabaseReference purchaseRef = profitRef.child(Constant.PURCHASE_REF);
+                                purchaseRef.push().setValue(dateAmountPurchase).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        Snackbar.make(mBinding.rootView, "Purchase Added", Snackbar.LENGTH_SHORT).show();
+                                        mFragmentLoader.loadFragment(HomeFragment.getInstance(), false, Constant.HOME_FRAGMENT_TAG);
+                                    }
+                                }).addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        dismissProgressDialog();
+                                        Toast.makeText(mContext, e.getMessage(), Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                            }
                         }
-                    }
-                });
+                    });
+                } else {
+                    Snackbar.make(mBinding.rootView, "No internet connection", Snackbar.LENGTH_SHORT).show();
+                }
             }
         });
 

@@ -6,6 +6,7 @@ import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -32,13 +33,11 @@ import com.kcirque.stockmanagementfinal.Database.Model.Customer;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.Interface.FragmentLoader;
 import com.kcirque.stockmanagementfinal.Interface.RecyclerItemClickListener;
+import com.kcirque.stockmanagementfinal.MainActivity;
 import com.kcirque.stockmanagementfinal.R;
 import com.kcirque.stockmanagementfinal.databinding.FragmentDueBinding;
-import com.twigsntwines.daterangepicker.DatePickerDialog;
-import com.twigsntwines.daterangepicker.DateRangePickedListener;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -98,49 +97,53 @@ public class DueFragment extends Fragment implements SearchView.OnQueryTextListe
         }
         mCustomerRef = mAdminRef.child(Constant.CUSTOMER_REF);
 
-        mBinding.progressBar.setVisibility(View.VISIBLE);
-        mBinding.dueListRecyclerView.setHasFixedSize(true);
-        mBinding.dueListRecyclerView.setLayoutManager(new LinearLayoutManager(mContext));
-        mCustomerRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                mCustomerList.clear();
-                mTotalDue = 0;
-                for (DataSnapshot postData : dataSnapshot.getChildren()) {
-                    Customer customer = postData.getValue(Customer.class);
-                    if (customer.getDue() > 0) {
-                        mCustomerList.add(customer);
-                        mTotalDue = mTotalDue + customer.getDue();
+        if (MainActivity.isNetworkAvailable(mContext)) {
+            mBinding.progressBar.setVisibility(View.VISIBLE);
+            mBinding.dueListRecyclerView.setHasFixedSize(true);
+            mBinding.dueListRecyclerView.setLayoutManager(new LinearLayoutManager(mContext));
+            mCustomerRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    mCustomerList.clear();
+                    mTotalDue = 0;
+                    for (DataSnapshot postData : dataSnapshot.getChildren()) {
+                        Customer customer = postData.getValue(Customer.class);
+                        if (customer.getDue() > 0) {
+                            mCustomerList.add(customer);
+                            mTotalDue = mTotalDue + customer.getDue();
+                        }
+                    }
+
+                    if (mCustomerList.size() > 0) {
+                        mBinding.progressBar.setVisibility(View.GONE);
+                        mAdapter = new DueAdapter(mContext, mCustomerList);
+                        mBinding.dueListRecyclerView.setAdapter(mAdapter);
+                        mAdapter.setRecyclerItemClickListener(new RecyclerItemClickListener() {
+                            @Override
+                            public void onClick(View view, int position, Object object) {
+                                DueDetailsFragment fragment = DueDetailsFragment.getInstance();
+                                Bundle bundle = new Bundle();
+                                Customer customer = (Customer) object;
+                                bundle.putSerializable(Constant.EXTRA_CUSTOMER, customer);
+                                fragment.setArguments(bundle);
+                                mFragmentLoader.loadFragment(fragment, true, Constant.DUE_DETAILS_FRAGMENT);
+                            }
+                        });
+
+                    } else {
+                        mBinding.emptyDueTextView.setVisibility(View.VISIBLE);
+                        mBinding.progressBar.setVisibility(View.GONE);
                     }
                 }
 
-                if (mCustomerList.size() > 0) {
-                    mBinding.progressBar.setVisibility(View.GONE);
-                    mAdapter = new DueAdapter(mContext, mCustomerList);
-                    mBinding.dueListRecyclerView.setAdapter(mAdapter);
-                    mAdapter.setRecyclerItemClickListener(new RecyclerItemClickListener() {
-                        @Override
-                        public void onClick(View view, int position, Object object) {
-                            DueDetailsFragment fragment = DueDetailsFragment.getInstance();
-                            Bundle bundle = new Bundle();
-                            Customer customer = (Customer) object;
-                            bundle.putSerializable(Constant.EXTRA_CUSTOMER,customer);
-                            fragment.setArguments(bundle);
-                            mFragmentLoader.loadFragment(fragment,true,Constant.DUE_DETAILS_FRAGMENT);
-                        }
-                    });
-
-                } else {
-                    mBinding.emptyDueTextView.setVisibility(View.VISIBLE);
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
                     mBinding.progressBar.setVisibility(View.GONE);
                 }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                mBinding.progressBar.setVisibility(View.GONE);
-            }
-        });
+            });
+        } else {
+            Snackbar.make(mBinding.rootView, "No internet connection", Snackbar.LENGTH_SHORT).show();
+        }
 
     }
 

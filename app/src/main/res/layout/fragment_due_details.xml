@@ -4,6 +4,7 @@
     tools:context=".Fragment.DueDetailsFragment">
 
     <RelativeLayout
+        android:id="@+id/root_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:padding="5dp">
@@ -146,36 +147,36 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:padding="5dp"
+                android:text="@string/date_text"
                 android:textColor="@android:color/white"
-                android:textSize="16sp"
-                android:text="@string/date_text" />
+                android:textSize="16sp" />
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:padding="5dp"
+                android:text="@string/total_text"
                 android:textColor="@android:color/white"
-                android:textSize="16sp"
-                android:text="@string/total_text" />
+                android:textSize="16sp" />
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:padding="5dp"
+                android:text="@string/paid_text"
                 android:textColor="@android:color/white"
-                android:textSize="16sp"
-                android:text="@string/paid_text" />
+                android:textSize="16sp" />
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:padding="5dp"
+                android:text="@string/due_text"
                 android:textColor="@android:color/white"
-                android:textSize="16sp"
-                android:text="@string/due_text" />
+                android:textSize="16sp" />
 
         </LinearLayout>
 
@@ -184,6 +185,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/due_title_layout"
+            tools:listitem="@layout/due_details_row_item"
             android:layout_marginTop="5dp"
             android:padding="5dp" />
     </RelativeLayout>

@@ -16,7 +16,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/reminder_count"
-            android:inputType="number"
+            android:inputType="numberDecimal"
             android:text=""
             android:textColor="@color/textColor"
             android:textColorHint="@color/textColorHint"

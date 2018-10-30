@@ -6,6 +6,7 @@ import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.view.LayoutInflater;
@@ -93,49 +94,54 @@ public class DailyCostFragment extends Fragment {
             mAdminRef = mRootRef.child(seller.getAdminUid());
         }
         DatabaseReference expenseRef = mAdminRef.child(Constant.EXPENSE_REF);
-        expenseRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                mExpenseList.clear();
-                mTotalExpense = 0;
-                for (DataSnapshot postData : dataSnapshot.getChildren()) {
-                    Expense expense = postData.getValue(Expense.class);
-                    if (mDateConverter.isToday(expense.getDate())) {
-                        mTotalExpense = mTotalExpense + expense.getExpenseAmount();
-                        mExpenseList.add(expense);
+        if (MainActivity.isNetworkAvailable(mContext)) {
+            expenseRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    mExpenseList.clear();
+                    mTotalExpense = 0;
+                    for (DataSnapshot postData : dataSnapshot.getChildren()) {
+                        Expense expense = postData.getValue(Expense.class);
+                        if (mDateConverter.isToday(expense.getDate())) {
+                            mTotalExpense = mTotalExpense + expense.getExpenseAmount();
+                            mExpenseList.add(expense);
+                        }
+                    }
+                    if (mExpenseList.size() > 0) {
+                        mBinding.progressBar.setVisibility(View.GONE);
+                        DailyExpenseAdapter adapter = new DailyExpenseAdapter(mContext, mExpenseList);
+                        mBinding.expenseListRecyclerView.setAdapter(adapter);
+                        mBinding.totalLinearLayout.setVisibility(View.VISIBLE);
+                        mBinding.totalAmountTextView.setText(String.valueOf(mTotalExpense));
+                        mBinding.totalTextTextView.setText("Total Amount");
+                        adapter.setRecyclerItemClickListener(new RecyclerItemClickListener() {
+                            @Override
+                            public void onClick(View view, int position, Object object) {
+                                Expense expense = (Expense) object;
+                                ExpenseDetailsFragment fragment = ExpenseDetailsFragment.getInstance();
+                                Bundle bundle = new Bundle();
+                                bundle.putSerializable(Constant.EXTRA_EXPENSE, expense);
+                                fragment.setArguments(bundle);
+                                mFragmentLoader.loadFragment(fragment, true, Constant.EXPENSE_DETAILS_FRAGMENT_TAG);
+
+                            }
+                        });
+                    } else {
+                        mBinding.emptyExpenseTextView.setVisibility(View.VISIBLE);
+                        mBinding.progressBar.setVisibility(View.GONE);
+
                     }
                 }
-                if (mExpenseList.size() > 0) {
-                    mBinding.progressBar.setVisibility(View.GONE);
-                    DailyExpenseAdapter adapter = new DailyExpenseAdapter(mContext, mExpenseList);
-                    mBinding.expenseListRecyclerView.setAdapter(adapter);
-                    mBinding.totalLinearLayout.setVisibility(View.VISIBLE);
-                    mBinding.totalAmountTextView.setText(String.valueOf(mTotalExpense));
-                    mBinding.totalTextTextView.setText("Total Amount");
-                    adapter.setRecyclerItemClickListener(new RecyclerItemClickListener() {
-                        @Override
-                        public void onClick(View view, int position, Object object) {
-                            Expense expense = (Expense) object;
-                            ExpenseDetailsFragment fragment = ExpenseDetailsFragment.getInstance();
-                            Bundle bundle = new Bundle();
-                            bundle.putSerializable(Constant.EXTRA_EXPENSE, expense);
-                            fragment.setArguments(bundle);
-                            mFragmentLoader.loadFragment(fragment,true,Constant.EXPENSE_DETAILS_FRAGMENT_TAG);
 
-                        }
-                    });
-                } else {
-                    mBinding.emptyExpenseTextView.setVisibility(View.VISIBLE);
-                    mBinding.progressBar.setVisibility(View.GONE);
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
 
                 }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
+            });
+        } else {
+            mBinding.progressBar.setVisibility(View.GONE);
+            Snackbar.make(mBinding.rootView, "No internet connection", Snackbar.LENGTH_SHORT).show();
+        }
     }
 
     @Override

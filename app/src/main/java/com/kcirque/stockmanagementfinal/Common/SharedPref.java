@@ -16,6 +16,7 @@ public class SharedPref {
     private static final String PASSWORD = "password";
     private static final String UID = "adminUid";
     private static final String MOBILE = "mobile";
+    private static final String STATUS = "status";
 
     public SharedPref(Context context) {
         this.mContext = context;
@@ -30,6 +31,7 @@ public class SharedPref {
         mEditor.putString(PASSWORD, seller.getPassword());
         mEditor.putString(UID, seller.getAdminUid());
         mEditor.putString(MOBILE, seller.getMobile());
+        mEditor.putString(STATUS, seller.getStatus());
         mEditor.commit();
     }
 
@@ -40,6 +42,7 @@ public class SharedPref {
         mEditor.putString(PASSWORD, null);
         mEditor.putString(UID, null);
         mEditor.putString(MOBILE, null);
+        mEditor.putString(STATUS, null);
         mEditor.commit();
     }
 
@@ -50,8 +53,9 @@ public class SharedPref {
         String pass = mSharedPreferences.getString(PASSWORD, null);
         String uid = mSharedPreferences.getString(UID, null);
         String mobile = mSharedPreferences.getString(MOBILE, null);
+        String status = mSharedPreferences.getString(STATUS, null);
         if (key != null && name != null && email != null && pass != null && uid != null) {
-            return new Seller(key, name, email, pass, uid, mobile);
+            return new Seller(key, name, email, pass, uid, mobile,status);
         } else {
             return null;
         }

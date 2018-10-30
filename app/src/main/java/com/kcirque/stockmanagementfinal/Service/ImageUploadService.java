@@ -23,6 +23,9 @@ import com.google.firebase.storage.UploadTask;
 import com.kcirque.stockmanagementfinal.Common.Constant;
 import com.kcirque.stockmanagementfinal.Common.SharedPref;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
+import com.kcirque.stockmanagementfinal.R;
+
+import id.zelory.compressor.Compressor;
 
 
 public class ImageUploadService extends IntentService {

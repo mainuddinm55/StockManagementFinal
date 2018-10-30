@@ -18,12 +18,14 @@ public class HomeWidgetAdapter extends RecyclerView.Adapter<HomeWidgetAdapter.Ho
     private LayoutInflater mLayoutInflater;
     private ItemClickListener mItemClickListener;
 
-    private String[] titles = {"Products", "Stock In","Customers","Sales","Stock Hand","Profit Loss"};
-    private int[] icons = {R.drawable.ic_product,R.drawable.ic_purchase,R.drawable.ic_customers,R.drawable.ic_sales,R.drawable.ic_stock,R.drawable.ic_reports};
+    private String[] titles;// = {"Products", "Stock In", "Customers", "Sales", "Stock Hand", "Profit Loss"};
+    private int[] icons;// = {R.drawable.ic_product, R.drawable.ic_purchase, R.drawable.ic_customers, R.drawable.ic_sales, R.drawable.ic_stock, R.drawable.ic_reports};
 
-    public HomeWidgetAdapter(Context context) {
+    public HomeWidgetAdapter(Context context, String[] titles, int[] icons) {
         this.mContext = context;
         this.mLayoutInflater = LayoutInflater.from(context);
+        this.titles = titles;
+        this.icons = icons;
     }
 
     public void setItemClickListener(ItemClickListener itemClickListener) {
@@ -33,7 +35,7 @@ public class HomeWidgetAdapter extends RecyclerView.Adapter<HomeWidgetAdapter.Ho
     @NonNull
     @Override
     public HomeWidgetHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-        View view = mLayoutInflater.inflate(R.layout.home_rv_item,viewGroup,false);
+        View view = mLayoutInflater.inflate(R.layout.home_rv_item, viewGroup, false);
         return new HomeWidgetHolder(view);
     }
 
@@ -44,7 +46,7 @@ public class HomeWidgetAdapter extends RecyclerView.Adapter<HomeWidgetAdapter.Ho
         homeWidgetHolder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mItemClickListener.onClick(v,position,titles[position]);
+                mItemClickListener.onClick(v, position, titles[position]);
             }
         });
     }
@@ -54,7 +56,7 @@ public class HomeWidgetAdapter extends RecyclerView.Adapter<HomeWidgetAdapter.Ho
         return titles.length;
     }
 
-    public class HomeWidgetHolder extends RecyclerView.ViewHolder{
+    public class HomeWidgetHolder extends RecyclerView.ViewHolder {
 
         public ImageView homeWidgetImageView;
         private TextView homeWidgetTextView;

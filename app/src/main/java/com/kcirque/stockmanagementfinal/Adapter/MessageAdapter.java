@@ -6,8 +6,12 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.kcirque.stockmanagementfinal.Common.SharedPref;
@@ -52,7 +56,20 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageH
 
     @Override
     public void onBindViewHolder(@NonNull MessageHolder messageHolder, int i) {
-        messageHolder.messageTextView.setText(mChatList.get(i).getMsg());
+        Chat chat = mChatList.get(i);
+        RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) messageHolder.msgSeenTextView.getLayoutParams();
+        if (chat.getImageUrl() != null) {
+            messageHolder.messageTextView.setVisibility(View.GONE);
+            messageHolder.picImageView.setVisibility(View.VISIBLE);
+            Glide.with(mContext).load(chat.getImageUrl())
+                    .into(messageHolder.picImageView);
+            layoutParams.addRule(RelativeLayout.BELOW, messageHolder.picImageView.getId());
+        } else {
+            messageHolder.picImageView.setVisibility(View.GONE);
+            messageHolder.messageTextView.setText(chat.getMsg());
+            layoutParams.addRule(RelativeLayout.BELOW, messageHolder.messageTextView.getId());
+        }
+        messageHolder.msgSeenTextView.setLayoutParams(layoutParams);
         messageHolder.profileImageView.setImageResource(R.drawable.ic_user);
 
         if (i == (mChatList.size() - 1)) {
@@ -75,12 +92,14 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageH
 
         public CircleImageView profileImageView;
         public TextView messageTextView, msgSeenTextView;
+        public ImageView picImageView;
 
         public MessageHolder(@NonNull View itemView) {
             super(itemView);
             profileImageView = itemView.findViewById(R.id.profile_image_view);
             messageTextView = itemView.findViewById(R.id.show_message);
             msgSeenTextView = itemView.findViewById(R.id.msg_seen_text_view);
+            picImageView = itemView.findViewById(R.id.show_pic);
         }
     }
 

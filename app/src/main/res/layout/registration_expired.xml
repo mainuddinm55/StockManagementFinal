@@ -25,7 +25,7 @@
             android:textSize="40sp" />
 
         <TextView
-            android:id="@+id/no_internet_text_view"
+            android:id="@+id/no_registration_text_view"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/oops_text_view"

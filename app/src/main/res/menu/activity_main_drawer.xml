@@ -19,7 +19,7 @@
         android:id="@+id/nav_seller"
         android:icon="@drawable/client"
         android:title="@string/seller_text"
-        app:actionViewClass="android.widget.TextView" />
+        />
     <item
         android:id="@+id/nav_salry"
         android:icon="@drawable/ic_salary"

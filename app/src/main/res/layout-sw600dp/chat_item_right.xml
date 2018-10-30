@@ -26,8 +26,18 @@
             android:background="@drawable/background_right"
             android:padding="5dp"
             android:text="@string/seller_name_text"
-            android:textColor="@android:color/white"
-            android:textAppearance="@style/TextAppearance.AppCompat.Large"/>
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"
+            android:textColor="@android:color/white" />
+
+        <ImageView
+            android:id="@+id/show_pic"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:scaleType="centerInside"
+            android:src="@drawable/placeholder"
+            android:visibility="gone" />
 
         <TextView
             android:id="@+id/msg_seen_text_view"

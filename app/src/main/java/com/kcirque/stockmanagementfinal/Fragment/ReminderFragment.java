@@ -7,6 +7,7 @@ import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.util.Log;
@@ -29,6 +30,7 @@ import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.Database.Model.StockHand;
 import com.kcirque.stockmanagementfinal.Interface.FragmentLoader;
 import com.kcirque.stockmanagementfinal.Interface.RecyclerItemClickListener;
+import com.kcirque.stockmanagementfinal.MainActivity;
 import com.kcirque.stockmanagementfinal.R;
 import com.kcirque.stockmanagementfinal.databinding.FragmentReminderBinding;
 
@@ -104,46 +106,50 @@ public class ReminderFragment extends Fragment {
                 mAdminRef = rootRef.child(seller.getAdminUid());
             }
             mProductRef = mAdminRef.child(Constant.PRODUCT_REF);
-            mProductRef.addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    mProductList.clear();
-                    for (DataSnapshot postData : dataSnapshot.getChildren()) {
-                        Product product = postData.getValue(Product.class);
-                        for (StockHand stockHand : stockHandList) {
-                            if (product.getProductId() == stockHand.getProductId()) {
-                                mProductList.add(product);
+            if (MainActivity.isNetworkAvailable(mContext)) {
+                mProductRef.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        mProductList.clear();
+                        for (DataSnapshot postData : dataSnapshot.getChildren()) {
+                            Product product = postData.getValue(Product.class);
+                            for (StockHand stockHand : stockHandList) {
+                                if (product.getProductId() == stockHand.getProductId()) {
+                                    mProductList.add(product);
+                                }
                             }
+                        }
+
+                        if (stockHandList.size() > 0 && mProductList.size() > 0) {
+                            Log.e(TAG, "Array Size" + stockHandList.size() + " " + mProductList.size());
+                            StockWarningAdapter adapter = new StockWarningAdapter(mContext, stockHandList, mProductList);
+                            mBinding.stockWarningList.setAdapter(adapter);
+                            mBinding.progressBar.setVisibility(View.GONE);
+                            //stockHandList.clear();
+                            adapter.setRecyclerItemClickListener(new RecyclerItemClickListener() {
+                                @Override
+                                public void onClick(View view, int position, Object object) {
+                                    Product product = (Product) object;
+                                    mBundle = new Bundle();
+                                    mBundle.putSerializable(Constant.EXTRA_PURCHASE_PRODUCT, product);
+                                    fragment.setArguments(mBundle);
+                                    mFragmentLoader.loadFragment(fragment, true, Constant.PURCHASE_FRAGMENT_TAG);
+                                }
+                            });
+                        } else {
+                            mBinding.progressBar.setVisibility(View.GONE);
+                            mBinding.emptyReminderTextView.setVisibility(View.VISIBLE);
                         }
                     }
 
-                    if (stockHandList.size() > 0 && mProductList.size() > 0) {
-                        Log.e(TAG, "Array Size" + stockHandList.size() + " " + mProductList.size());
-                        StockWarningAdapter adapter = new StockWarningAdapter(mContext, stockHandList, mProductList);
-                        mBinding.stockWarningList.setAdapter(adapter);
-                        mBinding.progressBar.setVisibility(View.GONE);
-                        //stockHandList.clear();
-                        adapter.setRecyclerItemClickListener(new RecyclerItemClickListener() {
-                            @Override
-                            public void onClick(View view, int position, Object object) {
-                                Product product = (Product) object;
-                                mBundle = new Bundle();
-                                mBundle.putSerializable(Constant.EXTRA_PURCHASE_PRODUCT, product);
-                                fragment.setArguments(mBundle);
-                                mFragmentLoader.loadFragment(fragment, true, Constant.PURCHASE_FRAGMENT_TAG);
-                            }
-                        });
-                    } else {
-                        mBinding.progressBar.setVisibility(View.GONE);
-                        mBinding.emptyReminderTextView.setVisibility(View.VISIBLE);
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
                     }
-                }
-
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-
-                }
-            });
+                });
+            } else {
+                Snackbar.make(mBinding.rootView, "No internet connection", Snackbar.LENGTH_SHORT).show();
+            }
         }
     }
 

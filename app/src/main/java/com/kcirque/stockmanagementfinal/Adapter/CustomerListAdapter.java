@@ -59,6 +59,15 @@ public class CustomerListAdapter extends RecyclerView.Adapter<CustomerListAdapte
         customerHolder.nameTextView.setText(mCustomerList.get(i).getCustomerName());
         customerHolder.mobileTextView.setText(mCustomerList.get(i).getMobile());
         customerHolder.imageView.setImageResource(R.drawable.ic_user);
+
+        customerHolder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (itemClickListener != null && i != -1) {
+                    itemClickListener.onClick(v, i, mCustomerList.get(i));
+                }
+            }
+        });
     }
 
     @Override

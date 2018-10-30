@@ -66,7 +66,7 @@
     <string name="client_text">Client</string>
     <string name="product_less_warning">These Product are going finish</string>
     <string name="purchase_text">Purchase</string>
-    <string name="empty_stock_out">Empty Stock Out</string>
+    <string name="empty_stock_out">Empty Sales</string>
     <string name="login">Login</string>
     <string name="password">Password</string>
     <string name="email">Email</string>
@@ -143,6 +143,14 @@
     <string name="internet_connection_text">No internet connection found. \nCheck your connection</string>
     <string name="registration_expired_text">Your registration was expired.\nPlease contact with us</string>
     <string name="export_to_xl">Export 2 XL</string>
+    <string name="band_text">Brand</string>
+    <string name="update_customer">Update Customer</string>
+    <string name="status_text">Status</string>
+    <string name="update_seller">Update</string>
+    <string name="active_text">Active</string>
+    <string name="deactivate_text">Deactivate</string>
+    <string name="delete_seller">Delete Seller</string>
+    <string name="payment_due_text">Payment Due Amount</string>
 
     <string-array name="stock_out_type">
         <item name="today_stock_text">Today Sales Reports</item>

@@ -6,6 +6,7 @@ import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.util.Log;
@@ -27,6 +28,7 @@ import com.kcirque.stockmanagementfinal.Common.SharedPref;
 import com.kcirque.stockmanagementfinal.Database.Model.ProductSell;
 import com.kcirque.stockmanagementfinal.Database.Model.Sales;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
+import com.kcirque.stockmanagementfinal.MainActivity;
 import com.kcirque.stockmanagementfinal.R;
 import com.kcirque.stockmanagementfinal.databinding.FragmentStockOutReportBinding;
 
@@ -117,99 +119,104 @@ public class StockOutReportFragment extends Fragment {
             }
         }
 
-        mSalesRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                mSalesList.clear();
-                mProductSellList.clear();
-                for (DataSnapshot postData : dataSnapshot.getChildren()) {
-                    Sales sales = postData.getValue(Sales.class);
-                    if (sales != null) {
-                        long saleDate = sales.getSalesDate();
-                        switch (mStockType) {
-                            case StockOutFragment.TODAY_TYPE:
-                                boolean isToday = mDateConverter.isToday(saleDate);
-                                if (isToday) {
-                                    List<ProductSell> productSellList = sales.getSelectedProduct();
-                                    mProductSellList.addAll(productSellList);
-                                }
-                                Log.e(TAG, "Date " + mDateConverter.getDateInString(saleDate));
-                                Log.e(TAG, "Is Today " + mDateConverter.isToday(saleDate));
-                                break;
-                            case StockOutFragment.DAY_7_TYPE:
-                                if (mDateConverter.getDayCount(saleDate) <= 7) {
-                                    List<ProductSell> productSellList = sales.getSelectedProduct();
-                                    mProductSellList.addAll(productSellList);
-                                }
-                                Log.e(TAG, "Date " + mDateConverter.getDateInString(saleDate));
-                                Log.e(TAG, "Day Count " + mDateConverter.getDayCount(saleDate));
-                                break;
-                            case StockOutFragment.WEEK_TYPE:
-                                if (mDateConverter.isLastWeek(saleDate)) {
-                                    List<ProductSell> productSellList = sales.getSelectedProduct();
-                                    mProductSellList.addAll(productSellList);
-                                }
+        if (MainActivity.isNetworkAvailable(mContext)) {
+            mSalesRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    mSalesList.clear();
+                    mProductSellList.clear();
+                    for (DataSnapshot postData : dataSnapshot.getChildren()) {
+                        Sales sales = postData.getValue(Sales.class);
+                        if (sales != null) {
+                            long saleDate = sales.getSalesDate();
+                            switch (mStockType) {
+                                case StockOutFragment.TODAY_TYPE:
+                                    boolean isToday = mDateConverter.isToday(saleDate);
+                                    if (isToday) {
+                                        List<ProductSell> productSellList = sales.getSelectedProduct();
+                                        mProductSellList.addAll(productSellList);
+                                    }
+                                    Log.e(TAG, "Date " + mDateConverter.getDateInString(saleDate));
+                                    Log.e(TAG, "Is Today " + mDateConverter.isToday(saleDate));
+                                    break;
+                                case StockOutFragment.DAY_7_TYPE:
+                                    if (mDateConverter.getDayCount(saleDate) <= 7) {
+                                        List<ProductSell> productSellList = sales.getSelectedProduct();
+                                        mProductSellList.addAll(productSellList);
+                                    }
+                                    Log.e(TAG, "Date " + mDateConverter.getDateInString(saleDate));
+                                    Log.e(TAG, "Day Count " + mDateConverter.getDayCount(saleDate));
+                                    break;
+                                case StockOutFragment.WEEK_TYPE:
+                                    if (mDateConverter.isLastWeek(saleDate)) {
+                                        List<ProductSell> productSellList = sales.getSelectedProduct();
+                                        mProductSellList.addAll(productSellList);
+                                    }
 
-                                Log.e(TAG, "Date " + mDateConverter.getDateInString(saleDate));
-                                Log.e(TAG, "This Week " + mDateConverter.isLastWeek(saleDate));
-                                break;
-                            case StockOutFragment.DAY_30_TYPE:
-                                if (mDateConverter.getDayCount(saleDate) <= 30) {
-                                    List<ProductSell> productSellList = sales.getSelectedProduct();
-                                    mProductSellList.addAll(productSellList);
-                                }
-                                Log.e(TAG, "Date " + mDateConverter.getDateInString(saleDate));
-                                Log.e(TAG, "Day Count " + mDateConverter.getDayCount(saleDate));
-                                break;
-                            case StockOutFragment.MONTH_TYPE:
-                                if (mDateConverter.isLastMonth(saleDate)) {
-                                    List<ProductSell> productSellList = sales.getSelectedProduct();
-                                    mProductSellList.addAll(productSellList);
-                                }
-                                Log.e(TAG, "Date " + mDateConverter.getDateInString(saleDate));
-                                Log.e(TAG, "Is Last Month " + mDateConverter.isLastMonth(saleDate));
-                                break;
-                        }
-                    }
-
-                }
-                if (mProductSellList.size() > 0) {
-                    Log.e(TAG, "ProductForRoom List Size " + mProductSellList.size());
-                    List<ProductSell> productSellList = new ArrayList<>();
-                    for (int i = 0; i < mProductSellList.size(); i++) {
-                        int productId = mProductSellList.get(i).getProductId();
-                        int quantity = mProductSellList.get(i).getQuantity();
-                        String name = mProductSellList.get(i).getProductName();
-                        double price = mProductSellList.get(i).getPrice();
-                        for (int j = 0; j < mProductSellList.size(); j++) {
-                            if (i == j) {
-                                continue;
-                            }
-                            if (mProductSellList.get(i).getProductId() == mProductSellList.get(j).getProductId()) {
-                                quantity = quantity + mProductSellList.get(j).getQuantity();
-                                mProductSellList.remove(mProductSellList.get(j));
+                                    Log.e(TAG, "Date " + mDateConverter.getDateInString(saleDate));
+                                    Log.e(TAG, "This Week " + mDateConverter.isLastWeek(saleDate));
+                                    break;
+                                case StockOutFragment.DAY_30_TYPE:
+                                    if (mDateConverter.getDayCount(saleDate) <= 30) {
+                                        List<ProductSell> productSellList = sales.getSelectedProduct();
+                                        mProductSellList.addAll(productSellList);
+                                    }
+                                    Log.e(TAG, "Date " + mDateConverter.getDateInString(saleDate));
+                                    Log.e(TAG, "Day Count " + mDateConverter.getDayCount(saleDate));
+                                    break;
+                                case StockOutFragment.MONTH_TYPE:
+                                    if (mDateConverter.isLastMonth(saleDate)) {
+                                        List<ProductSell> productSellList = sales.getSelectedProduct();
+                                        mProductSellList.addAll(productSellList);
+                                    }
+                                    Log.e(TAG, "Date " + mDateConverter.getDateInString(saleDate));
+                                    Log.e(TAG, "Is Last Month " + mDateConverter.isLastMonth(saleDate));
+                                    break;
                             }
                         }
-                        ProductSell productSell = new ProductSell(productId, name, quantity, price);
-                        productSellList.add(productSell);
-                    }
 
-                    if (productSellList.size() > 0) {
+                    }
+                    if (mProductSellList.size() > 0) {
+                        Log.e(TAG, "ProductForRoom List Size " + mProductSellList.size());
+                        List<ProductSell> productSellList = new ArrayList<>();
+                        for (int i = 0; i < mProductSellList.size(); i++) {
+                            int productId = mProductSellList.get(i).getProductId();
+                            int quantity = mProductSellList.get(i).getQuantity();
+                            String name = mProductSellList.get(i).getProductName();
+                            double price = mProductSellList.get(i).getPrice();
+                            for (int j = 0; j < mProductSellList.size(); j++) {
+                                if (i == j) {
+                                    continue;
+                                }
+                                if (mProductSellList.get(i).getProductId() == mProductSellList.get(j).getProductId()) {
+                                    quantity = quantity + mProductSellList.get(j).getQuantity();
+                                    mProductSellList.remove(mProductSellList.get(j));
+                                }
+                            }
+                            ProductSell productSell = new ProductSell(productId, name, quantity, price);
+                            productSellList.add(productSell);
+                        }
+
+                        if (productSellList.size() > 0) {
+                            mBinding.progressBar.setVisibility(View.GONE);
+                            StockOutAdapter adapter = new StockOutAdapter(mContext, productSellList);
+                            mBinding.stockOutRecyclerView.setAdapter(adapter);
+                        }
+                    } else {
                         mBinding.progressBar.setVisibility(View.GONE);
-                        StockOutAdapter adapter = new StockOutAdapter(mContext, productSellList);
-                        mBinding.stockOutRecyclerView.setAdapter(adapter);
+                        mBinding.emptyStockOutTextView.setVisibility(View.VISIBLE);
                     }
-                } else {
-                    mBinding.progressBar.setVisibility(View.GONE);
-                    mBinding.emptyStockOutTextView.setVisibility(View.VISIBLE);
                 }
-            }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
 
-            }
-        });
+                }
+            });
+        } else {
+            mBinding.progressBar.setVisibility(View.GONE);
+            Snackbar.make(mBinding.rootView, "No internet connection", Snackbar.LENGTH_SHORT).show();
+        }
     }
 
     @Override

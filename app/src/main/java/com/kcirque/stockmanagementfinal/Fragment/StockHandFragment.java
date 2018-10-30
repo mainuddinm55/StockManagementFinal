@@ -6,19 +6,13 @@ import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -30,11 +24,9 @@ import com.kcirque.stockmanagementfinal.Adapter.StockHandAdapter;
 import com.kcirque.stockmanagementfinal.Common.Constant;
 import com.kcirque.stockmanagementfinal.Common.SharedPref;
 import com.kcirque.stockmanagementfinal.Database.Model.Product;
-import com.kcirque.stockmanagementfinal.Database.Model.ProductSell;
-import com.kcirque.stockmanagementfinal.Database.Model.Purchase;
-import com.kcirque.stockmanagementfinal.Database.Model.Sales;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.Database.Model.StockHand;
+import com.kcirque.stockmanagementfinal.MainActivity;
 import com.kcirque.stockmanagementfinal.R;
 import com.kcirque.stockmanagementfinal.databinding.FragmentStockHandBinding;
 
@@ -46,8 +38,8 @@ import java.util.List;
  */
 public class StockHandFragment extends Fragment {
 
+    private static StockHandFragment sInstance;
     private FragmentStockHandBinding mBinding;
-    private static StockHandFragment INSTANCE;
 
     private static final String TAG = "Stock Management";
     private FirebaseUser mUser;
@@ -63,18 +55,15 @@ public class StockHandFragment extends Fragment {
     private Context mContext;
     private int sellQuantity;
 
-    public static synchronized StockHandFragment getInstance() {
-        if (INSTANCE == null) {
-            INSTANCE = new StockHandFragment();
-        }
-
-        return INSTANCE;
-    }
-
     public StockHandFragment() {
         // Required empty public constructor
     }
 
+    public static synchronized StockHandFragment getInstance() {
+        if (sInstance == null)
+            sInstance = new StockHandFragment();
+        return sInstance;
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -105,56 +94,62 @@ public class StockHandFragment extends Fragment {
         mBinding.stockHandRecyclerView.setHasFixedSize(true);
         mBinding.stockHandRecyclerView.setLayoutManager(new LinearLayoutManager(mContext));
 
-        mStockRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                mStockHandList.clear();
-                for (DataSnapshot postData : dataSnapshot.getChildren()) {
-                    final StockHand stockHand = postData.getValue(StockHand.class);
-                    mStockHandList.add(stockHand);
+        if (MainActivity.isNetworkAvailable(mContext)) {
+            mStockRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    mStockHandList.clear();
+                    for (DataSnapshot postData : dataSnapshot.getChildren()) {
+                        final StockHand stockHand = postData.getValue(StockHand.class);
+                        mStockHandList.add(stockHand);
 
-                }
-                mProductRef.addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        mProductList.clear();
-                        for (DataSnapshot postData : dataSnapshot.getChildren()) {
-                            Product product = postData.getValue(Product.class);
-                            mProductList.add(product);
+                    }
+                    mProductRef.addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            mProductList.clear();
+                            for (DataSnapshot postData : dataSnapshot.getChildren()) {
+                                Product product = postData.getValue(Product.class);
+                                mProductList.add(product);
+                            }
                         }
-                    }
 
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
 
+                        }
+                    });
+                    if (mStockHandList.size() > 0 && mProductList.size() > 0) {
+                        mBinding.progressBar.setVisibility(View.GONE);
+                        StockHandAdapter adapter = new StockHandAdapter(mContext, mStockHandList, mProductList);
+                        int totalPurchase = 0;
+                        int totalSale = 0;
+                        int totalStockHand = 0;
+                        for (StockHand stockHand : mStockHandList) {
+                            totalPurchase = totalPurchase + stockHand.getPurchaseQuantity();
+                            totalSale = totalSale + stockHand.getSellQuantity();
+                            totalStockHand = totalStockHand + (stockHand.getPurchaseQuantity() - stockHand.getSellQuantity());
+                        }
+                        mBinding.stockHandRecyclerView.setAdapter(adapter);
+                        mBinding.totalPurchaseTextView.setText(String.valueOf(totalPurchase));
+                        mBinding.totalSaleTextView.setText(String.valueOf(totalSale));
+                        mBinding.totalStockTextView.setText(String.valueOf(totalStockHand));
+                        mBinding.totalTextTextView.setText(R.string.total_text);
+                        mBinding.totalLinearLayout.setVisibility(View.VISIBLE);
+                    } else {
+                        mBinding.progressBar.setVisibility(View.GONE);
                     }
-                });
-                if (mStockHandList.size() > 0 && mProductList.size() > 0) {
-                    mBinding.progressBar.setVisibility(View.GONE);
-                    StockHandAdapter adapter = new StockHandAdapter(mContext, mStockHandList, mProductList);
-                    int totalPurchase = 0;
-                    int totalSale = 0;
-                    int totalStockHand = 0;
-                    for (StockHand stockHand : mStockHandList) {
-                        totalPurchase = totalPurchase + stockHand.getPurchaseQuantity();
-                        totalSale = totalSale + stockHand.getSellQuantity();
-                        totalStockHand = totalStockHand + (stockHand.getPurchaseQuantity() - stockHand.getSellQuantity());
-                    }
-                    mBinding.stockHandRecyclerView.setAdapter(adapter);
-                    mBinding.totalPurchaseTextView.setText(String.valueOf(totalPurchase));
-                    mBinding.totalSaleTextView.setText(String.valueOf(totalSale));
-                    mBinding.totalStockTextView.setText(String.valueOf(totalStockHand));
-                    mBinding.totalTextTextView.setText(R.string.total_text);
-                    mBinding.totalLinearLayout.setVisibility(View.VISIBLE);
                 }
-            }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
 
-            }
-        });
-
+                }
+            });
+        } else {
+            mBinding.progressBar.setVisibility(View.GONE);
+            Snackbar.make(mBinding.rootView, "No internet connection", Snackbar.LENGTH_SHORT).show();
+        }
     }
 
     @Override

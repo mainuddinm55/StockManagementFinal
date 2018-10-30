@@ -35,6 +35,7 @@ import com.kcirque.stockmanagementfinal.Database.Model.Profit;
 import com.kcirque.stockmanagementfinal.Database.Model.Salary;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.Interface.FragmentLoader;
+import com.kcirque.stockmanagementfinal.MainActivity;
 import com.kcirque.stockmanagementfinal.R;
 import com.kcirque.stockmanagementfinal.databinding.FragmentSalaryAddBinding;
 
@@ -95,44 +96,48 @@ public class SalaryAddFragment extends Fragment {
         mBinding.dateTextView.setText(mDateConverter.getDateInString(mDateConverter.getCurrentDate()));
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(mContext, android.R.layout.simple_spinner_dropdown_item, months);
         mBinding.monthSpinner.setAdapter(adapter);
-        sellerRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                mSellerList.clear();
-                for (DataSnapshot postData : dataSnapshot.getChildren()) {
-                    Seller sellerPerson = postData.getValue(Seller.class);
-                    if (sellerPerson != null && sellerPerson.getAdminUid().equals(user.getUid())) {
-                        mSellerList.add(sellerPerson);
+        if (MainActivity.isNetworkAvailable(mContext)) {
+            sellerRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    mSellerList.clear();
+                    for (DataSnapshot postData : dataSnapshot.getChildren()) {
+                        Seller sellerPerson = postData.getValue(Seller.class);
+                        if (sellerPerson != null && sellerPerson.getAdminUid().equals(user.getUid())) {
+                            mSellerList.add(sellerPerson);
+                        }
+
                     }
-
-                }
-                if (mSellerList.size() > 0) {
-                    SellerSpinnerAdapter adapter = new SellerSpinnerAdapter(mContext, mSellerList);
-                    mBinding.sellerNameSpinner.setAdapter(adapter);
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-        salaryRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot postData : dataSnapshot.getChildren()) {
-                    Salary salary = postData.getValue(Salary.class);
-                    if (salary != null) {
-                        mSalaryList.add(salary);
+                    if (mSellerList.size() > 0) {
+                        SellerSpinnerAdapter adapter = new SellerSpinnerAdapter(mContext, mSellerList);
+                        mBinding.sellerNameSpinner.setAdapter(adapter);
                     }
                 }
-            }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
 
-            }
-        });
+                }
+            });
+            salaryRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    for (DataSnapshot postData : dataSnapshot.getChildren()) {
+                        Salary salary = postData.getValue(Salary.class);
+                        if (salary != null) {
+                            mSalaryList.add(salary);
+                        }
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+        } else {
+            Snackbar.make(mBinding.rootView, "No internet connection", Snackbar.LENGTH_SHORT).show();
+        }
         mBinding.monthSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -201,34 +206,39 @@ public class SalaryAddFragment extends Fragment {
                     mBinding.amountEditText.requestFocus();
                     return;
                 }
-                showProgressDialog();
-                String key = salaryRef.push().getKey();
-                final double amount = Double.parseDouble(mBinding.amountEditText.getText().toString());
-                Salary empSalary = new Salary(key, mSellerKey, mSellerName, mMonth, amount, mDate);
-                salaryRef.child(key).setValue(empSalary).addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        if (task.isSuccessful()) {
-                            dismissProgressDialog();
-                            DateAmountSalary dateAmountSalary = new DateAmountSalary(mDate, amount, salaryMonth);
-                            DatabaseReference profitRef = adminRef.child(Constant.PROFIT_REF);
-                            DatabaseReference salaryRef = profitRef.child(Constant.SALARY_REF);
-                            salaryRef.push().setValue(dateAmountSalary).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                @Override
-                                public void onComplete(@NonNull Task<Void> task) {
-                                    Snackbar.make(v, "SalaryForRoom Added", Snackbar.LENGTH_SHORT).show();
-                                    mFragmentLoader.loadFragment(SalaryFragment.getInstance(), true, Constant.SALARY_FRAGMENT_TAG);
-                                }
-                            }).addOnFailureListener(new OnFailureListener() {
-                                @Override
-                                public void onFailure(@NonNull Exception e) {
-                                    dismissProgressDialog();
-                                }
-                            });
+                if (MainActivity.isNetworkAvailable(mContext)) {
+                    showProgressDialog();
+                    String key = salaryRef.push().getKey();
+                    final double amount = Double.parseDouble(mBinding.amountEditText.getText().toString());
+                    Salary empSalary = new Salary(key, mSellerKey, mSellerName, mMonth, amount, mDate);
+                    salaryRef.child(key).setValue(empSalary).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()) {
+                                dismissProgressDialog();
+                                DateAmountSalary dateAmountSalary = new DateAmountSalary(mDate, amount, salaryMonth);
+                                DatabaseReference profitRef = adminRef.child(Constant.PROFIT_REF);
+                                DatabaseReference salaryRef = profitRef.child(Constant.SALARY_REF);
+                                salaryRef.push().setValue(dateAmountSalary).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        Snackbar.make(v, "SalaryForRoom Added", Snackbar.LENGTH_SHORT).show();
+                                        mFragmentLoader.loadFragment(SalaryFragment.getInstance(), true, Constant.SALARY_FRAGMENT_TAG);
+                                    }
+                                }).addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        dismissProgressDialog();
+                                        Snackbar.make(mBinding.rootView, e.getMessage(), Snackbar.LENGTH_SHORT).show();
+                                    }
+                                });
 
+                            }
                         }
-                    }
-                });
+                    });
+                } else {
+                    Snackbar.make(mBinding.rootView, "No internet connection", Snackbar.LENGTH_SHORT).show();
+                }
             }
         });
     }
@@ -239,6 +249,7 @@ public class SalaryAddFragment extends Fragment {
         mContext = context;
         mFragmentLoader = (FragmentLoader) context;
     }
+
     private void showProgressDialog() {
         progressDialog = new ProgressDialog(mContext);
         progressDialog.setTitle("Loading.....");

@@ -74,4 +74,10 @@ public class Constant {
     public static final int TOTAL_SALARY_INDEX = 6;
     public static final int TOTAL_PROFIT_INDEX = 7;
     public static final String REGISTRATION_REF = "registrationExpiredDate";
+    public static final String IS_LOGGED = "isLoggedIn";
+    public static final String CHAT_IMAGE_REF = "ChatImage";
+    public static final String CONTACT_US_REF = "ContactUs";
+    public static final String CUSTOMER_DETAILS_TAG = "customer_details";
+    public static final String SELLER_DETAILS_FRAGMENT_TAG = "seller_details";
+    public static final String MESSAGE_FRAGMENT_TAG = "message_fragment";
 }

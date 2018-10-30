@@ -28,6 +28,7 @@ import com.kcirque.stockmanagementfinal.Common.SharedPref;
 import com.kcirque.stockmanagementfinal.Database.Model.Customer;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.Interface.FragmentLoader;
+import com.kcirque.stockmanagementfinal.Interface.RecyclerItemClickListener;
 import com.kcirque.stockmanagementfinal.MainActivity;
 import com.kcirque.stockmanagementfinal.databinding.FragmentCustomerListBinding;
 
@@ -113,6 +114,17 @@ public class CustomerListFragment extends Fragment {
                         mBinding.progressBar.setVisibility(View.GONE);
                         CustomerListAdapter adapter = new CustomerListAdapter(mContext, mCustomerList);
                         mBinding.customerListRecyclerView.setAdapter(adapter);
+                        adapter.setItemClickListener(new RecyclerItemClickListener() {
+                            @Override
+                            public void onClick(View view, int position, Object object) {
+                                Customer customer = (Customer) object;
+                                CustomerDetailsFragment fragment = CustomerDetailsFragment.getInstance();
+                                Bundle bundle = new Bundle();
+                                bundle.putSerializable(Constant.EXTRA_CUSTOMER, customer);
+                                fragment.setArguments(bundle);
+                                mFragmentLoader.loadFragment(fragment, true, Constant.CUSTOMER_DETAILS_TAG);
+                            }
+                        });
                     } else {
                         mBinding.progressBar.setVisibility(View.GONE);
                         mBinding.emptyCustomerTextview.setVisibility(View.VISIBLE);

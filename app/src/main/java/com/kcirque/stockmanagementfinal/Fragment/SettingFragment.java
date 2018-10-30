@@ -7,8 +7,11 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.databinding.DataBindingUtil;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -22,6 +25,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.MimeTypeMap;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -42,9 +47,15 @@ import com.google.firebase.storage.UploadTask;
 import com.kcirque.stockmanagementfinal.Common.Constant;
 import com.kcirque.stockmanagementfinal.Common.SharedPref;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
+import com.kcirque.stockmanagementfinal.MainActivity;
 import com.kcirque.stockmanagementfinal.R;
 import com.kcirque.stockmanagementfinal.databinding.FragmentSettingBinding;
 import com.rengwuxian.materialedittext.MaterialEditText;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import id.zelory.compressor.Compressor;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -58,9 +69,7 @@ public class SettingFragment extends Fragment {
     private FragmentSettingBinding mBinding;
     private static SettingFragment INSTANCE;
     private Context mContext;
-    private String[] settings = {"Username", "Company Name", "Change Password", "Set Reminder"};
     private FirebaseUser mUser;
-    private Seller mSeller;
 
     private DatabaseReference mAdminRef;
     private FirebaseAuth mAuth;
@@ -93,8 +102,6 @@ public class SettingFragment extends Fragment {
         getActivity().setTitle("Settings");
         mAuth = FirebaseAuth.getInstance();
         mUser = mAuth.getCurrentUser();
-        SharedPref sharedPref = new SharedPref(mContext);
-        mSeller = sharedPref.getSeller();
         mRootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
 
         if (mUser != null) {
@@ -149,24 +156,17 @@ public class SettingFragment extends Fragment {
             mBinding.changeLogoBtn.setOnClickListener(changeLogoClickListener);
             mBinding.logoImageView.setOnClickListener(changeLogoClickListener);
 
-        } else {
-            mAdminRef = mRootRef.child(mSeller.getAdminUid());
-            mBinding.userNameTextView.setText(mSeller.getName());
-            mBinding.changePasswordTextView.setCompoundDrawablesWithIntrinsicBounds(null, null, getResources().getDrawable(R.drawable.ic_edit), null);
-            mBinding.changePasswordTextView.setCompoundDrawablePadding(10);
-            mBinding.changePasswordTextView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    showChangePasswordDialog();
-                }
-            });
         }
 
         mAdminRef.child(Constant.COMPANY_NAME_REF).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                String companyName = dataSnapshot.getValue(String.class);
-                mBinding.companyNameTextView.setText(companyName);
+                if (dataSnapshot.exists()) {
+                    String companyName = dataSnapshot.getValue(String.class);
+                    mBinding.companyNameTextView.setText(companyName);
+                } else {
+                    mBinding.companyNameTextView.setText("N/A");
+                }
             }
 
             @Override
@@ -174,12 +174,33 @@ public class SettingFragment extends Fragment {
                 Log.e(TAG, "onCancelled: " + databaseError.getMessage());
             }
         });
+        mAdminRef.child(Constant.LOGO_URL_REF).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    String url = dataSnapshot.getValue(String.class);
+                    if (url != null) {
+                        Glide.with(mContext).load(url).apply(RequestOptions.placeholderOf(R.mipmap.ic_header_logo_round))
+                                .into(mBinding.logoImageView);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
         mAdminRef.child(Constant.REMINDER_COUNT_REF).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                String reminderCount = dataSnapshot.getValue(String.class);
-                if (reminderCount != null)
-                    mBinding.setReminderTextView.setText("Reminder Set : " + reminderCount);
+                if (dataSnapshot.exists()) {
+                    String reminderCount = dataSnapshot.getValue(String.class);
+                    if (reminderCount != null)
+                        mBinding.setReminderTextView.setText("Reminder Set : " + reminderCount);
+                } else {
+                    mBinding.setReminderTextView.setText("Set Reminder Count");
+                }
             }
 
             @Override
@@ -238,72 +259,42 @@ public class SettingFragment extends Fragment {
                 showSpinner();
                 final String oldPassword = oldPasswordEditText.getText().toString();
                 final String newPassword = newPasswordEditText.getText().toString();
-                if (mUser != null) {
-                    AuthCredential authCredential = EmailAuthProvider.getCredential(mUser.getEmail(), oldPassword);
-                    mAuth.getCurrentUser().reauthenticate(authCredential).addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            if (task.isSuccessful()) {
-                                mUser.updatePassword(newPassword).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<Void> task) {
-                                        if (task.isSuccessful()) {
-                                            Snackbar.make(mBinding.rootView, "Password Changed", Snackbar.LENGTH_SHORT).show();
-                                            dismissSpinner();
-                                        }
-                                    }
-                                }).addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        Log.e(TAG, "onFailure: " + e.getMessage());
-                                        dismissSpinner();
-                                    }
-                                });
-                            }
-                        }
-                    }).addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            Snackbar.make(mBinding.rootView, "Old password does not match", Snackbar.LENGTH_SHORT).show();
-                            dismissSpinner();
-                        }
-                    });
-
-                } else {
-                    final DatabaseReference sellerRef = mRootRef.child(Constant.SELLER_REF);
-                    sellerRef.child(mSeller.getKey()).addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            Seller seller = dataSnapshot.getValue(Seller.class);
-                            if (seller != null && seller.getPassword().equals(oldPassword)) {
-                                sellerRef.child(mSeller.getKey()).child("password").setValue(newPassword)
-                                        .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                            @Override
-                                            public void onComplete(@NonNull Task<Void> task) {
-                                                if (task.isSuccessful()) {
-                                                    Snackbar.make(mBinding.rootView, "Password Changed", Snackbar.LENGTH_SHORT).show();
-                                                    dismissSpinner();
-                                                }
-                                            }
-                                        })
-                                        .addOnFailureListener(new OnFailureListener() {
-                                            @Override
-                                            public void onFailure(@NonNull Exception e) {
-                                                Log.e(TAG, "onFailure: " + e.getMessage());
+                if (MainActivity.isNetworkAvailable(mContext)) {
+                    if (mUser != null) {
+                        AuthCredential authCredential = EmailAuthProvider.getCredential(mUser.getEmail(), oldPassword);
+                        mAuth.getCurrentUser().reauthenticate(authCredential).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                if (task.isSuccessful()) {
+                                    mUser.updatePassword(newPassword).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            if (task.isSuccessful()) {
+                                                Snackbar.make(mBinding.rootView, "Password Changed", Snackbar.LENGTH_SHORT).show();
                                                 dismissSpinner();
                                             }
-                                        });
-                            } else {
+                                        }
+                                    }).addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            Log.e(TAG, "onFailure: " + e.getMessage());
+                                            dismissSpinner();
+                                        }
+                                    });
+                                }
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
                                 Snackbar.make(mBinding.rootView, "Old password does not match", Snackbar.LENGTH_SHORT).show();
                                 dismissSpinner();
                             }
-                        }
+                        });
 
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-
-                        }
-                    });
+                    }
+                } else {
+                    dialog.dismiss();
+                    Snackbar.make(mBinding.rootView, "No internet connection", Snackbar.LENGTH_SHORT).show();
                 }
             }
         });
@@ -335,24 +326,29 @@ public class SettingFragment extends Fragment {
                 }
 
                 final String reminderCount = reminderCountEditText.getText().toString();
-                mAdminRef.child(Constant.REMINDER_COUNT_REF).setValue(reminderCount)
-                        .addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-                                if (task.isSuccessful()) {
-                                    mBinding.setReminderTextView.setText("Reminder Set : " + reminderCount);
-                                    Snackbar.make(mBinding.rootView, "Reminder Count Set", Snackbar.LENGTH_SHORT).show();
-                                    dialog.dismiss();
+                if (MainActivity.isNetworkAvailable(mContext)) {
+                    mAdminRef.child(Constant.REMINDER_COUNT_REF).setValue(reminderCount)
+                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if (task.isSuccessful()) {
+                                        mBinding.setReminderTextView.setText("Reminder Set : " + reminderCount);
+                                        Snackbar.make(mBinding.rootView, "Reminder Count Set", Snackbar.LENGTH_SHORT).show();
+                                        dialog.dismiss();
+                                    }
                                 }
-                            }
-                        })
-                        .addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                Log.e(TAG, "onFailure: " + e.getMessage());
-                            }
-                        });
+                            })
+                            .addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    Log.e(TAG, "onFailure: " + e.getMessage());
+                                }
+                            });
 
+                } else {
+                    dialog.dismiss();
+                    Snackbar.make(mBinding.rootView, "No internet connection", Snackbar.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -383,24 +379,29 @@ public class SettingFragment extends Fragment {
                 }
 
                 final String companyName = companyNameEditText.getText().toString();
-                mAdminRef.child(Constant.COMPANY_NAME_REF).setValue(companyName)
-                        .addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-                                if (task.isSuccessful()) {
-                                    mBinding.companyNameTextView.setText(companyName);
-                                    Snackbar.make(mBinding.rootView, "Company Name Changed", Snackbar.LENGTH_SHORT).show();
-                                    dialog.dismiss();
+                if (MainActivity.isNetworkAvailable(mContext)) {
+                    mAdminRef.child(Constant.COMPANY_NAME_REF).setValue(companyName)
+                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if (task.isSuccessful()) {
+                                        mBinding.companyNameTextView.setText(companyName);
+                                        Snackbar.make(mBinding.rootView, "Company Name Changed", Snackbar.LENGTH_SHORT).show();
+                                        dialog.dismiss();
+                                    }
                                 }
-                            }
-                        })
-                        .addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                Log.e(TAG, "onFailure: " + e.getMessage());
-                            }
-                        });
+                            })
+                            .addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    Log.e(TAG, "onFailure: " + e.getMessage());
+                                }
+                            });
 
+                } else {
+                    dialog.dismiss();
+                    Snackbar.make(mBinding.rootView, "No internet connection", Snackbar.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -433,17 +434,21 @@ public class SettingFragment extends Fragment {
                 final String username = usernameEditText.getText().toString();
                 UserProfileChangeRequest request = new UserProfileChangeRequest.Builder()
                         .setDisplayName(username).build();
-                mUser.updateProfile(request).addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        if (task.isSuccessful()) {
-                            Snackbar.make(mBinding.rootView, "Username Changed", Snackbar.LENGTH_SHORT).show();
-                            mBinding.userNameTextView.setText(username);
-                            dialog.dismiss();
+                if (MainActivity.isNetworkAvailable(mContext)) {
+                    mUser.updateProfile(request).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()) {
+                                Snackbar.make(mBinding.rootView, "Username Changed", Snackbar.LENGTH_SHORT).show();
+                                mBinding.userNameTextView.setText(username);
+                                dialog.dismiss();
+                            }
                         }
-                    }
-                });
-
+                    });
+                } else {
+                    dialog.dismiss();
+                    Snackbar.make(mBinding.rootView, "No internet connection", Snackbar.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -485,32 +490,37 @@ public class SettingFragment extends Fragment {
     }
 
     private void upload() {
-        showSpinner();
-        StorageReference mStorageRef = FirebaseStorage.getInstance().getReference(Constant.LOGO_REF);
-        final StorageReference fileReference = mStorageRef.child(mImageUri.getPath() + "." + getFileExtension(mImageUri));
-        fileReference.putFile(mImageUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-            @Override
-            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                String logoUrl = taskSnapshot.getDownloadUrl().toString();
-                mAdminRef.child(Constant.LOGO_URL_REF).setValue(logoUrl)
-                        .addOnCompleteListener(new OnCompleteListener<Void>() {
-                            @Override
-                            public void onComplete(@NonNull Task<Void> task) {
-                                if (task.isSuccessful()) {
-                                    Snackbar.make(mBinding.rootView, "Logo Upload Success", Snackbar.LENGTH_SHORT).show();
-                                    dismissSpinner();
+        if (MainActivity.isNetworkAvailable(mContext)) {
+            showSpinner();
+            StorageReference mStorageRef = FirebaseStorage.getInstance().getReference(Constant.LOGO_REF);
+            String fileName = new SimpleDateFormat("yyyyMMdd_HHmmssSSS").format(new Date());
+            final StorageReference fileReference = mStorageRef.child(fileName + "." + getFileExtension(mImageUri));
+            fileReference.putFile(mImageUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                    String logoUrl = taskSnapshot.getDownloadUrl().toString();
+                    mAdminRef.child(Constant.LOGO_URL_REF).setValue(logoUrl)
+                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if (task.isSuccessful()) {
+                                        Snackbar.make(mBinding.rootView, "Logo Upload Success", Snackbar.LENGTH_SHORT).show();
+                                        dismissSpinner();
+                                    }
                                 }
-                            }
-                        });
+                            });
 
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Log.e(TAG, "onFailure: " + e.getMessage());
-                dismissSpinner();
-            }
-        });
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Log.e(TAG, "onFailure: " + e.getMessage());
+                    dismissSpinner();
+                }
+            });
+        } else {
+            Snackbar.make(mBinding.rootView, "No internet connection", Snackbar.LENGTH_SHORT).show();
+        }
     }
 
     private String getFileExtension(Uri uri) {

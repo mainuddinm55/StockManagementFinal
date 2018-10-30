@@ -122,69 +122,124 @@ public class LoginActivity extends AppCompatActivity {
                     mProgressDialog.show();
                     final String email = mBinding.emailEditText.getText().toString().trim();
                     final String pass = mBinding.passwordEditText.getText().toString().trim();
-                    if (mUserType.equals(mUserTypes[0])) {
-                        mAuth.signInWithEmailAndPassword(email, pass).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                            @Override
-                            public void onComplete(@NonNull Task<AuthResult> task) {
-                                if (task.isSuccessful()) {
-                                    mProgressDialog.dismiss();
-                                    Toast.makeText(LoginActivity.this, "Login Success", Toast.LENGTH_SHORT).show();
-                                    startActivity(new Intent(LoginActivity.this, MainActivity.class));
-                                    overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
-                                    finish();
-                                }
-                            }
-                        }).addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                mProgressDialog.dismiss();
-                                mBinding.errorTextView.setText(getResources().getString(R.string.invalid_email_pass_text));
-                                mBinding.emailEditText.setText(null);
-                                mBinding.passwordEditText.setText(null);
-                                Log.e(TAG, "onFailure: " + e.getMessage());
-                            }
-                        });
-                    } else if (mUserType.equals(mUserTypes[1])) {
-                        DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
-                        DatabaseReference sellerRef = rootRef.child(Constant.SELLER_REF);
-                        sellerRef.addValueEventListener(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(DataSnapshot dataSnapshot) {
-                                for (DataSnapshot postData : dataSnapshot.getChildren()) {
-                                    Seller seller = postData.getValue(Seller.class);
-                                    if (seller != null) {
-                                        String sellerEmail = seller.getEmail();
-                                        String sellerPassword = seller.getPassword();
-                                        String adminUid = seller.getAdminUid();
-                                        if (email.equals(sellerEmail) && pass.equals(sellerPassword)) {
-                                            mSharedPref.putSeller(seller);
-                                            mIsLogIn = true;
-                                            mProgressDialog.dismiss();
-                                            Toast.makeText(LoginActivity.this, "Login Success", Toast.LENGTH_SHORT).show();
-                                            startActivity(new Intent(LoginActivity.this, MainActivity.class)
-                                                    .putExtra(Constant.ADMIN_UID, adminUid));
-                                            overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
-                                            finish();
-                                            return;
-                                        }
+                    if (MainActivity.isNetworkAvailable(LoginActivity.this)) {
+                        if (mUserType.equals(mUserTypes[0])) {
+
+                            mAuth.signInWithEmailAndPassword(email, pass).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                                @Override
+                                public void onComplete(@NonNull Task<AuthResult> task) {
+                                    if (task.isSuccessful()) {
+                                        final DatabaseReference isSingIn = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF).child(task.getResult().getUser().getUid()).child(Constant.IS_LOGGED);
+                                        isSingIn.addListenerForSingleValueEvent(new ValueEventListener() {
+                                            @Override
+                                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                                if (dataSnapshot.exists()) {
+                                                    Boolean isLoggedIn = (Boolean) dataSnapshot.getValue();
+                                                    if (!isLoggedIn) {
+                                                        isSingIn.setValue(true).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                            @Override
+                                                            public void onComplete(@NonNull Task<Void> task) {
+                                                                mProgressDialog.dismiss();
+                                                                Toast.makeText(LoginActivity.this, "Login Success", Toast.LENGTH_SHORT).show();
+                                                                startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                                                                overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+                                                                finish();
+                                                            }
+                                                        }).addOnFailureListener(new OnFailureListener() {
+                                                            @Override
+                                                            public void onFailure(@NonNull Exception e) {
+                                                                mAuth.signOut();
+                                                            }
+                                                        });
+                                                    } else {
+                                                        mProgressDialog.dismiss();
+                                                        mAuth.signOut();
+                                                        mBinding.errorTextView.setText("Already login another device");
+                                                        mBinding.emailEditText.setText(null);
+                                                        mBinding.passwordEditText.setText(null);
+                                                    }
+                                                } else {
+                                                    isSingIn.setValue(true).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                        @Override
+                                                        public void onComplete(@NonNull Task<Void> task) {
+                                                            mProgressDialog.dismiss();
+                                                            Toast.makeText(LoginActivity.this, "Login Success", Toast.LENGTH_SHORT).show();
+                                                            startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                                                            overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+                                                            finish();
+                                                        }
+                                                    }).addOnFailureListener(new OnFailureListener() {
+                                                        @Override
+                                                        public void onFailure(@NonNull Exception e) {
+                                                            mAuth.signOut();
+                                                            isSingIn.setValue(false);
+                                                        }
+                                                    });
+                                                }
+                                            }
+
+                                            @Override
+                                            public void onCancelled(DatabaseError databaseError) {
+
+                                            }
+                                        });
+
                                     }
                                 }
-
-                                if (!mIsLogIn) {
+                            }).addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
                                     mProgressDialog.dismiss();
                                     mBinding.errorTextView.setText(getResources().getString(R.string.invalid_email_pass_text));
                                     mBinding.emailEditText.setText(null);
                                     mBinding.passwordEditText.setText(null);
-                                    Log.e(TAG, "onFailure: " + getResources().getString(R.string.invalid_email_pass_text));
+                                    Log.e(TAG, "onFailure: " + e.getMessage());
+                                }
+                            });
+                        } else if (mUserType.equals(mUserTypes[1])) {
+                            DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
+                            DatabaseReference sellerRef = rootRef.child(Constant.SELLER_REF);
+                            sellerRef.addValueEventListener(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(DataSnapshot dataSnapshot) {
+                                    for (DataSnapshot postData : dataSnapshot.getChildren()) {
+                                        Seller seller = postData.getValue(Seller.class);
+                                        if (seller != null) {
+                                            String sellerEmail = seller.getEmail();
+                                            String sellerPassword = seller.getPassword();
+                                            String adminUid = seller.getAdminUid();
+                                            if (email.equals(sellerEmail) && pass.equals(sellerPassword)) {
+                                                mSharedPref.putSeller(seller);
+                                                mIsLogIn = true;
+                                                mProgressDialog.dismiss();
+                                                Toast.makeText(LoginActivity.this, "Login Success", Toast.LENGTH_SHORT).show();
+                                                startActivity(new Intent(LoginActivity.this, MainActivity.class)
+                                                        .putExtra(Constant.ADMIN_UID, adminUid));
+                                                overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+                                                finish();
+                                                return;
+                                            }
+                                        }
+                                    }
+
+                                    if (!mIsLogIn) {
+                                        mProgressDialog.dismiss();
+                                        mBinding.errorTextView.setText(getResources().getString(R.string.invalid_email_pass_text));
+                                        mBinding.emailEditText.setText(null);
+                                        mBinding.passwordEditText.setText(null);
+                                        Log.e(TAG, "onFailure: " + getResources().getString(R.string.invalid_email_pass_text));
+                                    }
+
                                 }
 
-                            }
+                                @Override
+                                public void onCancelled(DatabaseError databaseError) {
 
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
-
-                            }
-                        });
+                                }
+                            });
+                        }
+                    } else {
+                        Toast.makeText(LoginActivity.this, "No internet Connection", Toast.LENGTH_SHORT).show();
                     }
                 }
             }

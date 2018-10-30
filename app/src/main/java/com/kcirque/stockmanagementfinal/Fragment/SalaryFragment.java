@@ -6,6 +6,7 @@ import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
@@ -29,6 +30,7 @@ import com.kcirque.stockmanagementfinal.Common.SharedPref;
 import com.kcirque.stockmanagementfinal.Database.Model.Salary;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.Interface.FragmentLoader;
+import com.kcirque.stockmanagementfinal.MainActivity;
 import com.kcirque.stockmanagementfinal.R;
 import com.kcirque.stockmanagementfinal.databinding.FragmentSalaryBinding;
 
@@ -74,7 +76,7 @@ public class SalaryFragment extends Fragment {
         Seller seller = sharedPref.getSeller();
         FirebaseAuth auth = FirebaseAuth.getInstance();
         FirebaseUser user = auth.getCurrentUser();
-        getActivity().setTitle("SalaryForRoom");
+        getActivity().setTitle("Salary");
         DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
         DatabaseReference adminRef;
         if (user != null) {
@@ -88,29 +90,34 @@ public class SalaryFragment extends Fragment {
         mBinding.salaryListRecyclerView.setHasFixedSize(true);
         mBinding.salaryListRecyclerView.setLayoutManager(new LinearLayoutManager(mContext));
         mBinding.salaryListRecyclerView.setAdapter(mAdapter);
-        salaryRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                mSalaryList.clear();
-                for (DataSnapshot postData : dataSnapshot.getChildren()) {
-                    Salary salary = postData.getValue(Salary.class);
-                    mSalaryList.add(salary);
+        if (MainActivity.isNetworkAvailable(mContext)) {
+            salaryRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    mSalaryList.clear();
+                    for (DataSnapshot postData : dataSnapshot.getChildren()) {
+                        Salary salary = postData.getValue(Salary.class);
+                        mSalaryList.add(salary);
+                    }
+                    if (mSalaryList.size() > 0) {
+                        mBinding.progressBar.setVisibility(View.GONE);
+                        mBinding.emptySalaryTextView.setVisibility(View.GONE);
+                        mAdapter.notifyDataSetChanged();
+                    } else {
+                        mBinding.progressBar.setVisibility(View.GONE);
+                        mBinding.emptySalaryTextView.setVisibility(View.VISIBLE);
+                    }
                 }
-                if (mSalaryList.size() > 0) {
-                    mBinding.progressBar.setVisibility(View.GONE);
-                    mBinding.emptySalaryTextView.setVisibility(View.GONE);
-                    mAdapter.notifyDataSetChanged();
-                } else {
-                    mBinding.progressBar.setVisibility(View.GONE);
-                    mBinding.emptySalaryTextView.setVisibility(View.VISIBLE);
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
                 }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
+            });
+        } else {
+            mBinding.progressBar.setVisibility(View.GONE);
+            Snackbar.make(mBinding.rootView, "No internet connection", Snackbar.LENGTH_SHORT).show();
+        }
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(mContext, android.R.layout.simple_spinner_dropdown_item, months);
         mBinding.monthSpinner.setAdapter(adapter);
         mBinding.monthSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {

@@ -24,6 +24,7 @@ import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Gravity;
@@ -63,7 +64,6 @@ import com.kcirque.stockmanagementfinal.Database.Model.DateAmountSalary;
 import com.kcirque.stockmanagementfinal.Database.Model.DateAmountSales;
 import com.kcirque.stockmanagementfinal.Database.Model.Expense;
 import com.kcirque.stockmanagementfinal.Database.Model.Product;
-import com.kcirque.stockmanagementfinal.Database.Model.Profit;
 import com.kcirque.stockmanagementfinal.Database.Model.Purchase;
 import com.kcirque.stockmanagementfinal.Database.Model.Salary;
 import com.kcirque.stockmanagementfinal.Database.Model.Sales;
@@ -72,6 +72,7 @@ import com.kcirque.stockmanagementfinal.Database.Model.StockHand;
 import com.kcirque.stockmanagementfinal.Fragment.DueFragment;
 import com.kcirque.stockmanagementfinal.Fragment.ExpenseFragment;
 import com.kcirque.stockmanagementfinal.Fragment.HomeFragment;
+import com.kcirque.stockmanagementfinal.Fragment.MessageFragment;
 import com.kcirque.stockmanagementfinal.Fragment.ReminderFragment;
 import com.kcirque.stockmanagementfinal.Fragment.SalaryFragment;
 import com.kcirque.stockmanagementfinal.Fragment.SellerFragment;
@@ -87,10 +88,7 @@ import com.kcirque.stockmanagementfinal.SQLiteDB.Model.XLPurchase;
 import com.kcirque.stockmanagementfinal.SQLiteDB.Model.XLSalary;
 import com.kcirque.stockmanagementfinal.SQLiteDB.Model.XLSales;
 import com.kcirque.stockmanagementfinal.SQLiteDB.Model.XLStockHand;
-import com.kcirque.stockmanagementfinal.Service.SinchService;
-import com.sinch.android.rtc.SinchError;
-
-import org.apache.poi.poifs.property.Child;
+import com.rengwuxian.materialedittext.MaterialEditText;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -101,8 +99,8 @@ import de.hdodenhof.circleimageview.CircleImageView;
 import uk.co.chrisjenx.calligraphy.CalligraphyConfig;
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
-public class MainActivity extends BaseActivity
-        implements NavigationView.OnNavigationItemSelectedListener, FragmentLoader, SinchService.StartFailedListener {
+public class MainActivity extends AppCompatActivity
+        implements NavigationView.OnNavigationItemSelectedListener, FragmentLoader {
 
     private static final String TAG = "MainActivity";
     private static final int MESSAGE_READ_CODE = 10;
@@ -118,7 +116,6 @@ public class MainActivity extends BaseActivity
 
     private TextView reminderCounterTextView;
     private TextView messageCounterTextView;
-    private TextView sellerMessageCounterTextView;
     private List<StockHand> mStockHandWarning = new ArrayList<>();
     private NavigationView mNavigationView;
     private DatabaseReference mCategoryRef;
@@ -135,6 +132,7 @@ public class MainActivity extends BaseActivity
     private ValueEventListener listener;
     private int mReminderCount;
     private ProgressDialog progressDialog;
+    private String contactUs = "Mobile : +8801777-888661\nWeb: www.kcirqueit.com\nThank you";
 
 
     @Override
@@ -174,8 +172,6 @@ public class MainActivity extends BaseActivity
                 findItem(R.id.nav_reminder));
         messageCounterTextView = (TextView) MenuItemCompat.getActionView(mNavigationView.getMenu().
                 findItem(R.id.nav_message));
-        sellerMessageCounterTextView = (TextView) MenuItemCompat.getActionView(mNavigationView.getMenu().
-                findItem(R.id.nav_seller));
         mRootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
         if (mUser != null) {
             mAdminRef = mRootRef.child(mUser.getUid());
@@ -186,17 +182,47 @@ public class MainActivity extends BaseActivity
         mStockRef = mAdminRef.child(Constant.STOCK_HAND_REF);
         mCategoryRef = mAdminRef.child(Constant.CATEGORY_REF);
         mChatRef = mAdminRef.child(Constant.CHAT_REF);
+        final DatabaseReference contactUsRef = mRootRef.child(Constant.CONTACT_US_REF);
 
         DatabaseReference registrationRef = mAdminRef.child(Constant.REGISTRATION_REF);
 
         registrationRef.addValueEventListener(new ValueEventListener() {
+
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                DateConverter dateConverter = new DateConverter();
-                long expiredDate = dataSnapshot.getValue(long.class);
-                if (dateConverter.getCurrentDate() >= expiredDate) {
+
+                contactUsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.exists()) {
+                            contactUs = dataSnapshot.getValue(String.class);
+                        } else {
+                            contactUsRef.setValue(contactUs);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+                if (dataSnapshot.exists()) {
+                    DateConverter dateConverter = new DateConverter();
+                    long expiredDate = dataSnapshot.getValue(long.class);
+                    if (dateConverter.getCurrentDate() >= expiredDate) {
+                        AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this);
+                        View view = LayoutInflater.from(MainActivity.this).inflate(R.layout.registration_expired, null);
+                        TextView noRegistrationTextView = view.findViewById(R.id.no_registration_text_view);
+                        noRegistrationTextView.setText("Your registration was expired.\nPlease contact with us\n" + contactUs);
+                        dialog.setView(view);
+                        dialog.setCancelable(false);
+                        dialog.show();
+                    }
+                } else {
                     AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this);
                     View view = LayoutInflater.from(MainActivity.this).inflate(R.layout.registration_expired, null);
+                    TextView noRegistrationTextView = view.findViewById(R.id.no_registration_text_view);
+                    noRegistrationTextView.setText("Not registration yer. \nPlease contact us\n" + contactUs);
                     dialog.setView(view);
                     dialog.setCancelable(false);
                     dialog.show();
@@ -211,8 +237,10 @@ public class MainActivity extends BaseActivity
         mAdminRef.child(Constant.COMPANY_NAME_REF).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                String title = dataSnapshot.getValue(String.class);
-                titleTextView.setText(title);
+                if (dataSnapshot.exists()) {
+                    String title = dataSnapshot.getValue(String.class);
+                    titleTextView.setText(title);
+                }
             }
 
             @Override
@@ -223,6 +251,7 @@ public class MainActivity extends BaseActivity
         mAdminRef.child(Constant.LOGO_URL_REF).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+
                 String ulr = dataSnapshot.getValue(String.class);
                 Glide.with(MainActivity.this).load(ulr)
                         .apply(RequestOptions.placeholderOf(R.mipmap.ic_header_logo_round))
@@ -238,8 +267,12 @@ public class MainActivity extends BaseActivity
         mAdminRef.child(Constant.REMINDER_COUNT_REF).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                String count = dataSnapshot.getValue(String.class);
-                mReminderCount = Integer.valueOf(count);
+                if (dataSnapshot.exists()) {
+                    String count = dataSnapshot.getValue(String.class);
+                    mReminderCount = Integer.valueOf(count);
+                } else {
+                    mReminderCount = 5;
+                }
             }
 
             @Override
@@ -270,7 +303,7 @@ public class MainActivity extends BaseActivity
                     mBadgeDrawable.setBackgroundColor(Color.RED);
                     mToggle.setDrawerArrowDrawable(mBadgeDrawable);
                     initializeCountDrawer();
-                } else {
+                } else if (mTotalMessage <= 0) {
                     mBadgeDrawable.setBackgroundColor(Color.TRANSPARENT);
                     initializeCountDrawer();
                 }
@@ -294,13 +327,16 @@ public class MainActivity extends BaseActivity
     private void initializeMessageCount() {
         if (mUser != null) {
             if (mTotalMessage > 0) {
-                sellerMessageCounterTextView.setGravity(Gravity.CENTER_VERTICAL);
-                sellerMessageCounterTextView.setTypeface(null, Typeface.BOLD);
-                sellerMessageCounterTextView.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
-                sellerMessageCounterTextView.setText("" + mTotalMessage);
+                messageCounterTextView.setGravity(Gravity.CENTER_VERTICAL);
+                messageCounterTextView.setTypeface(null, Typeface.BOLD);
+                messageCounterTextView.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+                messageCounterTextView.setText("" + mTotalMessage);
+                mBadgeDrawable.setBackgroundColor(Color.RED);
+                mToggle.setDrawerArrowDrawable(mBadgeDrawable);
                 initializeCountDrawer();
-            } else {
-                sellerMessageCounterTextView.setText(null);
+            } else if (mCount <= 0) {
+                mBadgeDrawable.setBackgroundColor(Color.TRANSPARENT);
+                messageCounterTextView.setText(null);
                 initializeCountDrawer();
             }
         } else {
@@ -309,8 +345,11 @@ public class MainActivity extends BaseActivity
                 messageCounterTextView.setTypeface(null, Typeface.BOLD);
                 messageCounterTextView.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
                 messageCounterTextView.setText("" + mTotalMessage);
+                mBadgeDrawable.setBackgroundColor(Color.RED);
+                mToggle.setDrawerArrowDrawable(mBadgeDrawable);
                 initializeCountDrawer();
-            } else {
+            } else if (mCount <= 0) {
+                mBadgeDrawable.setBackgroundColor(Color.TRANSPARENT);
                 messageCounterTextView.setText(null);
                 initializeCountDrawer();
             }
@@ -324,6 +363,7 @@ public class MainActivity extends BaseActivity
         Fragment customerListFragment = getSupportFragmentManager().findFragmentByTag(Constant.CUSTOMER_LIST_FRAGMENT_TAG);
         Fragment sellerFragment = getSupportFragmentManager().findFragmentByTag(Constant.SELLER_FRAGMENT_TAG);
         Fragment salaryFragment = getSupportFragmentManager().findFragmentByTag(Constant.SALARY_FRAGMENT_TAG);
+        Fragment dueFragment = getSupportFragmentManager().findFragmentByTag(Constant.DUE_FRAGMENT_TAG);
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
@@ -340,6 +380,8 @@ public class MainActivity extends BaseActivity
         } else if (sellerFragment != null && sellerFragment.isVisible()) {
             loadFragment(HomeFragment.getInstance(), false, Constant.HOME_FRAGMENT_TAG);
         } else if (salaryFragment != null && salaryFragment.isVisible()) {
+            loadFragment(HomeFragment.getInstance(), false, Constant.HOME_FRAGMENT_TAG);
+        } else if (dueFragment != null && dueFragment.isVisible()) {
             loadFragment(HomeFragment.getInstance(), false, Constant.HOME_FRAGMENT_TAG);
         } else {
             super.onBackPressed();
@@ -383,10 +425,7 @@ public class MainActivity extends BaseActivity
                 tag = Constant.SALARY_FRAGMENT_TAG;
                 break;
             case R.id.nav_message:
-                Intent intent = new Intent(MainActivity.this, ChatActivity.class);
-                intent.putExtra(Constant.EXTRA_SELLER, mSeller);
-                startActivityForResult(intent, MESSAGE_READ_CODE);
-                overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+                openChatActivity();
                 break;
             case R.id.nav_stock_out:
                 fragment = StockOutFragment.getInstance();
@@ -413,7 +452,13 @@ public class MainActivity extends BaseActivity
                 break;
             case R.id.nav_logout:
                 if (mUser != null) {
-                    mAuth.signOut();
+                    final DatabaseReference isSingIn = mAdminRef.child(Constant.IS_LOGGED);
+                    isSingIn.setValue(false).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            mAuth.signOut();
+                        }
+                    });
                 } else {
                     mSharedPref.logOut();
                 }
@@ -429,24 +474,44 @@ public class MainActivity extends BaseActivity
         mDrawer.closeDrawers();
     }
 
-    private void exportToXL() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 100);
+    private void openChatActivity() {
+        if (mUser != null) {
+            loadFragment(new MessageFragment(), true, Constant.MESSAGE_FRAGMENT_TAG);
         } else {
-            showProgressDialog();
-            ExportXL exportXL = new ExportXL(this);
-            Thread thread = new Thread(exportXL);
-            thread.start();
+            Intent intent = new Intent(MainActivity.this, ChatActivity.class);
+            intent.putExtra(Constant.EXTRA_SELLER, mSeller);
+            startActivityForResult(intent, MESSAGE_READ_CODE);
+            overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+        }
+    }
+
+    private void exportToXL() {
+        if (isNetworkAvailable(getApplicationContext())) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 100);
+            } else {
+                showProgressDialog();
+                ExportXL exportXL = new ExportXL(this);
+                Thread thread = new Thread(exportXL);
+                thread.start();
+            }
+        } else {
+            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void hideItem() {
         Menu nav_Menu = mNavigationView.getMenu();
         if (mUser == null) {
+            nav_Menu.findItem(R.id.nav_category).setVisible(false);
             nav_Menu.findItem(R.id.nav_seller).setVisible(false);
             nav_Menu.findItem(R.id.nav_salry).setVisible(false);
-        } else {
-            nav_Menu.findItem(R.id.nav_message).setVisible(false);
+            nav_Menu.findItem(R.id.nav_stock_out).setVisible(false);
+            nav_Menu.findItem(R.id.nav_daily_report).setVisible(false);
+            nav_Menu.findItem(R.id.nav_due).setVisible(false);
+            nav_Menu.findItem(R.id.nav_add_expense).setVisible(false);
+            nav_Menu.findItem(R.id.nav_settings).setVisible(false);
+            nav_Menu.findItem(R.id.nav_export_to_xl).setVisible(false);
         }
     }
 
@@ -469,14 +534,15 @@ public class MainActivity extends BaseActivity
         reminderCounterTextView.setTypeface(null, Typeface.BOLD);
         reminderCounterTextView.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
 
-        if (mCount > 0 || mTotalMessage > 0) {
+        if (mCount > 0) {
             reminderCounterTextView.setText("" + mCount);
+            mBadgeDrawable.setText((mCount + mTotalMessage) + "");
+        } else if (mTotalMessage > 0) {
             mBadgeDrawable.setText((mCount + mTotalMessage) + "");
         } else {
             reminderCounterTextView.setText(null);
             mBadgeDrawable.setText((null));
         }
-
     }
 
     private void showCategoryDialog() {
@@ -496,7 +562,9 @@ public class MainActivity extends BaseActivity
         categoryDialog.setTitle("ADD CATEGORY");
         View view = getLayoutInflater().inflate(R.layout.add_category, null);
         categoryDialog.setView(view);
-        final EditText categoryNameEditText = view.findViewById(R.id.category_name_edit_text);
+        final MaterialEditText categoryNameEditText = view.findViewById(R.id.category_name_edit_text);
+        categoryNameEditText.setHint("Category name");
+        categoryNameEditText.setFloatingLabelText("Category name");
         categoryDialog.setPositiveButton("ADD", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(final DialogInterface dialog, int which) {
@@ -510,21 +578,25 @@ public class MainActivity extends BaseActivity
                 String key = mCategoryRef.push().getKey();
                 Category category = new Category(categoryId, key, categoryName);
 
-                mCategoryRef.push().setValue(category).addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        if (task.isSuccessful()) {
-                            Toast.makeText(MainActivity.this, "Category Added", Toast.LENGTH_SHORT).show();
+                if (isNetworkAvailable(getApplicationContext())) {
+                    mCategoryRef.push().setValue(category).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()) {
+                                Toast.makeText(MainActivity.this, "Category Added", Toast.LENGTH_SHORT).show();
+                                dialog.dismiss();
+                            }
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Log.e(TAG, e.getMessage());
                             dialog.dismiss();
                         }
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.e(TAG, e.getMessage());
-                        dialog.dismiss();
-                    }
-                });
+                    });
+                } else {
+                    Toast.makeText(MainActivity.this, "No internet connection", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -538,35 +610,37 @@ public class MainActivity extends BaseActivity
     }
 
     public void unreadMessage() {
-        listener = mChatRef.addValueEventListener(new ValueEventListener() {
-            @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                mTotalMessage = 0;
-                for (DataSnapshot postData : dataSnapshot.getChildren()) {
-                    Chat chat = postData.getValue(Chat.class);
-                    if (mUser != null) {
-                        if (chat.getReceiver().equals(mUser.getUid()) && !chat.isIsSeen()) {
-                            mTotalMessage++;
-                        }
-                    } else {
-                        if (chat.getReceiver().equals(mSeller.getKey()) && chat.getSender().equals(mSeller.getAdminUid())
-                                && !chat.isIsSeen()) {
-                            mTotalMessage++;
+        if (isNetworkAvailable(this)) {
+            listener = mChatRef.addValueEventListener(new ValueEventListener() {
+                @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    mTotalMessage = 0;
+                    for (DataSnapshot postData : dataSnapshot.getChildren()) {
+                        Chat chat = postData.getValue(Chat.class);
+                        if (mUser != null) {
+                            if (chat.getReceiver().equals(mUser.getUid()) && !chat.isIsSeen()) {
+                                mTotalMessage++;
+                            }
+                        } else {
+                            if (chat.getReceiver().equals(mSeller.getKey()) && chat.getSender().equals(mSeller.getAdminUid())
+                                    && !chat.isIsSeen()) {
+                                mTotalMessage++;
+                            }
                         }
                     }
+
+                    initializeMessageCount();
+
+
                 }
 
-                initializeMessageCount();
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
 
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
+                }
+            });
+        }
     }
 
 
@@ -589,31 +663,6 @@ public class MainActivity extends BaseActivity
         super.onRestart();
     }
 
-    @Override
-    public void onStartFailed(SinchError error) {
-
-    }
-
-    @Override
-    public void onStarted() {
-
-    }
-
-    @Override
-    protected void onServiceConnected() {
-        super.onServiceConnected();
-        getSinchServiceInterface().setStartFailedListener(this);
-        String username;
-        if (mUser != null) {
-            username = mUser.getUid();
-        } else {
-            username = mSeller.getKey();
-        }
-
-        if (!getSinchServiceInterface().isStarted()) {
-            getSinchServiceInterface().startClient(username);
-        }
-    }
 
     public static boolean isNetworkAvailable(Context context) {
         ConnectivityManager connectivityManager

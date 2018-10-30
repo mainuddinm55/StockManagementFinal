@@ -3,7 +3,6 @@ package com.kcirque.stockmanagementfinal.Fragment;
 
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -13,7 +12,6 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CompoundButton;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
@@ -32,9 +30,12 @@ import com.kcirque.stockmanagementfinal.Common.SharedPref;
 import com.kcirque.stockmanagementfinal.Database.Model.Customer;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.Interface.FragmentLoader;
+import com.kcirque.stockmanagementfinal.MainActivity;
 import com.kcirque.stockmanagementfinal.databinding.FragmentCustomerAddBinding;
 
 import com.kcirque.stockmanagementfinal.R;
+
+import java.util.HashMap;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -55,6 +56,7 @@ public class CustomerAddFragment extends Fragment {
     private boolean mIsMercantile = false;
     private Context mContext;
     private ProgressDialog progressDialog;
+    private Customer mCustomer;
 
     public static synchronized CustomerAddFragment getInstance() {
         if (INSTANCE == null) {
@@ -84,7 +86,6 @@ public class CustomerAddFragment extends Fragment {
         mAuth = FirebaseAuth.getInstance();
         mUser = mAuth.getCurrentUser();
         mRootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
-        getActivity().setTitle("Add a Customer");
         if (mUser != null) {
             mAdminRef = mRootRef.child(mUser.getUid());
         } else {
@@ -92,17 +93,33 @@ public class CustomerAddFragment extends Fragment {
         }
         mCustomerRef = mAdminRef.child(Constant.CUSTOMER_REF);
 
-        mCustomerRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                mCustomerId = (int) (dataSnapshot.getChildrenCount() + 1);
-            }
+        Bundle bundle = getArguments();
+        if (bundle != null) {
+            mCustomer = (Customer) bundle.getSerializable(Constant.EXTRA_CUSTOMER);
+            getActivity().setTitle("Update Customer");
+            mCustomerId = mCustomer.getCustomerId();
+            mBinding.accountTypeRg.check(mCustomer.isMercantile() ? R.id.mercantile_account_rb : R.id.normal_account_rb);
+            mBinding.customerNameEdittext.setText(mCustomer.getCustomerName());
+            mBinding.customerAddressEdittext.setText(mCustomer.getAddress());
+            mBinding.customerMobileEdittext.setText(mCustomer.getMobile());
+            mBinding.customerEmailEdittext.setText(mCustomer.getEmail());
+            mBinding.addCustBtn.setText("Update");
+        } else {
+            getActivity().setTitle("Add a Customer");
+            mCustomerRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    mCustomerId = (int) (dataSnapshot.getChildrenCount() + 1);
+                }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
 
-            }
-        });
+                }
+            });
+
+        }
+
 
         mBinding.accountTypeRg.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
@@ -131,29 +148,11 @@ public class CustomerAddFragment extends Fragment {
                     return;
                 }
                 showProgressDialog();
-                String key = mCustomerRef.push().getKey();
-                String name = mBinding.customerNameEdittext.getText().toString().trim();
-                String address = mBinding.customerAddressEdittext.getText().toString().trim();
-                String mobile = mBinding.customerMobileEdittext.getText().toString().trim();
-                String email = mBinding.customerEmailEdittext.getText().toString().trim();
-
-                Customer customer = new Customer(key, mCustomerId, name, address, mobile, email, 0, mIsMercantile);
-
-                mCustomerRef.child(key).setValue(customer).addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        if (task.isSuccessful()) {
-                            dismissProgressDialog();
-                            Snackbar.make(mBinding.rootView, "Customer Added", Snackbar.LENGTH_SHORT).show();
-                            mFragmentLoader.loadFragment(CustomerListFragment.getInstance(), true, Constant.CUSTOMER_LIST_FRAGMENT_TAG);
-                        }
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        dismissProgressDialog();
-                    }
-                });
+                if (mCustomer != null && mCustomer.getKey() != null) {
+                    updateCustomer();
+                } else {
+                    addNewCustomer();
+                }
 
             }
         });
@@ -161,9 +160,70 @@ public class CustomerAddFragment extends Fragment {
 
     }
 
+    private void updateCustomer() {
+        String name = mBinding.customerNameEdittext.getText().toString().trim();
+        String address = mBinding.customerAddressEdittext.getText().toString().trim();
+        String mobile = mBinding.customerMobileEdittext.getText().toString().trim();
+        String email = mBinding.customerEmailEdittext.getText().toString().trim();
+        HashMap<String, Object> hashMap = new HashMap<>();
+        hashMap.put("customerName", name);
+        hashMap.put("address", address);
+        hashMap.put("mobile", mobile);
+        hashMap.put("email", email);
+        hashMap.put("mercantile", mIsMercantile);
+        if (mCustomer.isMercantile() && !mIsMercantile && mCustomer.getDue() > 0) {
+            dismissProgressDialog();
+            Snackbar.make(mBinding.rootView, "Please paid due before switch account", Snackbar.LENGTH_SHORT).show();
+            return;
+        }
+        if (MainActivity.isNetworkAvailable(mContext)) {
+            mCustomerRef.child(mCustomer.getKey()).updateChildren(hashMap, new DatabaseReference.CompletionListener() {
+                @Override
+                public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                    dismissProgressDialog();
+                    Snackbar.make(mBinding.rootView, "Customer Added", Snackbar.LENGTH_SHORT).show();
+                    mFragmentLoader.loadFragment(CustomerListFragment.getInstance(), true, Constant.CUSTOMER_LIST_FRAGMENT_TAG);
+                }
+            });
+        } else {
+            Snackbar.make(mBinding.rootView, "No internet connection", Snackbar.LENGTH_SHORT).show();
+        }
+    }
+
+    private void addNewCustomer() {
+        String key = mCustomerRef.push().getKey();
+        String name = mBinding.customerNameEdittext.getText().toString().trim();
+        String address = mBinding.customerAddressEdittext.getText().toString().trim();
+        String mobile = mBinding.customerMobileEdittext.getText().toString().trim();
+        String email = mBinding.customerEmailEdittext.getText().toString().trim();
+
+        Customer customer = new Customer(key, mCustomerId, name, address, mobile, email, 0, mIsMercantile);
+
+        if (MainActivity.isNetworkAvailable(mContext)) {
+            mCustomerRef.child(key).setValue(customer).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    if (task.isSuccessful()) {
+                        dismissProgressDialog();
+                        Snackbar.make(mBinding.rootView, "Customer Added", Snackbar.LENGTH_SHORT).show();
+                        mFragmentLoader.loadFragment(CustomerListFragment.getInstance(), true, Constant.CUSTOMER_LIST_FRAGMENT_TAG);
+                    }
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    dismissProgressDialog();
+                    Snackbar.make(mBinding.rootView, e.getMessage(), Snackbar.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            Snackbar.make(mBinding.rootView, "No internet connection", Snackbar.LENGTH_SHORT).show();
+        }
+    }
+
     @Override
-    public void onResume() {
-        super.onResume();
+    public void onPause() {
+        super.onPause();
         mBinding.customerAddressEdittext.setText(null);
         mBinding.customerMobileEdittext.setText(null);
         mBinding.customerNameEdittext.setText(null);

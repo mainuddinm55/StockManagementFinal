@@ -132,7 +132,7 @@ public class SalesFragment extends Fragment {
         Seller seller = mSharedPref.getSeller();
         mAuth = FirebaseAuth.getInstance();
         mUser = mAuth.getCurrentUser();
-        getActivity().setTitle("Sales ProductForRoom");
+        getActivity().setTitle("Sales Product");
         DatabaseReference mRootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
         if (mUser != null) {
             mAdminRef = mRootRef.child(mUser.getUid());
@@ -149,7 +149,11 @@ public class SalesFragment extends Fragment {
         mBinding.customerNameTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showCustomerDialog();
+                if (MainActivity.isNetworkAvailable(mContext)) {
+                    showCustomerDialog();
+                } else {
+                    Snackbar.make(mBinding.rootView, "No internet connection", Snackbar.LENGTH_SHORT).show();
+                }
             }
         });
         mBinding.salesDateTextView.setOnClickListener(new View.OnClickListener() {
@@ -264,9 +268,9 @@ public class SalesFragment extends Fragment {
                     return;
                 }
                 if (mProductSellList.size() < 1) {
-                    mBinding.addProductTextView.setError("ProductForRoom required");
+                    mBinding.addProductTextView.setError("Product required");
                     mBinding.addProductTextView.requestFocus();
-                    Snackbar.make(v, "Please add ProductForRoom", Snackbar.LENGTH_SHORT).show();
+                    Snackbar.make(v, "Please add Product", Snackbar.LENGTH_SHORT).show();
                     return;
                 }
 
@@ -284,7 +288,11 @@ public class SalesFragment extends Fragment {
                     warningDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            sellProduct();
+                            if (MainActivity.isNetworkAvailable(mContext)) {
+                                sellProduct();
+                            } else {
+                                Snackbar.make(mBinding.rootView, "No internet connection", Snackbar.LENGTH_SHORT).show();
+                            }
                         }
                     });
                     warningDialog.setNegativeButton("No", null);
@@ -292,8 +300,11 @@ public class SalesFragment extends Fragment {
                     warningDialog.show();
                     return;
                 }
-
-                sellProduct();
+                if (MainActivity.isNetworkAvailable(mContext)) {
+                    sellProduct();
+                } else {
+                    Snackbar.make(mBinding.rootView, "No internet connection", Snackbar.LENGTH_SHORT).show();
+                }
             }
         });
     }
@@ -423,7 +434,7 @@ public class SalesFragment extends Fragment {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
                             if (task.isSuccessful()) {
-                                Snackbar.make(mBinding.rootView, "ProductForRoom Sell", Snackbar.LENGTH_SHORT).show();
+                                Snackbar.make(mBinding.rootView, "Product Sell", Snackbar.LENGTH_SHORT).show();
                                 dismissProgressDialog();
                                 mFragmentLoader.loadFragment(HomeFragment.getInstance(), false, Constant.HOME_FRAGMENT_TAG);
                             }
@@ -456,6 +467,7 @@ public class SalesFragment extends Fragment {
         mBinding.dueAmountTextview.setText(null);
         super.onPause();
     }
+
     private void showProgressDialog() {
         progressDialog = new ProgressDialog(mContext);
         progressDialog.setTitle("Loading.....");

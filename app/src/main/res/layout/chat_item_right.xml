@@ -2,6 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools"
     android:padding="5dp">
 
     <RelativeLayout
@@ -29,14 +30,24 @@
             android:textColor="@android:color/white"
             android:textSize="18sp" />
 
+        <ImageView
+            android:id="@+id/show_pic"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:visibility="gone"
+            android:scaleType="centerInside"
+            android:src="@drawable/placeholder" />
+
         <TextView
             android:id="@+id/msg_seen_text_view"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@id/show_message"
+            tools:text="seen"
             android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true" />
     </RelativeLayout>
-
 
 </RelativeLayout>

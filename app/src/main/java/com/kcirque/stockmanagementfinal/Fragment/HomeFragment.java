@@ -44,8 +44,14 @@ public class HomeFragment extends Fragment {
     private RecyclerView mHomeWidgetRecyclerView;
     FragmentLoader mFragmentLoader;
 
+    private String[] titleAdmin = {"Products", "Stock In", "Customers", "Sales", "Stock Hand", "Profit Loss"};
+    private int[] iconAdmin = {R.drawable.ic_product, R.drawable.ic_purchase, R.drawable.ic_customers, R.drawable.ic_sales, R.drawable.ic_stock, R.drawable.ic_reports};
+    private String[] titleSeller = {"Products", "Sales", "Stock Hand"};
+    private int[] iconSeller = {R.drawable.ic_product, R.drawable.ic_sales, R.drawable.ic_stock};
+
 
     private static HomeFragment INSTANCE;
+    private HomeWidgetAdapter adapter;
 
     public static synchronized HomeFragment getInstance() {
         if (INSTANCE == null) {
@@ -72,41 +78,61 @@ public class HomeFragment extends Fragment {
 
         mHomeWidgetRecyclerView = view.findViewById(R.id.home_recycler_view);
         mHomeWidgetRecyclerView.setHasFixedSize(true);
-        if(getActivity().getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT){
+        if (getActivity().getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
             mHomeWidgetRecyclerView.setLayoutManager(new GridLayoutManager(mContext, 2));
-        }
-        else{
+        } else {
             mHomeWidgetRecyclerView.setLayoutManager(new GridLayoutManager(mContext, 3));
         }
 
         getActivity().setTitle("Dashboard");
-        HomeWidgetAdapter adapter = new HomeWidgetAdapter(mContext);
-        mHomeWidgetRecyclerView.setAdapter(adapter);
+        final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            adapter = new HomeWidgetAdapter(mContext, titleAdmin, iconAdmin);
 
+        } else {
+            adapter = new HomeWidgetAdapter(mContext, titleSeller, iconSeller);
+        }
+
+        mHomeWidgetRecyclerView.setAdapter(adapter);
         adapter.setItemClickListener(new ItemClickListener() {
             @Override
             public void onClick(View view, int position, String title) {
-                switch (position) {
-                    case 0:
-                        mFragmentLoader.loadFragment(ProductListFragment.getInstance(),true,Constant.PRODUCT_LIST_FRAGMENT_TAG);
-                        break;
-                    case 1:
-                        mFragmentLoader.loadFragment(PurchaseFragment.getInstance(),true, Constant.PURCHASE_FRAGMENT_TAG);
-                        break;
-                    case 2:
-                        mFragmentLoader.loadFragment(CustomerListFragment.getInstance(),true,Constant.CUSTOMER_LIST_FRAGMENT_TAG);
-                        break;
-                    case 3:
-                        mFragmentLoader.loadFragment(SalesFragment.getInstance(),true,Constant.SALES_FRAGMENT_TAG);
-                        break;
-                    case 4:
-                        mFragmentLoader.loadFragment(StockHandFragment.getInstance(),true,Constant.STOCK_HAND_FRAGMENT_TAG);
-                        break;
-                    case 5:
-                        mFragmentLoader.loadFragment(ProfitLossFragment.getInstance(),true,Constant.PROFIT_LOSS_FRAGMENT_TAG);
-                        break;
+                if (user != null) {
+                    switch (position) {
+                        case 0:
+                            mFragmentLoader.loadFragment(ProductListFragment.getInstance(), true, Constant.PRODUCT_LIST_FRAGMENT_TAG);
+                            break;
+                        case 1:
+                            mFragmentLoader.loadFragment(new PurchaseFragment(), true, Constant.PURCHASE_FRAGMENT_TAG);
+                            break;
+                        case 2:
+                            mFragmentLoader.loadFragment(CustomerListFragment.getInstance(), true, Constant.CUSTOMER_LIST_FRAGMENT_TAG);
+                            break;
+                        case 3:
+                            mFragmentLoader.loadFragment(SalesFragment.getInstance(), true, Constant.SALES_FRAGMENT_TAG);
+                            break;
+                        case 4:
+                            mFragmentLoader.loadFragment(StockHandFragment.getInstance(), true, Constant.STOCK_HAND_FRAGMENT_TAG);
+                            break;
+                        case 5:
+                            mFragmentLoader.loadFragment(ProfitLossFragment.getInstance(), true, Constant.PROFIT_LOSS_FRAGMENT_TAG);
+                            break;
 
+                    }
+                } else {
+                    switch (position) {
+                        case 0:
+                            mFragmentLoader.loadFragment(ProductListFragment.getInstance(), true, Constant.PRODUCT_LIST_FRAGMENT_TAG);
+                            break;
+                        case 1:
+                            mFragmentLoader.loadFragment(SalesFragment.getInstance(), true, Constant.SALES_FRAGMENT_TAG);
+                            break;
+                        case 2:
+                            mFragmentLoader.loadFragment(StockHandFragment.getInstance(), true, Constant.STOCK_HAND_FRAGMENT_TAG);
+                            break;
+                    }
                 }
+
             }
         });
 

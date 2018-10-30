@@ -31,7 +31,7 @@ import com.kcirque.stockmanagementfinal.Interface.FragmentLoader;
 import com.kcirque.stockmanagementfinal.Interface.RecyclerItemClickListener;
 import com.kcirque.stockmanagementfinal.MainActivity;
 import com.kcirque.stockmanagementfinal.R;
-import com.kcirque.stockmanagementfinal.databinding.FragmentSellerBinding;
+import com.kcirque.stockmanagementfinal.databinding.FragmentMessageBinding;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,10 +39,9 @@ import java.util.List;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class SellerFragment extends Fragment {
-
-    private static SellerFragment INSTANCE;
-    private FragmentSellerBinding mBinding;
+public class MessageFragment extends Fragment {
+    private static MessageFragment INSTANCE;
+    private FragmentMessageBinding mBinding;
     private List<Seller> mSellerList = new ArrayList<>();
 
     private Context mContext;
@@ -58,13 +57,13 @@ public class SellerFragment extends Fragment {
     private DatabaseReference sellerRef;
     private DatabaseReference chatRef;
 
-    public SellerFragment() {
+    public MessageFragment() {
         // Required empty public constructor
     }
 
-    public static synchronized SellerFragment getInstance() {
+    public static synchronized MessageFragment getInstance() {
         if (INSTANCE == null) {
-            INSTANCE = new SellerFragment();
+            INSTANCE = new MessageFragment();
         }
 
         return INSTANCE;
@@ -74,7 +73,7 @@ public class SellerFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_seller, container, false);
+        mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_message, container, false);
         return mBinding.getRoot();
     }
 
@@ -94,12 +93,6 @@ public class SellerFragment extends Fragment {
         mBinding.sellerListRecyclerView.setHasFixedSize(true);
         mBinding.sellerListRecyclerView.setLayoutManager(new LinearLayoutManager(mContext));
 
-        mBinding.addSellerFab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mFragmentLoader.loadFragment(SellerAddFragment.getInstance(), true, Constant.SELLER_ADD_FRAGMENT_TAG);
-            }
-        });
 
     }
 
@@ -146,11 +139,11 @@ public class SellerFragment extends Fragment {
                             @Override
                             public void onClick(View view, int position, Object object) {
                                 Seller seller = (Seller) object;
-                                SellerDetailsFragment fragment = new SellerDetailsFragment();
-                                Bundle bundle = new Bundle();
-                                bundle.putSerializable(Constant.EXTRA_SELLER, seller);
-                                fragment.setArguments(bundle);
-                                mFragmentLoader.loadFragment(fragment,true,Constant.SELLER_DETAILS_FRAGMENT_TAG);
+                                Intent intent = new Intent(mContext, ChatActivity.class);
+                                intent.putExtra(Constant.EXTRA_SELLER, seller);
+                                mContext.startActivity(intent);
+                                getActivity().overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+
                             }
                         });
                     } else {

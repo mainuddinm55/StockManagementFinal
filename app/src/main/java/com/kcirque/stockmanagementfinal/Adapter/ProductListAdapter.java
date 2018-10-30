@@ -56,7 +56,7 @@ public class ProductListAdapter extends RecyclerView.Adapter<ProductListAdapter.
     @Override
     public void onBindViewHolder(@NonNull final ProductListHolder productListHolder, final int i) {
         final Product product = mProductList.get(i);
-        Log.e(TAG, "onBindViewHolder: ProductForRoom Id " + product.getProductId());
+        Log.e(TAG, "onBindViewHolder: Product Id " + product.getProductId());
 
         Log.e(TAG, "onBindViewHolder: " + mProductList.size());
         if (product.getCompany() != null) {
@@ -70,7 +70,7 @@ public class ProductListAdapter extends RecyclerView.Adapter<ProductListAdapter.
         Glide.with(mContext).load(product.getProductImageUrl())
                 .apply(RequestOptions.placeholderOf(R.drawable.placeholder))
                 .into(productListHolder.productImageImageView);
-        productListHolder.productNameTextView.setText("ProductForRoom : " + product.getProductName());
+        productListHolder.productNameTextView.setText("Product: " + product.getProductName());
         productListHolder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

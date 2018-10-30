@@ -8,6 +8,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.PluralsRes;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -16,6 +17,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -32,6 +34,7 @@ import com.kcirque.stockmanagementfinal.Database.Model.Product;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.Interface.FragmentLoader;
 import com.kcirque.stockmanagementfinal.Interface.RecyclerItemClickListener;
+import com.kcirque.stockmanagementfinal.MainActivity;
 import com.kcirque.stockmanagementfinal.R;
 
 import java.util.ArrayList;
@@ -105,45 +108,48 @@ public class ProductListFragment extends Fragment {
         } else {
             mAdminRef = mRootRef.child(seller.getAdminUid());
         }
-        mProductRef = mAdminRef.child(Constant.PRODUCT_REF);
-        mProgressBar.setVisibility(View.VISIBLE);
-        getActivity().setTitle("All Products");
-        mProductRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                mProductList.clear();
-                for (DataSnapshot postData : dataSnapshot.getChildren()) {
-                    Product product = postData.getValue(Product.class);
-                    mProductList.add(product);
+        if (MainActivity.isNetworkAvailable(mContext)) {
+            mProductRef = mAdminRef.child(Constant.PRODUCT_REF);
+            mProgressBar.setVisibility(View.VISIBLE);
+            getActivity().setTitle("All Products");
+            mProductRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    mProductList.clear();
+                    for (DataSnapshot postData : dataSnapshot.getChildren()) {
+                        Product product = postData.getValue(Product.class);
+                        mProductList.add(product);
+                    }
+                    if (mProductList.size() > 0) {
+                        mEmptyProductTextView.setVisibility(View.GONE);
+                        mProgressBar.setVisibility(View.GONE);
+                        ProductListAdapter adapter = new ProductListAdapter(mContext, mProductList);
+                        mProductListRecyclerView.setAdapter(adapter);
+                        adapter.setRecyclerItemClickListener(new RecyclerItemClickListener() {
+                            @Override
+                            public void onClick(View view, int position, Object object) {
+                                Product product = (Product) object;
+                                ProductDetailsFragment fragment = ProductDetailsFragment.getInstance();
+                                Bundle bundle = new Bundle();
+                                bundle.putSerializable(Constant.EXTRA_PRODUCT, product);
+                                fragment.setArguments(bundle);
+                                mFragmentLoader.loadFragment(fragment, true, Constant.PRODUCT_DETAILS_FRAGMENT_TAG);
+                            }
+                        });
+                    } else {
+                        mProgressBar.setVisibility(View.GONE);
+                        mEmptyProductTextView.setVisibility(View.VISIBLE);
+                    }
                 }
-                if (mProductList.size() > 0) {
-                    mEmptyProductTextView.setVisibility(View.GONE);
-                    mProgressBar.setVisibility(View.GONE);
-                    ProductListAdapter adapter = new ProductListAdapter(mContext, mProductList);
-                    mProductListRecyclerView.setAdapter(adapter);
-                    adapter.setRecyclerItemClickListener(new RecyclerItemClickListener() {
-                        @Override
-                        public void onClick(View view, int position, Object object) {
-                            Product product = (Product) object;
-                            ProductDetailsFragment fragment = ProductDetailsFragment.getInstance();
-                            Bundle bundle = new Bundle();
-                            bundle.putSerializable(Constant.EXTRA_PRODUCT, product);
-                            fragment.setArguments(bundle);
-                            mFragmentLoader.loadFragment(fragment, true, Constant.PRODUCT_DETAILS_FRAGMENT_TAG);
-                        }
-                    });
-                } else {
-                    mProgressBar.setVisibility(View.GONE);
-                    mEmptyProductTextView.setVisibility(View.VISIBLE);
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
                 }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-
+            });
+        } else {
+            Snackbar.make(view, "No internet connection", Snackbar.LENGTH_SHORT).show();
+        }
 
         mAddProductFab.setOnClickListener(new View.OnClickListener() {
             @Override

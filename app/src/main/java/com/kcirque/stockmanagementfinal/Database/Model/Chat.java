@@ -6,15 +6,17 @@ public class Chat implements Serializable {
     private String sender;
     private String receiver;
     private String msg;
+    private String imageUrl;
     private boolean isSeen;
 
     public Chat() {
     }
 
-    public Chat(String sender, String receiver, String msg, boolean isSeen) {
+    public Chat(String sender, String receiver, String msg, String imageUrl, boolean isSeen) {
         this.sender = sender;
         this.receiver = receiver;
         this.msg = msg;
+        this.imageUrl = imageUrl;
         this.isSeen = isSeen;
     }
 
@@ -40,6 +42,14 @@ public class Chat implements Serializable {
 
     public void setMsg(String msg) {
         this.msg = msg;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     public boolean isIsSeen() {

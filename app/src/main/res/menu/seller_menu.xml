@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/send_message"
+        android:icon="@drawable/ic_message"
+        android:title="@string/send_msg"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/change_password"
+        android:title="@string/change_password_text"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/delete_seller"
+        android:title="@string/delete_seller"
+        app:showAsAction="never" />
+</menu>

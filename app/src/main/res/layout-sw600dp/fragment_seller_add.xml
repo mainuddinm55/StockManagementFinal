@@ -31,8 +31,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/seller_name_text"
-                        android:textColor="@android:color/black"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Large"/>
+                        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+                        android:textColor="@android:color/black" />
 
                     <EditText
                         android:id="@+id/seller_name_edit_text"
@@ -59,8 +59,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/email"
-                        android:textColor="@android:color/black"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+                        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+                        android:textColor="@android:color/black" />
 
                     <EditText
                         android:id="@+id/seller_email_edit_text"
@@ -78,6 +78,7 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/password_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
@@ -87,8 +88,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/password"
-                        android:textColor="@android:color/black"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+                        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+                        android:textColor="@android:color/black" />
 
                     <EditText
                         android:id="@+id/seller_password_edit_text"
@@ -106,6 +107,7 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/confirm_password_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
@@ -115,8 +117,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/confirm_password_text"
-                        android:textColor="@android:color/black"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+                        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+                        android:textColor="@android:color/black" />
 
                     <EditText
                         android:id="@+id/confirm_password_edit_text"
@@ -129,7 +131,7 @@
                         android:gravity="start"
                         android:hint="@string/confirm_password_text"
                         android:inputType="textPassword"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Large"/>
+                        android:textAppearance="@style/TextAppearance.AppCompat.Large" />
 
                 </LinearLayout>
 
@@ -143,8 +145,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/customer_mobile_text"
-                        android:textColor="@android:color/black"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+                        android:textAppearance="@style/TextAppearance.AppCompat.Large"
+                        android:textColor="@android:color/black" />
 
                     <EditText
                         android:id="@+id/seller_mobile_edit_text"
@@ -161,6 +163,36 @@
 
                 </LinearLayout>
 
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="5dp"
+                    android:text="@string/status_text"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Large"
+                    android:textColor="@android:color/black" />
+
+                <RadioGroup
+                    android:id="@+id/status_radio_group"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="10dp">
+
+                    <RadioButton
+                        android:id="@+id/active_radio_btn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:checked="true"
+                        android:text="@string/active_text" />
+
+                    <RadioButton
+                        android:id="@+id/deactivate_radio_btn"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/deactivate_text" />
+                </RadioGroup>
 
                 <Button
                     android:id="@+id/add_seller_btn"

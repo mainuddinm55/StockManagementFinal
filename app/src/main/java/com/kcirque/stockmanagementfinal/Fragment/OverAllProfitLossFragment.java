@@ -6,6 +6,7 @@ import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.util.Log;
@@ -37,6 +38,7 @@ import com.kcirque.stockmanagementfinal.Database.Model.DateAmountSalary;
 import com.kcirque.stockmanagementfinal.Database.Model.DateAmountSales;
 import com.kcirque.stockmanagementfinal.Database.Model.Profit;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
+import com.kcirque.stockmanagementfinal.MainActivity;
 import com.kcirque.stockmanagementfinal.R;
 import com.kcirque.stockmanagementfinal.databinding.FragmentOverAllProfitLossBinding;
 
@@ -85,6 +87,7 @@ public class OverAllProfitLossFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+
         mBinding.progressBar.setVisibility(View.VISIBLE);
         setHasOptionsMenu(true);
         SharedPref sharedPref = new SharedPref(getContext());
@@ -103,101 +106,106 @@ public class OverAllProfitLossFragment extends Fragment {
         mBinding.overAllProfitLossRecyclerView.setHasFixedSize(true);
         mBinding.overAllProfitLossRecyclerView.setLayoutManager(new LinearLayoutManager(mContext, LinearLayoutManager.HORIZONTAL, false));
         DatabaseReference profitRef = adminRef.child(Constant.PROFIT_REF);
-        profitRef.child(Constant.SALES_REF).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                sales.clear();
-                date = 0;
-                for (DataSnapshot data : dataSnapshot.getChildren()) {
-                    DateAmountSales dateAmountSales = data.getValue(DateAmountSales.class);
-                    yearSpinnerList.add(String.valueOf(mDateConverter.getYear(dateAmountSales.getDate())));
-                    sales.add(dateAmountSales);
+        if (MainActivity.isNetworkAvailable(mContext)) {
+            profitRef.child(Constant.SALES_REF).addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    sales.clear();
+                    date = 0;
+                    for (DataSnapshot data : dataSnapshot.getChildren()) {
+                        DateAmountSales dateAmountSales = data.getValue(DateAmountSales.class);
+                        yearSpinnerList.add(String.valueOf(mDateConverter.getYear(dateAmountSales.getDate())));
+                        sales.add(dateAmountSales);
+                    }
+                    mProfit.setSalesList(sales);
                 }
-                mProfit.setSalesList(sales);
-            }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
 
-            }
-        });
-        profitRef.child(Constant.PURCHASE_REF).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                purchases.clear();
-                for (DataSnapshot data : dataSnapshot.getChildren()) {
-                    DateAmountPurchase purchase = data.getValue(DateAmountPurchase.class);
-                    yearSpinnerList.add(String.valueOf(mDateConverter.getYear(purchase.getDate())));
-                    purchases.add(purchase);
                 }
-                mProfit.setPurchaseList(purchases);
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-        profitRef.child(Constant.SALARY_REF).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                salaries.clear();
-                for (DataSnapshot data : dataSnapshot.getChildren()) {
-                    DateAmountSalary salary = data.getValue(DateAmountSalary.class);
-                    yearSpinnerList.add(String.valueOf(mDateConverter.getYear(salary.getDate())));
-                    salaries.add(salary);
+            });
+            profitRef.child(Constant.PURCHASE_REF).addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    purchases.clear();
+                    for (DataSnapshot data : dataSnapshot.getChildren()) {
+                        DateAmountPurchase purchase = data.getValue(DateAmountPurchase.class);
+                        yearSpinnerList.add(String.valueOf(mDateConverter.getYear(purchase.getDate())));
+                        purchases.add(purchase);
+                    }
+                    mProfit.setPurchaseList(purchases);
                 }
-                mProfit.setSalaryList(salaries);
-            }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
 
-            }
-        });
-        profitRef.child(Constant.COST_REF).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                final List<DateAmountCost> costs = new ArrayList<>();
-                for (DataSnapshot data : dataSnapshot.getChildren()) {
-                    DateAmountCost cost = data.getValue(DateAmountCost.class);
-                    yearSpinnerList.add(String.valueOf(mDateConverter.getYear(cost.getDate())));
-                    costs.add(cost);
                 }
-                mProfit.setCostList(costs);
-                final OverAllProfitLossAdapter allProfitLossAdapter = new OverAllProfitLossAdapter(mContext, mProfit);
-                mBinding.overAllProfitLossRecyclerView.setAdapter(allProfitLossAdapter);
-                Log.e(TAG, "onDataChange: " + yearSpinnerList.size());
-                if (yearSpinnerList.size() > 0) {
-                    final List<String> years = new ArrayList<>(yearSpinnerList);
-                    Log.e(TAG, "onDataChange: " + years.size());
-                    ArrayAdapter<String> adapter = new ArrayAdapter<String>(mContext, android.R.layout.simple_spinner_dropdown_item, years);
-                    yearSpinner.setAdapter(adapter);
+            });
+            profitRef.child(Constant.SALARY_REF).addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    salaries.clear();
+                    for (DataSnapshot data : dataSnapshot.getChildren()) {
+                        DateAmountSalary salary = data.getValue(DateAmountSalary.class);
+                        yearSpinnerList.add(String.valueOf(mDateConverter.getYear(salary.getDate())));
+                        salaries.add(salary);
+                    }
+                    mProfit.setSalaryList(salaries);
+                }
 
-                    yearSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                        @Override
-                        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                            if (yearSpinner.getSelectedView() != null) {
-                                ((TextView) yearSpinner.getSelectedView()).setTextColor(getResources().getColor(android.R.color.white));
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+            profitRef.child(Constant.COST_REF).addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    final List<DateAmountCost> costs = new ArrayList<>();
+                    for (DataSnapshot data : dataSnapshot.getChildren()) {
+                        DateAmountCost cost = data.getValue(DateAmountCost.class);
+                        yearSpinnerList.add(String.valueOf(mDateConverter.getYear(cost.getDate())));
+                        costs.add(cost);
+                    }
+                    mBinding.progressBar.setVisibility(View.GONE);
+                    mProfit.setCostList(costs);
+                    final OverAllProfitLossAdapter allProfitLossAdapter = new OverAllProfitLossAdapter(mContext, mProfit);
+                    mBinding.overAllProfitLossRecyclerView.setAdapter(allProfitLossAdapter);
+                    Log.e(TAG, "onDataChange: " + yearSpinnerList.size());
+                    if (yearSpinnerList.size() > 0) {
+                        final List<String> years = new ArrayList<>(yearSpinnerList);
+                        Log.e(TAG, "onDataChange: " + years.size());
+                        ArrayAdapter<String> adapter = new ArrayAdapter<String>(mContext, android.R.layout.simple_spinner_dropdown_item, years);
+                        yearSpinner.setAdapter(adapter);
+
+                        yearSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                            @Override
+                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                if (yearSpinner.getSelectedView() != null) {
+                                    ((TextView) yearSpinner.getSelectedView()).setTextColor(getResources().getColor(android.R.color.white));
+                                }
+                                String year = years.get(position);
+                                allProfitLossAdapter.getFilter().filter(year);
+                                mBinding.progressBar.setVisibility(View.GONE);
                             }
-                            String year = years.get(position);
-                            allProfitLossAdapter.getFilter().filter(year);
-                            mBinding.progressBar.setVisibility(View.GONE);
-                        }
 
-                        @Override
-                        public void onNothingSelected(AdapterView<?> parent) {
-                            mBinding.progressBar.setVisibility(View.GONE);
-                        }
-                    });
+                            @Override
+                            public void onNothingSelected(AdapterView<?> parent) {
+                                mBinding.progressBar.setVisibility(View.GONE);
+                            }
+                        });
+                    }
                 }
-            }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                mBinding.progressBar.setVisibility(View.GONE);
-            }
-        });
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    mBinding.progressBar.setVisibility(View.GONE);
+                }
+            });
+        } else {
+            Snackbar.make(mBinding.rootView, "No internet connection", Snackbar.LENGTH_SHORT).show();
+        }
 
     }
 
