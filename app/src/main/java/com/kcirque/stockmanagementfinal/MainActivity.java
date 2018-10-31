@@ -40,6 +40,11 @@ import com.ajts.androidmads.library.SQLiteToExcel;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.reward.RewardItem;
+import com.google.android.gms.ads.reward.RewardedVideoAd;
+import com.google.android.gms.ads.reward.RewardedVideoAdListener;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
@@ -100,7 +105,7 @@ import uk.co.chrisjenx.calligraphy.CalligraphyConfig;
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, FragmentLoader {
+        implements NavigationView.OnNavigationItemSelectedListener, FragmentLoader, RewardedVideoAdListener {
 
     private static final String TAG = "MainActivity";
     private static final int MESSAGE_READ_CODE = 10;
@@ -130,9 +135,10 @@ public class MainActivity extends AppCompatActivity
 
     private View mHeaderView;
     private ValueEventListener listener;
-    private int mReminderCount;
+    private int mReminderCount = 5;
     private ProgressDialog progressDialog;
     private String contactUs = "Mobile : +8801777-888661\nWeb: www.kcirqueit.com\nThank you";
+    private RewardedVideoAd mRewardedVideoAd;
 
 
     @Override
@@ -145,6 +151,12 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         CalligraphyConfig.initDefault(new CalligraphyConfig.Builder().build());
         setContentView(R.layout.activity_main);
+        MobileAds.initialize(this, getResources().getString(R.string.APP_ID));
+
+        mRewardedVideoAd = MobileAds.getRewardedVideoAdInstance(this);
+        mRewardedVideoAd.setRewardedVideoAdListener(this);
+        loadRewardedVideoAd();
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -270,8 +282,7 @@ public class MainActivity extends AppCompatActivity
                 if (dataSnapshot.exists()) {
                     String count = dataSnapshot.getValue(String.class);
                     mReminderCount = Integer.valueOf(count);
-                } else {
-                    mReminderCount = 5;
+                    checkReminder();
                 }
             }
 
@@ -281,7 +292,23 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
+        checkReminder();
 
+
+        HomeFragment fragment = HomeFragment.getInstance();
+        loadFragment(fragment, false, Constant.HOME_FRAGMENT_TAG);
+
+        showRewardedVideo();
+
+    }
+
+    private void showRewardedVideo() {
+        if (mRewardedVideoAd.isLoaded()) {
+            mRewardedVideoAd.show();
+        }
+    }
+
+    private void checkReminder() {
         mStockRef.addValueEventListener(new ValueEventListener() {
             @RequiresApi(api = Build.VERSION_CODES.KITKAT)
             @Override
@@ -316,11 +343,6 @@ public class MainActivity extends AppCompatActivity
 
             }
         });
-
-        HomeFragment fragment = HomeFragment.getInstance();
-        loadFragment(fragment, false, Constant.HOME_FRAGMENT_TAG);
-
-
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
@@ -647,6 +669,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onPause() {
         mChatRef.removeEventListener(listener);
+        mRewardedVideoAd.pause(this);
         super.onPause();
 
     }
@@ -654,6 +677,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         unreadMessage();
+        mRewardedVideoAd.resume(this);
         super.onResume();
     }
 
@@ -663,12 +687,62 @@ public class MainActivity extends AppCompatActivity
         super.onRestart();
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mRewardedVideoAd.destroy(this);
+    }
 
     public static boolean isNetworkAvailable(Context context) {
         ConnectivityManager connectivityManager
                 = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
+
+    @Override
+    public void onRewardedVideoAdLoaded() {
+        showRewardedVideo();
+    }
+
+    @Override
+    public void onRewardedVideoAdOpened() {
+
+    }
+
+    @Override
+    public void onRewardedVideoStarted() {
+
+    }
+
+    @Override
+    public void onRewardedVideoAdClosed() {
+
+    }
+
+    @Override
+    public void onRewarded(RewardItem rewardItem) {
+
+    }
+
+    @Override
+    public void onRewardedVideoAdLeftApplication() {
+
+    }
+
+    @Override
+    public void onRewardedVideoAdFailedToLoad(int i) {
+
+    }
+
+    @Override
+    public void onRewardedVideoCompleted() {
+
+    }
+
+    private void loadRewardedVideoAd() {
+        mRewardedVideoAd.loadAd(getResources().getString(R.string.REWARDED_VIDEO_AD_ID),
+                new AdRequest.Builder().build());
     }
 
     private class ExportXL implements Runnable {

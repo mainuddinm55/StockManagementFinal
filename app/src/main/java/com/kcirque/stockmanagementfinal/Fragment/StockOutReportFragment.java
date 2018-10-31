@@ -22,12 +22,15 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.kcirque.stockmanagementfinal.Adapter.StockOutAdapter;
+import com.kcirque.stockmanagementfinal.Adapter.StockOutSellAdapter;
 import com.kcirque.stockmanagementfinal.Common.Constant;
 import com.kcirque.stockmanagementfinal.Common.DateConverter;
 import com.kcirque.stockmanagementfinal.Common.SharedPref;
 import com.kcirque.stockmanagementfinal.Database.Model.ProductSell;
 import com.kcirque.stockmanagementfinal.Database.Model.Sales;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
+import com.kcirque.stockmanagementfinal.Interface.FragmentLoader;
+import com.kcirque.stockmanagementfinal.Interface.RecyclerItemClickListener;
 import com.kcirque.stockmanagementfinal.MainActivity;
 import com.kcirque.stockmanagementfinal.R;
 import com.kcirque.stockmanagementfinal.databinding.FragmentStockOutReportBinding;
@@ -56,6 +59,7 @@ public class StockOutReportFragment extends Fragment {
     private int mStockType;
     private static StockOutReportFragment INSTANCE;
     private Context mContext;
+    private FragmentLoader fragmentLoader;
 
     public StockOutReportFragment() {
         // Required empty public constructor
@@ -133,6 +137,7 @@ public class StockOutReportFragment extends Fragment {
                                 case StockOutFragment.TODAY_TYPE:
                                     boolean isToday = mDateConverter.isToday(saleDate);
                                     if (isToday) {
+                                        mSalesList.add(sales);
                                         List<ProductSell> productSellList = sales.getSelectedProduct();
                                         mProductSellList.addAll(productSellList);
                                     }
@@ -141,6 +146,7 @@ public class StockOutReportFragment extends Fragment {
                                     break;
                                 case StockOutFragment.DAY_7_TYPE:
                                     if (mDateConverter.getDayCount(saleDate) <= 7) {
+                                        mSalesList.add(sales);
                                         List<ProductSell> productSellList = sales.getSelectedProduct();
                                         mProductSellList.addAll(productSellList);
                                     }
@@ -149,6 +155,7 @@ public class StockOutReportFragment extends Fragment {
                                     break;
                                 case StockOutFragment.WEEK_TYPE:
                                     if (mDateConverter.isLastWeek(saleDate)) {
+                                        mSalesList.add(sales);
                                         List<ProductSell> productSellList = sales.getSelectedProduct();
                                         mProductSellList.addAll(productSellList);
                                     }
@@ -158,6 +165,7 @@ public class StockOutReportFragment extends Fragment {
                                     break;
                                 case StockOutFragment.DAY_30_TYPE:
                                     if (mDateConverter.getDayCount(saleDate) <= 30) {
+                                        mSalesList.add(sales);
                                         List<ProductSell> productSellList = sales.getSelectedProduct();
                                         mProductSellList.addAll(productSellList);
                                     }
@@ -166,6 +174,7 @@ public class StockOutReportFragment extends Fragment {
                                     break;
                                 case StockOutFragment.MONTH_TYPE:
                                     if (mDateConverter.isLastMonth(saleDate)) {
+                                        mSalesList.add(sales);
                                         List<ProductSell> productSellList = sales.getSelectedProduct();
                                         mProductSellList.addAll(productSellList);
                                     }
@@ -176,8 +185,28 @@ public class StockOutReportFragment extends Fragment {
                         }
 
                     }
-                    if (mProductSellList.size() > 0) {
-                        Log.e(TAG, "ProductForRoom List Size " + mProductSellList.size());
+                    if (mSalesList.size() > 0) {
+                        StockOutSellAdapter adapter = new StockOutSellAdapter(mContext, mSalesList);
+                        mBinding.progressBar.setVisibility(View.GONE);
+                        mBinding.stockOutRecyclerView.setAdapter(adapter);
+                        adapter.setItemClickListener(new RecyclerItemClickListener() {
+                            @Override
+                            public void onClick(View view, int position, Object object) {
+                                Bundle salesBundle = new Bundle();
+                                Sales sales = (Sales) object;
+                                salesBundle.putSerializable(Constant.EXTRA_SALES, sales);
+                                SalesDetailsFragment fragment = new SalesDetailsFragment();
+                                fragment.setArguments(salesBundle);
+                                fragmentLoader.loadFragment(fragment, true, Constant.SALES_DETAILS_FRAGMENT_TAG);
+                            }
+                        });
+
+                    } else {
+                        mBinding.progressBar.setVisibility(View.GONE);
+                        mBinding.emptyStockOutTextView.setVisibility(View.VISIBLE);
+                    }
+                    /*if (mProductSellList.size() > 0) {
+                        Log.e(TAG, "Product List Size " + mProductSellList.size());
                         List<ProductSell> productSellList = new ArrayList<>();
                         for (int i = 0; i < mProductSellList.size(); i++) {
                             int productId = mProductSellList.get(i).getProductId();
@@ -205,7 +234,7 @@ public class StockOutReportFragment extends Fragment {
                     } else {
                         mBinding.progressBar.setVisibility(View.GONE);
                         mBinding.emptyStockOutTextView.setVisibility(View.VISIBLE);
-                    }
+                    }*/
                 }
 
                 @Override
@@ -223,5 +252,6 @@ public class StockOutReportFragment extends Fragment {
     public void onAttach(Context context) {
         super.onAttach(context);
         mContext = context;
+        fragmentLoader = (FragmentLoader) context;
     }
 }

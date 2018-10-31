@@ -27,7 +27,7 @@
                         android:layout_weight="3"
                         android:padding="5dp"
                         android:text="@string/name_text"
-                        android:textSize="16sp" />
+                        android:textSize="18sp" />
 
                     <TextView
                         android:id="@+id/seller_name_text_view"
@@ -35,7 +35,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="5"
                         android:padding="5dp"
-                        android:textSize="16sp"
+                        android:textSize="18sp"
                         tools:text="@string/name_text" />
 
                 </LinearLayout>
@@ -56,7 +56,7 @@
                         android:layout_weight="3"
                         android:padding="5dp"
                         android:text="@string/customer_mobile_text"
-                        android:textSize="16sp"/>
+                        android:textSize="18sp"/>
 
                     <TextView
                         android:id="@+id/mobile_text_view"
@@ -64,7 +64,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="5"
                         android:padding="5dp"
-                        android:textSize="16sp"
+                        android:textSize="18sp"
                         tools:text="@string/customer_mobile_text" />
 
                 </LinearLayout>
@@ -85,7 +85,7 @@
                         android:layout_weight="3"
                         android:padding="5dp"
                         android:text="@string/email_text"
-                        android:textSize="16sp" />
+                        android:textSize="18sp" />
 
                     <TextView
                         android:id="@+id/email_text_view"
@@ -93,7 +93,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="5"
                         android:padding="5dp"
-                        android:textSize="16sp"
+                        android:textSize="18sp"
                         tools:text="@string/email" />
 
                 </LinearLayout>
@@ -114,7 +114,7 @@
                         android:layout_weight="3"
                         android:padding="5dp"
                         android:text="@string/status_text"
-                        android:textSize="16sp" />
+                        android:textSize="18sp" />
 
                     <TextView
                         android:id="@+id/status_text_view"
@@ -122,7 +122,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="5"
                         android:padding="5dp"
-                        android:textSize="16sp"
+                        android:textSize="18sp"
                         tools:text="@string/status_text" />
 
                 </LinearLayout>

@@ -27,7 +27,7 @@
                     android:layout_marginTop="5dp"
                     android:layout_weight="1"
                     android:text="@string/seller_text"
-                    android:textSize="16sp" />
+                    android:textSize="20sp" />
 
                 <Spinner
                     android:id="@+id/seller_name_spinner"
@@ -50,7 +50,7 @@
                     android:layout_marginTop="5dp"
                     android:layout_weight="1"
                     android:text="@string/month_text"
-                    android:textSize="16sp" />
+                    android:textSize="20sp" />
 
                 <Spinner
                     android:id="@+id/month_spinner"
@@ -76,7 +76,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/amount_text"
-                        android:textSize="16sp" />
+                        android:textSize="20sp" />
 
                     <EditText
                         android:id="@+id/amount_edit_text"
@@ -84,8 +84,8 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1.5"
                         android:hint="@string/amount_text"
-                        android:textSize="16sp"
-                        android:inputType="numberDecimal" />
+                        android:inputType="numberDecimal"
+                        android:textSize="20sp" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -98,7 +98,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/date_text"
-                        android:textSize="16sp" />
+                        android:textSize="20sp" />
 
                     <TextView
                         android:id="@+id/date_text_view"
@@ -107,8 +107,7 @@
                         android:layout_weight="1.5"
                         android:hint="@string/date_text"
                         android:padding="3dp"
-                        android:textSize="16sp"
-                        />
+                        android:textSize="20sp" />
                 </LinearLayout>
 
             </LinearLayout>

@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.kcirque.stockmanagementfinal.Database.Model.Product;
 import com.kcirque.stockmanagementfinal.Database.Model.StockHand;
@@ -38,22 +39,26 @@ public class StockWarningAdapter extends RecyclerView.Adapter<StockWarningAdapte
     @NonNull
     @Override
     public StockWarningHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-        View view = LayoutInflater.from(mContext).inflate(R.layout.stock_out_warning_row_item,viewGroup,false);
+        View view = LayoutInflater.from(mContext).inflate(R.layout.stock_out_warning_row_item, viewGroup, false);
         return new StockWarningHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull StockWarningHolder stockWarningHolder, final int i) {
+    public void onBindViewHolder(@NonNull final StockWarningHolder stockWarningHolder, final int i) {
         stockWarningHolder.idTextView.setText(String.valueOf(mStockHandList.get(i).getProductId()));
-        stockWarningHolder.quantityTextView.setText(String.valueOf((mStockHandList.get(i).getPurchaseQuantity())-mStockHandList.get(i).getSellQuantity()));
-        if (mProductList.get(i).getProductId() == mStockHandList.get(i).getProductId()){
+        stockWarningHolder.quantityTextView.setText(String.valueOf((mStockHandList.get(i).getPurchaseQuantity()) - mStockHandList.get(i).getSellQuantity()));
+        if (mProductList.get(i).getProductId() == mStockHandList.get(i).getProductId()) {
             stockWarningHolder.nameTextView.setText(mProductList.get(i).getProductName());
         }
 
         stockWarningHolder.addPurchaseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                recyclerItemClickListener.onClick(v,i,mProductList.get(i));
+                if (recyclerItemClickListener != null) {
+                    recyclerItemClickListener.onClick(v, i, mProductList.get(i));
+                } else {
+                    Toast.makeText(mContext, "Seller can't Purchase!", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 

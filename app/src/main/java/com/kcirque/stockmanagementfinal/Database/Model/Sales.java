@@ -1,9 +1,10 @@
 package com.kcirque.stockmanagementfinal.Database.Model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Sales {
+public class Sales implements Serializable {
 
     private String key;
     private int customerId;

@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -126,16 +127,18 @@ public class ReminderFragment extends Fragment {
                             mBinding.stockWarningList.setAdapter(adapter);
                             mBinding.progressBar.setVisibility(View.GONE);
                             //stockHandList.clear();
-                            adapter.setRecyclerItemClickListener(new RecyclerItemClickListener() {
-                                @Override
-                                public void onClick(View view, int position, Object object) {
-                                    Product product = (Product) object;
-                                    mBundle = new Bundle();
-                                    mBundle.putSerializable(Constant.EXTRA_PURCHASE_PRODUCT, product);
-                                    fragment.setArguments(mBundle);
-                                    mFragmentLoader.loadFragment(fragment, true, Constant.PURCHASE_FRAGMENT_TAG);
-                                }
-                            });
+                            if (mUser != null) {
+                                adapter.setRecyclerItemClickListener(new RecyclerItemClickListener() {
+                                    @Override
+                                    public void onClick(View view, int position, Object object) {
+                                        Product product = (Product) object;
+                                        mBundle = new Bundle();
+                                        mBundle.putSerializable(Constant.EXTRA_PURCHASE_PRODUCT, product);
+                                        fragment.setArguments(mBundle);
+                                        mFragmentLoader.loadFragment(fragment, true, Constant.PURCHASE_FRAGMENT_TAG);
+                                    }
+                                });
+                            }
                         } else {
                             mBinding.progressBar.setVisibility(View.GONE);
                             mBinding.emptyReminderTextView.setVisibility(View.VISIBLE);

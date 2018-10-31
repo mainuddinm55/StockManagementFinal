@@ -21,7 +21,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="2"
-                android:textSize="16sp"
+                android:textSize="20sp"
                 tools:text="@string/name_text" />
 
             <TextView
@@ -29,7 +29,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="5"
-                android:textSize="16sp"
+                android:textSize="20sp"
                 tools:text="@string/name_text" />
         </LinearLayout>
 
@@ -46,7 +46,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="2"
-                android:textSize="16sp"
+                android:textSize="20sp"
                 tools:text="@string/customer_address_text" />
 
             <TextView
@@ -54,7 +54,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="5"
-                android:textSize="16sp"
+                android:textSize="20sp"
                 tools:text="@string/customer_address_text" />
         </LinearLayout>
 
@@ -71,7 +71,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="2"
-                android:textSize="16sp"
+                android:textSize="20sp"
                 tools:text="@string/customer_mobile_text" />
 
             <TextView
@@ -79,7 +79,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="5"
-                android:textSize="16sp"
+                android:textSize="20sp"
                 tools:text="@string/customer_mobile_text" />
         </LinearLayout>
 
@@ -96,7 +96,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="2"
-                android:textSize="16sp"
+                android:textSize="20sp"
                 tools:text="@string/email" />
 
             <TextView
@@ -104,7 +104,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="5"
-                android:textSize="16sp"
+                android:textSize="20sp"
                 tools:text="@string/email" />
         </LinearLayout>
 
@@ -121,7 +121,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="2"
-                android:textSize="16sp"
+                android:textSize="20sp"
                 tools:text="@string/total_due_text" />
 
             <TextView
@@ -129,7 +129,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="5"
-                android:textSize="16sp"
+                android:textSize="20sp"
                 tools:text="@string/total_due_text" />
         </LinearLayout>
 
@@ -149,7 +149,7 @@
                 android:padding="5dp"
                 android:text="@string/date_text"
                 android:textColor="@android:color/white"
-                android:textSize="16sp" />
+                android:textSize="20sp" />
 
             <TextView
                 android:layout_width="0dp"
@@ -158,7 +158,7 @@
                 android:padding="5dp"
                 android:text="@string/total_text"
                 android:textColor="@android:color/white"
-                android:textSize="16sp" />
+                android:textSize="20sp" />
 
             <TextView
                 android:layout_width="0dp"
@@ -167,7 +167,7 @@
                 android:padding="5dp"
                 android:text="@string/paid_text"
                 android:textColor="@android:color/white"
-                android:textSize="16sp" />
+                android:textSize="20sp" />
 
             <TextView
                 android:layout_width="0dp"
@@ -176,7 +176,7 @@
                 android:padding="5dp"
                 android:text="@string/due_text"
                 android:textColor="@android:color/white"
-                android:textSize="16sp" />
+                android:textSize="20sp" />
 
         </LinearLayout>
 

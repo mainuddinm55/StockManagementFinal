@@ -9,6 +9,9 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.kcirque.stockmanagementfinal.Database.Model.ProductSell;
+import com.kcirque.stockmanagementfinal.Database.Model.Sales;
+import com.kcirque.stockmanagementfinal.Interface.ItemClickListener;
+import com.kcirque.stockmanagementfinal.Interface.RecyclerItemClickListener;
 import com.kcirque.stockmanagementfinal.R;
 
 import java.util.ArrayList;
@@ -18,25 +21,37 @@ public class StockOutAdapter extends RecyclerView.Adapter<StockOutAdapter.StockO
 
     private Context mContext;
     private List<ProductSell> mProductSell = new ArrayList<>();
+    private RecyclerItemClickListener itemClickListener;
 
-    public StockOutAdapter(Context context, List<ProductSell> productSells){
+    public StockOutAdapter(Context context, List<ProductSell> productSells) {
         this.mContext = context;
         this.mProductSell = productSells;
     }
+
     @NonNull
     @Override
     public StockOutHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-        View view = LayoutInflater.from(mContext).inflate(R.layout.stock_out_row_item,viewGroup,false);
+        View view = LayoutInflater.from(mContext).inflate(R.layout.stock_out_row_item, viewGroup, false);
         return new StockOutHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull StockOutHolder stockOutHolder, int i) {
+    public void onBindViewHolder(@NonNull StockOutHolder stockOutHolder, final int i) {
+
         double amount = mProductSell.get(i).getPrice() * mProductSell.get(i).getQuantity();
         stockOutHolder.idTextView.setText(String.valueOf(mProductSell.get(i).getProductId()));
         stockOutHolder.nameTextView.setText(String.valueOf(mProductSell.get(i).getProductName()));
         stockOutHolder.quantityTextView.setText(String.valueOf(mProductSell.get(i).getQuantity()));
         stockOutHolder.amountTextView.setText(String.valueOf(amount + " BDT"));
+
+        stockOutHolder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (itemClickListener != null && i != -1) {
+                    itemClickListener.onClick(v, i, mProductSell.get(i));
+                }
+            }
+        });
     }
 
     @Override
@@ -44,12 +59,17 @@ public class StockOutAdapter extends RecyclerView.Adapter<StockOutAdapter.StockO
         return mProductSell.size();
     }
 
-    public class StockOutHolder extends RecyclerView.ViewHolder {
-        public TextView idTextView;
-        public TextView nameTextView;
-        public TextView quantityTextView;
-        public TextView amountTextView;
-        public StockOutHolder(@NonNull View itemView) {
+    public void setItemClickListener(RecyclerItemClickListener itemClickListener) {
+        this.itemClickListener = itemClickListener;
+    }
+
+    class StockOutHolder extends RecyclerView.ViewHolder {
+        TextView idTextView;
+        TextView nameTextView;
+        TextView quantityTextView;
+        TextView amountTextView;
+
+        StockOutHolder(@NonNull View itemView) {
             super(itemView);
             idTextView = itemView.findViewById(R.id.product_id_text_view);
             nameTextView = itemView.findViewById(R.id.product_name_text_view);

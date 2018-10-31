@@ -80,4 +80,6 @@ public class Constant {
     public static final String CUSTOMER_DETAILS_TAG = "customer_details";
     public static final String SELLER_DETAILS_FRAGMENT_TAG = "seller_details";
     public static final String MESSAGE_FRAGMENT_TAG = "message_fragment";
+    public static final String EXTRA_SALES = "sales";
+    public static final String SALES_DETAILS_FRAGMENT_TAG = "sales_details";
 }

@@ -152,6 +152,10 @@
     <string name="delete_seller">Delete Seller</string>
     <string name="payment_due_text">Payment Due Amount</string>
 
+    <string name="APP_ID">ca-app-pub-5235443421854743~8317584001</string>
+    <string name="BANNER_AD_ID">ca-app-pub-5235443421854743/9538757210</string>
+    <string name="REWARDED_VIDEO_AD_ID">ca-app-pub-5235443421854743/5801981743</string>
+
     <string-array name="stock_out_type">
         <item name="today_stock_text">Today Sales Reports</item>
         <item name="last_7_day_stock_text">7 Day\'s Sales Reports</item>
