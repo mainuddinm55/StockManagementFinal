@@ -2,6 +2,7 @@ package com.kcirque.stockmanagementfinal.Fragment;
 
 
 import android.content.Context;
+import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -12,6 +13,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -20,13 +22,16 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.kcirque.stockmanagementfinal.Activity.PurchaseDetailsActivity;
 import com.kcirque.stockmanagementfinal.Adapter.PurchaseAdapter;
 import com.kcirque.stockmanagementfinal.Common.Constant;
 import com.kcirque.stockmanagementfinal.Common.DateConverter;
 import com.kcirque.stockmanagementfinal.Common.SharedPref;
 import com.kcirque.stockmanagementfinal.Database.Model.Purchase;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
-import com.kcirque.stockmanagementfinal.MainActivity;
+import com.kcirque.stockmanagementfinal.Activity.MainActivity;
+import com.kcirque.stockmanagementfinal.Interface.FragmentLoader;
+import com.kcirque.stockmanagementfinal.Interface.RecyclerItemClickListener;
 import com.kcirque.stockmanagementfinal.R;
 import com.kcirque.stockmanagementfinal.databinding.FragmentDailyPurchaseBinding;
 
@@ -107,6 +112,15 @@ public class DailyPurchaseFragment extends Fragment {
                         mBinding.totalLinearLayout.setVisibility(View.VISIBLE);
                         mBinding.totalAmountTextView.setText(String.valueOf(mTotalPurchase));
                         mBinding.totalTextTextView.setText(mContext.getResources().getString(R.string.total_text));
+                        adapter.setItemClickListener(new RecyclerItemClickListener() {
+                            @Override
+                            public void onClick(View view, int position, Object object) {
+                                Purchase purchase = (Purchase) object;
+                                Intent intent = new Intent(mContext, PurchaseDetailsActivity.class);
+                                intent.putExtra(Constant.EXTRA_PURCHASE, purchase);
+                                startActivity(intent);
+                            }
+                        });
                     } else {
                         mBinding.progressBar.setVisibility(View.GONE);
                         mBinding.emptyPurchaseTextView.setVisibility(View.VISIBLE);
@@ -115,7 +129,9 @@ public class DailyPurchaseFragment extends Fragment {
 
                 @Override
                 public void onCancelled(DatabaseError databaseError) {
-
+                    mBinding.progressBar.setVisibility(View.GONE);
+                    mBinding.emptyPurchaseTextView.setText(databaseError.getMessage());
+                    mBinding.emptyPurchaseTextView.setVisibility(View.VISIBLE);
                 }
             });
         } else {
@@ -127,5 +143,6 @@ public class DailyPurchaseFragment extends Fragment {
     public void onAttach(Context context) {
         super.onAttach(context);
         mContext = context;
+
     }
 }

@@ -6,4 +6,7 @@
     <color name="colorDivider">#BDBDBD</color>
     <color name="textColor">#0a091b</color>
     <color name="textColorHint">#0a091b</color>
+    <color name="silverGray">#C0C0C0</color>
+    <color name="gray">#808080</color>
+    <color name="background">#e4e9ef</color>
 </resources>

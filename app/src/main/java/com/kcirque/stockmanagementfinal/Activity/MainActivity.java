@@ -1,4 +1,4 @@
-package com.kcirque.stockmanagementfinal;
+package com.kcirque.stockmanagementfinal.Activity;
 
 import android.Manifest;
 import android.app.ProgressDialog;
@@ -32,7 +32,6 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -83,7 +82,9 @@ import com.kcirque.stockmanagementfinal.Fragment.SalaryFragment;
 import com.kcirque.stockmanagementfinal.Fragment.SellerFragment;
 import com.kcirque.stockmanagementfinal.Fragment.SettingFragment;
 import com.kcirque.stockmanagementfinal.Fragment.StockOutFragment;
+import com.kcirque.stockmanagementfinal.Fragment.SupplierFragment;
 import com.kcirque.stockmanagementfinal.Interface.FragmentLoader;
+import com.kcirque.stockmanagementfinal.R;
 import com.kcirque.stockmanagementfinal.SQLiteDB.DatabaseHelper;
 import com.kcirque.stockmanagementfinal.SQLiteDB.Model.XLCustomer;
 import com.kcirque.stockmanagementfinal.SQLiteDB.Model.XLExpense;
@@ -135,7 +136,7 @@ public class MainActivity extends AppCompatActivity
 
     private View mHeaderView;
     private ValueEventListener listener;
-    private int mReminderCount = 5;
+    private int mReminderCount = 2;
     private ProgressDialog progressDialog;
     private String contactUs = "Mobile : +8801777-888661\nWeb: www.kcirqueit.com\nThank you";
     private RewardedVideoAd mRewardedVideoAd;
@@ -191,12 +192,15 @@ public class MainActivity extends AppCompatActivity
             mAdminRef = mRootRef.child(mSeller.getAdminUid());
         }
 
+        HomeFragment fragment = HomeFragment.getInstance();
+        loadFragment(fragment, false, Constant.HOME_FRAGMENT_TAG);
+
         mStockRef = mAdminRef.child(Constant.STOCK_HAND_REF);
         mCategoryRef = mAdminRef.child(Constant.CATEGORY_REF);
         mChatRef = mAdminRef.child(Constant.CHAT_REF);
         final DatabaseReference contactUsRef = mRootRef.child(Constant.CONTACT_US_REF);
 
-        DatabaseReference registrationRef = mAdminRef.child(Constant.REGISTRATION_REF);
+        final DatabaseReference registrationRef = mAdminRef.child(Constant.REGISTRATION_REF);
 
         registrationRef.addValueEventListener(new ValueEventListener() {
 
@@ -219,16 +223,19 @@ public class MainActivity extends AppCompatActivity
                     }
                 });
                 if (dataSnapshot.exists()) {
+                    AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this);
+                    View view = LayoutInflater.from(MainActivity.this).inflate(R.layout.registration_expired, null);
+                    TextView noRegistrationTextView = view.findViewById(R.id.no_registration_text_view);
+                    noRegistrationTextView.setText("Your registration was expired.\nPlease contact with us\n" + contactUs);
+                    dialog.setView(view);
+                    dialog.setCancelable(false);
+                    AlertDialog alertDialog = dialog.create();
                     DateConverter dateConverter = new DateConverter();
                     long expiredDate = dataSnapshot.getValue(long.class);
                     if (dateConverter.getCurrentDate() >= expiredDate) {
-                        AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this);
-                        View view = LayoutInflater.from(MainActivity.this).inflate(R.layout.registration_expired, null);
-                        TextView noRegistrationTextView = view.findViewById(R.id.no_registration_text_view);
-                        noRegistrationTextView.setText("Your registration was expired.\nPlease contact with us\n" + contactUs);
-                        dialog.setView(view);
-                        dialog.setCancelable(false);
-                        dialog.show();
+                        alertDialog.show();
+                    } else {
+                        alertDialog.dismiss();
                     }
                 } else {
                     AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this);
@@ -238,6 +245,8 @@ public class MainActivity extends AppCompatActivity
                     dialog.setView(view);
                     dialog.setCancelable(false);
                     dialog.show();
+                    registrationRef.setValue(0);
+
                 }
             }
 
@@ -265,7 +274,7 @@ public class MainActivity extends AppCompatActivity
             public void onDataChange(DataSnapshot dataSnapshot) {
 
                 String ulr = dataSnapshot.getValue(String.class);
-                Glide.with(MainActivity.this).load(ulr)
+                Glide.with(getApplicationContext()).load(ulr)
                         .apply(RequestOptions.placeholderOf(R.mipmap.ic_header_logo_round))
                         .apply(RequestOptions.diskCacheStrategyOf(DiskCacheStrategy.ALL))
                         .into(logoImageView);
@@ -294,10 +303,6 @@ public class MainActivity extends AppCompatActivity
 
         checkReminder();
 
-
-        HomeFragment fragment = HomeFragment.getInstance();
-        loadFragment(fragment, false, Constant.HOME_FRAGMENT_TAG);
-
         showRewardedVideo();
 
     }
@@ -319,7 +324,7 @@ public class MainActivity extends AppCompatActivity
                     StockHand stockHand = postData.getValue(StockHand.class);
                     if (stockHand != null && stockHand.getSellQuantity() > 0) {
                         int stock = stockHand.getPurchaseQuantity() - stockHand.getSellQuantity();
-                        if (stock < mReminderCount) {
+                        if (stock < mReminderCount || stock == 0) {
                             mStockHandWarning.add(stockHand);
                             mCount++;
                         }
@@ -386,6 +391,7 @@ public class MainActivity extends AppCompatActivity
         Fragment sellerFragment = getSupportFragmentManager().findFragmentByTag(Constant.SELLER_FRAGMENT_TAG);
         Fragment salaryFragment = getSupportFragmentManager().findFragmentByTag(Constant.SALARY_FRAGMENT_TAG);
         Fragment dueFragment = getSupportFragmentManager().findFragmentByTag(Constant.DUE_FRAGMENT_TAG);
+        Fragment supplierFragment = getSupportFragmentManager().findFragmentByTag(Constant.SUPPLIER_FRAGMENT_TAG);
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
@@ -404,6 +410,8 @@ public class MainActivity extends AppCompatActivity
         } else if (salaryFragment != null && salaryFragment.isVisible()) {
             loadFragment(HomeFragment.getInstance(), false, Constant.HOME_FRAGMENT_TAG);
         } else if (dueFragment != null && dueFragment.isVisible()) {
+            loadFragment(HomeFragment.getInstance(), false, Constant.HOME_FRAGMENT_TAG);
+        } else if (supplierFragment != null && supplierFragment.isVisible()) {
             loadFragment(HomeFragment.getInstance(), false, Constant.HOME_FRAGMENT_TAG);
         } else {
             super.onBackPressed();
@@ -441,6 +449,10 @@ public class MainActivity extends AppCompatActivity
             case R.id.nav_seller:
                 fragment = SellerFragment.getInstance();
                 tag = Constant.SELLER_FRAGMENT_TAG;
+                break;
+            case R.id.nav_supplier:
+                fragment = new SupplierFragment();
+                tag = Constant.SUPPLIER_FRAGMENT_TAG;
                 break;
             case R.id.nav_salry:
                 fragment = SalaryFragment.getInstance();
@@ -488,6 +500,14 @@ public class MainActivity extends AppCompatActivity
                 overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
                 finish();
                 break;
+            case R.id.nav_help:
+                startActivity(new Intent(this, HelpActivity.class));
+                overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+                break;
+            case R.id.nav_about:
+                startActivity(new Intent(this, AboutActivity.class));
+                overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+                break;
         }
 
         if (fragment != null) {
@@ -534,6 +554,7 @@ public class MainActivity extends AppCompatActivity
             nav_Menu.findItem(R.id.nav_add_expense).setVisible(false);
             nav_Menu.findItem(R.id.nav_settings).setVisible(false);
             nav_Menu.findItem(R.id.nav_export_to_xl).setVisible(false);
+            nav_Menu.findItem(R.id.nav_supplier).setVisible(false);
         }
     }
 
@@ -1230,7 +1251,6 @@ public class MainActivity extends AppCompatActivity
                     sqLiteToExcel.exportAllTables("stock_management_system.xls", new SQLiteToExcel.ExportListener() {
                         @Override
                         public void onStart() {
-
                         }
 
                         @Override

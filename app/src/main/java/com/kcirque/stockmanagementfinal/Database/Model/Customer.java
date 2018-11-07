@@ -13,8 +13,9 @@ public class Customer implements Serializable {
     private double due;
     private boolean isMercantile;
     private long dueDate;
+    private String imageUrl;
 
-    public Customer(String key, int customerId, String customerName, String address, String mobile, String email, double due ,boolean isMercantile) {
+    public Customer(String key, int customerId, String customerName, String address, String mobile, String email, double due, boolean isMercantile) {
         this.key = key;
         this.customerId = customerId;
         this.customerName = customerName;
@@ -100,4 +101,13 @@ public class Customer implements Serializable {
     public void setDueDate(long dueDate) {
         this.dueDate = dueDate;
     }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
 }

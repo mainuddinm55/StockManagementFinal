@@ -136,7 +136,7 @@
                                     android:text="@string/unit_price_text"
                                     android:textAlignment="center"
                                     android:textColor="@android:color/white"
-                                    android:textAppearance="@style/TextAppearance.AppCompat.Medium"/>
+                                    android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
 
 
                                 <TextView
@@ -314,7 +314,7 @@
                                 android:padding="5dp"
                                 android:textAlignment="viewEnd"
                                 android:textColor="@android:color/black"
-                                android:textAppearance="@style/TextAppearance.AppCompat.Medium"/>
+                                android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
                         </LinearLayout>
 
                         <View

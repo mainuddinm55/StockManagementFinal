@@ -1,4 +1,4 @@
-package com.kcirque.stockmanagementfinal;
+package com.kcirque.stockmanagementfinal.Activity;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -20,7 +20,6 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -29,6 +28,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.kcirque.stockmanagementfinal.Common.Constant;
 import com.kcirque.stockmanagementfinal.Common.SharedPref;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
+import com.kcirque.stockmanagementfinal.R;
 import com.kcirque.stockmanagementfinal.databinding.ActivityLoginBinding;
 
 public class LoginActivity extends AppCompatActivity {

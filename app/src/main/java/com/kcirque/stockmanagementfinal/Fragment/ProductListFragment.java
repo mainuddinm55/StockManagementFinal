@@ -6,18 +6,15 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.annotation.PluralsRes;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -34,7 +31,7 @@ import com.kcirque.stockmanagementfinal.Database.Model.Product;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.Interface.FragmentLoader;
 import com.kcirque.stockmanagementfinal.Interface.RecyclerItemClickListener;
-import com.kcirque.stockmanagementfinal.MainActivity;
+import com.kcirque.stockmanagementfinal.Activity.MainActivity;
 import com.kcirque.stockmanagementfinal.R;
 
 import java.util.ArrayList;
@@ -144,7 +141,9 @@ public class ProductListFragment extends Fragment {
 
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                    mProgressBar.setVisibility(View.GONE);
+                    mEmptyProductTextView.setText(databaseError.getMessage());
+                    mEmptyProductTextView.setVisibility(View.VISIBLE);
                 }
             });
         } else {

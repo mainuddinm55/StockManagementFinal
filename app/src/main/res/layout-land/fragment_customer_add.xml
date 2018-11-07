@@ -18,6 +18,14 @@
                 android:layout_margin="10dp"
                 android:orientation="vertical">
 
+                <de.hdodenhof.circleimageview.CircleImageView
+                    android:id="@+id/customer_image"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:layout_gravity="center_horizontal"
+                    android:padding="5dp"
+                    android:src="@drawable/ic_user" />
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -151,12 +159,14 @@
                         android:text="@string/account_type_text"
                         android:textColor="@android:color/black"
                         android:textSize="16sp" />
+
                     <RadioGroup
                         android:padding="5dp"
                         android:id="@+id/account_type_rg"
                         android:layout_width="match_parent"
                         android:orientation="horizontal"
                         android:layout_height="wrap_content">
+
                         <RadioButton
                             android:id="@+id/normal_account_rb"
                             android:layout_width="wrap_content"
@@ -164,7 +174,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:checked="true"
-                            android:text="@string/normal_account_text"/>
+                            android:text="@string/normal_account_text" />
 
                         <RadioButton
                             android:id="@+id/mercantile_account_type"

@@ -1,9 +1,7 @@
 package com.kcirque.stockmanagementfinal.Fragment;
 
 
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -29,7 +27,7 @@ import com.kcirque.stockmanagementfinal.Database.Model.Customer;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.Interface.FragmentLoader;
 import com.kcirque.stockmanagementfinal.Interface.RecyclerItemClickListener;
-import com.kcirque.stockmanagementfinal.MainActivity;
+import com.kcirque.stockmanagementfinal.Activity.MainActivity;
 import com.kcirque.stockmanagementfinal.databinding.FragmentCustomerListBinding;
 
 import com.kcirque.stockmanagementfinal.R;
@@ -133,7 +131,9 @@ public class CustomerListFragment extends Fragment {
 
                 @Override
                 public void onCancelled(DatabaseError databaseError) {
-
+                    mBinding.progressBar.setVisibility(View.GONE);
+                    mBinding.emptyCustomerTextview.setVisibility(View.VISIBLE);
+                    mBinding.emptyCustomerTextview.setText(databaseError.getMessage());
                 }
             });
 

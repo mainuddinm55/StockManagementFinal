@@ -8,6 +8,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.kcirque.stockmanagementfinal.Database.Model.Chat;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.Interface.ItemClickListener;
@@ -32,7 +34,7 @@ public class SellerAdapter extends RecyclerView.Adapter<SellerAdapter.SellerHold
     }
 
 
-    public SellerAdapter(Context context, List<Seller> sellers,List<Chat> chatList) {
+    public SellerAdapter(Context context, List<Seller> sellers, List<Chat> chatList) {
         mContext = context;
         mSellerList = sellers;
         this.mChatList = chatList;
@@ -47,20 +49,22 @@ public class SellerAdapter extends RecyclerView.Adapter<SellerAdapter.SellerHold
 
     @Override
     public void onBindViewHolder(@NonNull SellerHolder sellerHolder, final int i) {
-        if (mChatList.size()>0){
+        if (mChatList.size() > 0) {
             mCount = 0;
-            for (Chat chat : mChatList){
-                if (chat.getSender().equals(mSellerList.get(i).getKey())){
+            for (Chat chat : mChatList) {
+                if (chat.getSender().equals(mSellerList.get(i).getKey())) {
                     mCount++;
                 }
             }
         }
-        if (mCount>0){
+        if (mCount > 0) {
             sellerHolder.unreadMsgCountTextView.setText(String.valueOf(mCount));
         } else {
             sellerHolder.unreadMsgCountTextView.setText(null);
         }
         sellerHolder.sellerNameTextView.setText(mSellerList.get(i).getName());
+        Glide.with(mContext).load(mSellerList.get(i).getImageUrl()).apply(RequestOptions.placeholderOf(R.drawable.ic_user))
+                .into(sellerHolder.sellerImageView);
         sellerHolder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

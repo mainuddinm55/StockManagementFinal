@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import com.kcirque.stockmanagementfinal.Common.DateConverter;
 import com.kcirque.stockmanagementfinal.Database.Model.Sales;
+import com.kcirque.stockmanagementfinal.Interface.RecyclerItemClickListener;
 import com.kcirque.stockmanagementfinal.R;
 
 import java.util.ArrayList;
@@ -18,6 +19,7 @@ import java.util.List;
 public class DueDetailsAdapter extends RecyclerView.Adapter<DueDetailsAdapter.DueHolder> {
     private Context mContext;
     private List<Sales> mSalesList = new ArrayList<>();
+    private RecyclerItemClickListener itemClickListener;
 
     public DueDetailsAdapter(Context context, List<Sales> sales) {
         this.mContext = context;
@@ -32,13 +34,24 @@ public class DueDetailsAdapter extends RecyclerView.Adapter<DueDetailsAdapter.Du
     }
 
     @Override
-    public void onBindViewHolder(@NonNull DueHolder dueHolder, int i) {
+    public void onBindViewHolder(@NonNull DueHolder dueHolder, final int i) {
         DateConverter dateConverter = new DateConverter();
-        Sales sales = mSalesList.get(i);
+        final Sales sales = mSalesList.get(i);
         dueHolder.dateTextView.setText(dateConverter.getDateInString(sales.getSalesDate()));
         dueHolder.totalTextView.setText(String.valueOf(sales.getTotal()));
         dueHolder.paidTextView.setText(String.valueOf(sales.getPaid()));
         dueHolder.dueTextView.setText(String.valueOf(sales.getDue()));
+        dueHolder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (itemClickListener != null)
+                    itemClickListener.onClick(v, i, sales);
+            }
+        });
+    }
+
+    public void setItemClickListener(RecyclerItemClickListener itemClickListener) {
+        this.itemClickListener = itemClickListener;
     }
 
     @Override

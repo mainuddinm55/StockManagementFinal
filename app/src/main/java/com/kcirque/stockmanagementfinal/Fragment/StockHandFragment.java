@@ -15,6 +15,7 @@ import android.view.ViewGroup;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -26,7 +27,7 @@ import com.kcirque.stockmanagementfinal.Common.SharedPref;
 import com.kcirque.stockmanagementfinal.Database.Model.Product;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.Database.Model.StockHand;
-import com.kcirque.stockmanagementfinal.MainActivity;
+import com.kcirque.stockmanagementfinal.Activity.MainActivity;
 import com.kcirque.stockmanagementfinal.R;
 import com.kcirque.stockmanagementfinal.databinding.FragmentStockHandBinding;
 
@@ -95,33 +96,68 @@ public class StockHandFragment extends Fragment {
         mBinding.stockHandRecyclerView.setLayoutManager(new LinearLayoutManager(mContext));
 
         if (MainActivity.isNetworkAvailable(mContext)) {
-            mStockRef.addValueEventListener(new ValueEventListener() {
+            mStockRef.addChildEventListener(new ChildEventListener() {
+                @Override
+                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                    final StockHand stockHand = dataSnapshot.getValue(StockHand.class);
+                    mStockHandList.add(stockHand);
+                }
+
+                @Override
+                public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+                }
+
+                @Override
+                public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+                }
+
+                @Override
+                public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+            mProductRef.addChildEventListener(new ChildEventListener() {
+
+                @Override
+                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                    Product product = dataSnapshot.getValue(Product.class);
+                    mProductList.add(product);
+                }
+
+                @Override
+                public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+                }
+
+                @Override
+                public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+                }
+
+                @Override
+                public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+            mAdminRef.addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
-                    mStockHandList.clear();
-                    for (DataSnapshot postData : dataSnapshot.getChildren()) {
-                        final StockHand stockHand = postData.getValue(StockHand.class);
-                        mStockHandList.add(stockHand);
-
-                    }
-                    mProductRef.addValueEventListener(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            mProductList.clear();
-                            for (DataSnapshot postData : dataSnapshot.getChildren()) {
-                                Product product = postData.getValue(Product.class);
-                                mProductList.add(product);
-                            }
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-
-                        }
-                    });
                     if (mStockHandList.size() > 0 && mProductList.size() > 0) {
                         mBinding.progressBar.setVisibility(View.GONE);
                         StockHandAdapter adapter = new StockHandAdapter(mContext, mStockHandList, mProductList);
+                        mBinding.stockHandRecyclerView.setAdapter(adapter);
                         int totalPurchase = 0;
                         int totalSale = 0;
                         int totalStockHand = 0;
@@ -130,7 +166,6 @@ public class StockHandFragment extends Fragment {
                             totalSale = totalSale + stockHand.getSellQuantity();
                             totalStockHand = totalStockHand + (stockHand.getPurchaseQuantity() - stockHand.getSellQuantity());
                         }
-                        mBinding.stockHandRecyclerView.setAdapter(adapter);
                         mBinding.totalPurchaseTextView.setText(String.valueOf(totalPurchase));
                         mBinding.totalSaleTextView.setText(String.valueOf(totalSale));
                         mBinding.totalStockTextView.setText(String.valueOf(totalStockHand));
@@ -146,6 +181,7 @@ public class StockHandFragment extends Fragment {
 
                 }
             });
+
         } else {
             mBinding.progressBar.setVisibility(View.GONE);
             Snackbar.make(mBinding.rootView, "No internet connection", Snackbar.LENGTH_SHORT).show();

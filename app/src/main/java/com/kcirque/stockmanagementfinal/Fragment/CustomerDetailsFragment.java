@@ -11,6 +11,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.kcirque.stockmanagementfinal.Common.Constant;
@@ -60,9 +62,10 @@ public class CustomerDetailsFragment extends Fragment {
             mBinding.accountTypeTextView.setText(customer.isMercantile() ? "Mercantile" : "Normal");
             mBinding.dueLayout.setVisibility(customer.getDue() > 0 ? View.VISIBLE : View.GONE);
             mBinding.dueTextView.setText(String.valueOf(customer.getDue()));
-
+            Glide.with(mContext).load(customer.getImageUrl()).apply(RequestOptions.placeholderOf(R.drawable.ic_user))
+                    .into(mBinding.customerImage);
             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-            if (user!=null){
+            if (user != null) {
                 mBinding.updateCustomerBtn.setVisibility(View.VISIBLE);
             }
             mBinding.updateCustomerBtn.setOnClickListener(new View.OnClickListener() {

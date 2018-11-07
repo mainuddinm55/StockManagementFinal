@@ -3,8 +3,8 @@ package com.kcirque.stockmanagementfinal.Fragment;
 
 import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
+import android.app.WallpaperManager;
 import android.content.Context;
-import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -18,6 +18,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.DatePicker;
 import android.widget.Toast;
@@ -33,17 +34,19 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.kcirque.stockmanagementfinal.Adapter.AutoCompleteProductAdapter;
+import com.kcirque.stockmanagementfinal.Adapter.SupplierAdapter;
+import com.kcirque.stockmanagementfinal.Adapter.SupplierSpinnerAdapter;
 import com.kcirque.stockmanagementfinal.Common.Constant;
 import com.kcirque.stockmanagementfinal.Common.DateConverter;
 import com.kcirque.stockmanagementfinal.Common.SharedPref;
 import com.kcirque.stockmanagementfinal.Database.Model.DateAmountPurchase;
 import com.kcirque.stockmanagementfinal.Database.Model.Product;
-import com.kcirque.stockmanagementfinal.Database.Model.Profit;
 import com.kcirque.stockmanagementfinal.Database.Model.Purchase;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.Database.Model.StockHand;
+import com.kcirque.stockmanagementfinal.Database.Model.Supplier;
 import com.kcirque.stockmanagementfinal.Interface.FragmentLoader;
-import com.kcirque.stockmanagementfinal.MainActivity;
+import com.kcirque.stockmanagementfinal.Activity.MainActivity;
 import com.kcirque.stockmanagementfinal.databinding.FragmentPurchaseBinding;
 import com.kcirque.stockmanagementfinal.R;
 
@@ -91,6 +94,10 @@ public class PurchaseFragment extends Fragment {
     private Bundle bundle;
     private String mProductName;
     private ProgressDialog progressDialog;
+    private List<Supplier> mSupplierList = new ArrayList<>();
+    private String mSupplierName = null;
+    private String mSupplierKey = null;
+    private int mOldQuantity;
 
     public static synchronized PurchaseFragment getInstance() {
         if (INSTANCE == null) {
@@ -137,6 +144,7 @@ public class PurchaseFragment extends Fragment {
         mProductRef = mAdminRef.child(Constant.PRODUCT_REF);
         mPurchaseRef = mAdminRef.child(Constant.PURCHASE_REF);
         mStockRef = mAdminRef.child(Constant.STOCK_HAND_REF);
+        DatabaseReference supplierRef = mAdminRef.child(Constant.SUPPLIER_REF);
 
         mDateConverter = new DateConverter();
 
@@ -161,6 +169,47 @@ public class PurchaseFragment extends Fragment {
 
                 }
             });
+            supplierRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    mSupplierList.clear();
+                    mSupplierList.add(new Supplier(null, "None", null, null, null));
+                    for (DataSnapshot data : dataSnapshot.getChildren()) {
+                        Supplier supplier = data.getValue(Supplier.class);
+                        mSupplierList.add(supplier);
+                    }
+                    if (mSupplierList.size() > 0) {
+                        SupplierSpinnerAdapter adapter = new SupplierSpinnerAdapter(mContext, mSupplierList);
+                        mBinding.supplierSpinner.setAdapter(adapter);
+
+                        mBinding.supplierSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                            @Override
+                            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                if (position == 0) {
+                                    mSupplierKey = "None";
+                                    mSupplierName = "None";
+                                } else {
+                                    Supplier supplier = mSupplierList.get(position);
+                                    mSupplierKey = supplier.getKey();
+                                    mSupplierName = supplier.getName();
+                                }
+                            }
+
+                            @Override
+                            public void onNothingSelected(AdapterView<?> parent) {
+
+                            }
+                        });
+                    }
+
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+
         } else {
             Snackbar.make(mBinding.rootView, "No internet connection", Snackbar.LENGTH_SHORT).show();
         }
@@ -366,10 +415,7 @@ public class PurchaseFragment extends Fragment {
             }
         });
 
-
-        mBinding.addPurchaseBtn.setOnClickListener(new View.OnClickListener()
-
-        {
+        mBinding.addPurchaseBtn.setOnClickListener(new View.OnClickListener() {
             private int quantity;
 
             @Override
@@ -414,13 +460,18 @@ public class PurchaseFragment extends Fragment {
                     mBinding.paidAmountEdittext.requestFocus();
                     return;
                 }
+                if (mSupplierKey == null || mSupplierName == null) {
+                    Snackbar.make(mBinding.rootView, "Please chose supplier", Snackbar.LENGTH_SHORT).show();
+                    mBinding.supplierSpinner.requestFocus();
+                    return;
+                }
                 if (MainActivity.isNetworkAvailable(mContext)) {
                     showProgressDialog();
                     String companyName = mBinding.companyNameEdittext.getText().toString().trim();
                     double sellPrice = Double.parseDouble(mBinding.sellPriceEdittext.getText().toString());
                     double paidAmt = Double.parseDouble(mBinding.paidAmountEdittext.getText().toString());
                     String key = mPurchaseRef.push().getKey();
-                    final Purchase purchase = new Purchase(key, mProductId, mProductName, companyName, mBuyPrice, sellPrice, mQuantity, mPurchaseDate, mTotalAmount, paidAmt, mDueAmount);
+                    final Purchase purchase = new Purchase(key, mProductId, mProductName, companyName, mSupplierKey, mSupplierName, mBuyPrice, sellPrice, mQuantity, mPurchaseDate, mTotalAmount, paidAmt, mDueAmount);
                     mPurchaseRef.child(key).setValue(purchase).addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
@@ -432,10 +483,27 @@ public class PurchaseFragment extends Fragment {
                                         StockHand stockHand = dataSnapshot.getValue(StockHand.class);
                                         if (stockHand != null) {
                                             quantity = stockHand.getPurchaseQuantity();
+                                            mOldQuantity = stockHand.getPurchaseQuantity() - stockHand.getSellQuantity();
                                         }
+                                        mProductRef.child(mProductKey).addListenerForSingleValueEvent(new ValueEventListener() {
+                                            @Override
+                                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                                Product product = dataSnapshot.getValue(Product.class);
+                                                if (product != null && product.getSellPrice() != purchase.getSellingPrice()) {
+                                                    mProductRef.child(mProductKey).child("oldPrice").setValue(product.getSellPrice());
+                                                    mProductRef.child(mProductKey).child("oldPriceQuantity").setValue(mOldQuantity);
+                                                }
+                                            }
+
+                                            @Override
+                                            public void onCancelled(DatabaseError databaseError) {
+
+                                            }
+                                        });
                                         mProductRef.child(mProductKey).child("buyPrice").setValue(purchase.getActualPrice());
                                         mProductRef.child(mProductKey).child("sellPrice").setValue(purchase.getSellingPrice());
                                         mProductRef.child(mProductKey).child("company").setValue(purchase.getCompanyName());
+
                                         mStockRef.child(String.valueOf(mProductId)).child("buyPrice").setValue(purchase.getActualPrice());
                                         mStockRef.child(String.valueOf(mProductId)).child("productId").setValue(purchase.getProductId());
                                         mStockRef.child(String.valueOf(mProductId)).child("purchaseQuantity").setValue(quantity + mQuantity);

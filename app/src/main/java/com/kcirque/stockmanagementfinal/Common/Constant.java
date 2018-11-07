@@ -13,6 +13,7 @@ public class Constant {
     public static final String SELLER_REF = "Seller";
     public static final String EXPENSE_REF = "Expense";
     public static final String CHAT_REF = "Chats";
+    public static final String SUPPLIER_REF = "Supplier";
 
     public static final String EXTRA_PRODUCT_SELL = "product";
     public static final String EXTRA_NOTIFICATION_ID = "id";
@@ -45,7 +46,7 @@ public class Constant {
     public static final String EXTRA_UNSEEN_MESSAGE = "unseen_message";
     public static final String SETTING_FRAGMENT_TAG = "settings";
     public static final String DAILY_REPORT_FRAGMENT_TAG = "daily_report";
-    public static final String SALARY_REF = "SalaryForRoom";
+    public static final String SALARY_REF = "Salary";
     public static final String SALARY_FRAGMENT_TAG = "salary";
     public static final String SALARY_ADD_FRAGMENT_TAG = "salary_add";
     public static final String PRODUCT_DETAILS_FRAGMENT_TAG = "product_details";
@@ -82,4 +83,19 @@ public class Constant {
     public static final String MESSAGE_FRAGMENT_TAG = "message_fragment";
     public static final String EXTRA_SALES = "sales";
     public static final String SALES_DETAILS_FRAGMENT_TAG = "sales_details";
+    public static final String SUPPLIER_ADD_FRAGMENT_TAG = "supplier_add";
+    public static final String SUPPLIER_FRAGMENT_TAG = "supplier";
+    public static final String EXTRA_SUPPLIER = "supplier";
+    public static final String SUPPLIER_DETAILS_FRAGMENT_TAG = "supplier_details";
+    public static final String EXTRA_PURCHASE = "purchase";
+    public static final String SUPPLIER_PURCHASE_DETAILS_FRAGMENT_TAG = "supplier_purchase_details";
+    public static final String EXTRA_NEW_PRICE_PRODUCT = "new_price_product";
+    public static final String EXTRA_OLD_PRICE_PRODUCT = "old_price_product";
+    public static final String EXTRA_OLD_PRICE_PRODUCT_LIST = "old_price_product_list";
+
+    public static final String PURCHASE_DETAILS_FRAGMENT_TAG = "purchase_details";
+    public static final String CUSTOMER_DUE_DETAILS = "customer_due_details";
+    public static final String EXTRA_SALARY = "salary";
+    public static final String SALARY_DETAILS_FRAGMENT_TAG = "salary_details";
+    public static final String EXTRA_PRINT_PREVIEW = "is_print_preview";
 }

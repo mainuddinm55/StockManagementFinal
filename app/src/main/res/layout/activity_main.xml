@@ -18,8 +18,13 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
+        android:background="#717171"
         android:fitsSystemWindows="true"
+        android:foreground="?attr/selectableItemBackground"
         app:headerLayout="@layout/nav_header_main"
+        app:itemBackground="@drawable/navigation_background"
+        app:itemIconTint="@android:color/white"
+        app:itemTextColor="@android:color/white"
         app:menu="@menu/activity_main_drawer" />
 
 </android.support.v4.widget.DrawerLayout>

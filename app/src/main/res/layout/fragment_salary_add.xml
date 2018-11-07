@@ -107,8 +107,7 @@
                         android:layout_weight="1.5"
                         android:hint="@string/date_text"
                         android:padding="3dp"
-                        android:textSize="16sp"
-                        />
+                        android:textSize="16sp" />
                 </LinearLayout>
 
             </LinearLayout>

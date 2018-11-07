@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.kcirque.stockmanagementfinal.Database.Model.Purchase;
+import com.kcirque.stockmanagementfinal.Interface.RecyclerItemClickListener;
 import com.kcirque.stockmanagementfinal.R;
 
 import java.util.ArrayList;
@@ -17,6 +18,7 @@ public class PurchaseAdapter extends RecyclerView.Adapter<DailyExpenseAdapter.Ex
 
     private Context mContext;
     private List<Purchase> mPurchaseList = new ArrayList<>();
+    private RecyclerItemClickListener itemClickListener;
 
     public PurchaseAdapter(Context context, List<Purchase> purchaseList) {
         this.mContext = context;
@@ -31,12 +33,24 @@ public class PurchaseAdapter extends RecyclerView.Adapter<DailyExpenseAdapter.Ex
     }
 
     @Override
-    public void onBindViewHolder(@NonNull DailyExpenseAdapter.ExpenseHolder expenseHolder, int i) {
-        Purchase purchase = mPurchaseList.get(i);
+    public void onBindViewHolder(@NonNull DailyExpenseAdapter.ExpenseHolder expenseHolder, final int i) {
+        final Purchase purchase = mPurchaseList.get(i);
         expenseHolder.slNoTextView.setText(String.valueOf(i + 1));
         expenseHolder.expenseNameTextView.setText(purchase.getProductName());
         expenseHolder.amountTextView.setText(String.valueOf(purchase.getTotalPrice()));
+        expenseHolder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (itemClickListener != null) {
+                    itemClickListener.onClick(v, i, purchase);
+                }
+            }
+        });
 
+    }
+
+    public void setItemClickListener(RecyclerItemClickListener itemClickListener) {
+        this.itemClickListener = itemClickListener;
     }
 
     @Override

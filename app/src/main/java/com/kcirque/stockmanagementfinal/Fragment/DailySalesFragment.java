@@ -22,14 +22,13 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.kcirque.stockmanagementfinal.Adapter.SalesAdapter;
-import com.kcirque.stockmanagementfinal.Adapter.StockOutAdapter;
 import com.kcirque.stockmanagementfinal.Common.Constant;
 import com.kcirque.stockmanagementfinal.Common.DateConverter;
 import com.kcirque.stockmanagementfinal.Common.SharedPref;
 import com.kcirque.stockmanagementfinal.Database.Model.ProductSell;
 import com.kcirque.stockmanagementfinal.Database.Model.Sales;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
-import com.kcirque.stockmanagementfinal.MainActivity;
+import com.kcirque.stockmanagementfinal.Activity.MainActivity;
 import com.kcirque.stockmanagementfinal.databinding.FragmentDailySalesBinding;
 
 import com.kcirque.stockmanagementfinal.R;
@@ -145,7 +144,9 @@ public class DailySalesFragment extends Fragment {
 
                 @Override
                 public void onCancelled(DatabaseError databaseError) {
-
+                    mBinding.progressBar.setVisibility(View.GONE);
+                    mBinding.emptySalesTextView.setText(databaseError.getMessage());
+                    mBinding.emptySalesTextView.setVisibility(View.VISIBLE);
                 }
             });
         } else {

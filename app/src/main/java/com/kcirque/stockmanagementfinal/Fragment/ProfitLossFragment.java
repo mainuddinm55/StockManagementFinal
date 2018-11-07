@@ -110,7 +110,7 @@ public class ProfitLossFragment extends Fragment {
                     fragment.setArguments(bundle);
                     mFragmentLoader.loadFragment(fragment, true, Constant.PROFIT_LOSS_REPORT_FRAGMENT_TAG);
                 } else {
-                    mFragmentLoader.loadFragment(OverAllProfitLossFragment.getInstance(),true,Constant.OVER_ALL_PROFIT_LOSS_FRAGMENT_TAG);
+                    mFragmentLoader.loadFragment(OverAllProfitLossFragment.getInstance(), true, Constant.OVER_ALL_PROFIT_LOSS_FRAGMENT_TAG);
                 }
 
             }

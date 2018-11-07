@@ -1,13 +1,15 @@
 package com.kcirque.stockmanagementfinal.Database.Model;
 
 
-public class Purchase {
+import java.io.Serializable;
 
-
+public class Purchase implements Serializable {
     private String key;
     private int productId;
     private String productName;
     private String companyName;
+    private String supplierKey;
+    private String supplierName;
     private double actualPrice;
     private double sellingPrice;
     private int quantity;
@@ -16,11 +18,13 @@ public class Purchase {
     private double paidAmount;
     private double dueAmount;
 
-    public Purchase(String key, int productId, String productName, String companyName, double actualPrice, double sellingPrice, int quantity, long purchaseDate, double totalPrice, double paidAmount, double dueAmount) {
+    public Purchase(String key, int productId, String productName, String companyName, String supplierKey, String supplierName, double actualPrice, double sellingPrice, int quantity, long purchaseDate, double totalPrice, double paidAmount, double dueAmount) {
         this.key = key;
         this.productId = productId;
         this.productName = productName;
         this.companyName = companyName;
+        this.supplierKey = supplierKey;
+        this.supplierName = supplierName;
         this.actualPrice = actualPrice;
         this.sellingPrice = sellingPrice;
         this.quantity = quantity;
@@ -63,6 +67,22 @@ public class Purchase {
 
     public void setCompanyName(String companyName) {
         this.companyName = companyName;
+    }
+
+    public String getSupplierKey() {
+        return supplierKey;
+    }
+
+    public void setSupplierKey(String supplierKey) {
+        this.supplierKey = supplierKey;
+    }
+
+    public String getSupplierName() {
+        return supplierName;
+    }
+
+    public void setSupplierName(String supplierName) {
+        this.supplierName = supplierName;
     }
 
     public double getActualPrice() {

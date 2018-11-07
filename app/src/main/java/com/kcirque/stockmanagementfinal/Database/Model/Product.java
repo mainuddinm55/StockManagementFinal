@@ -16,6 +16,8 @@ public class Product implements Serializable {
     private double buyPrice;
     private double sellPrice;
     private String company;
+    private double oldPrice;
+    private int oldPriceQuantity;
 
     public Product(String key, int productId, String productName, String productCode, int productCategoryId, String description, String productImageUrl) {
         this.key = key;
@@ -109,4 +111,21 @@ public class Product implements Serializable {
     public void setCompany(String company) {
         this.company = company;
     }
+
+    public double getOldPrice() {
+        return oldPrice;
+    }
+
+    public void setOldPrice(double oldPrice) {
+        this.oldPrice = oldPrice;
+    }
+
+    public int getOldPriceQuantity() {
+        return oldPriceQuantity;
+    }
+
+    public void setOldPriceQuantity(int oldPriceQuantity) {
+        this.oldPriceQuantity = oldPriceQuantity;
+    }
+
 }

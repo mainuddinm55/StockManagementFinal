@@ -14,7 +14,7 @@ import com.kcirque.stockmanagementfinal.R;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ProductSellAdapter extends RecyclerView.Adapter<ProductSellAdapter.ProductSellHolder>{
+public class ProductSellAdapter extends RecyclerView.Adapter<ProductSellAdapter.ProductSellHolder> {
     private Context mContext;
     private List<ProductSell> mProductList = new ArrayList<>();
 
@@ -26,7 +26,7 @@ public class ProductSellAdapter extends RecyclerView.Adapter<ProductSellAdapter.
     @NonNull
     @Override
     public ProductSellHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-        View view = LayoutInflater.from(mContext).inflate(R.layout.product_sell_row_item,viewGroup,false);
+        View view = LayoutInflater.from(mContext).inflate(R.layout.product_sell_row_item, viewGroup, false);
         return new ProductSellHolder(view);
     }
 
@@ -36,7 +36,7 @@ public class ProductSellAdapter extends RecyclerView.Adapter<ProductSellAdapter.
         productSellHolder.productNameTextView.setText(productSell.getProductName());
         productSellHolder.unitPriceTextView.setText(String.valueOf(productSell.getPrice()));
         productSellHolder.quantityTextView.setText(String.valueOf(productSell.getQuantity()));
-        productSellHolder.amountTextView.setText(String.valueOf((productSell.getPrice()*productSell.getQuantity())));
+        productSellHolder.amountTextView.setText(String.valueOf((productSell.getPrice() * productSell.getQuantity())));
     }
 
     @Override
@@ -49,6 +49,7 @@ public class ProductSellAdapter extends RecyclerView.Adapter<ProductSellAdapter.
         public TextView unitPriceTextView;
         public TextView quantityTextView;
         public TextView amountTextView;
+
         public ProductSellHolder(@NonNull View itemView) {
             super(itemView);
             productNameTextView = itemView.findViewById(R.id.product_name_textview);

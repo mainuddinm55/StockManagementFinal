@@ -1,5 +1,6 @@
-package com.kcirque.stockmanagementfinal;
+package com.kcirque.stockmanagementfinal.Activity;
 
+import android.content.ContentValues;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
@@ -28,6 +29,7 @@ import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.Database.Model.StockHand;
 import com.kcirque.stockmanagementfinal.Fragment.SalesFragment;
 import com.kcirque.stockmanagementfinal.Interface.RecyclerItemClickListener;
+import com.kcirque.stockmanagementfinal.R;
 import com.kcirque.stockmanagementfinal.databinding.ActivitySaleProductBinding;
 
 import java.util.ArrayList;
@@ -50,6 +52,7 @@ public class SaleProductActivity extends AppCompatActivity {
     private int mProductId;
     private int mHasQuantity;
     private double mBuyPrice;
+    private Product selectedProduct;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,6 +88,11 @@ public class SaleProductActivity extends AppCompatActivity {
         });
 
         mBinding.addBtn.setOnClickListener(new View.OnClickListener() {
+            private int oldPriceQty;
+            private ProductSell productSell;
+            private ProductSell newPriceSell;
+            private ProductSell oldPriceSell;
+
             @Override
             public void onClick(View v) {
                 if (mBinding.productNameTextView.getText().toString().isEmpty()) {
@@ -105,9 +113,50 @@ public class SaleProductActivity extends AppCompatActivity {
                     mBinding.quantityEditText.requestFocus();
                     return;
                 }
-                ProductSell productSell = new ProductSell(mProductId, productName, qty, price);
+                List<ProductSell> oldPriceProductList = (List<ProductSell>) getIntent().getSerializableExtra(Constant.EXTRA_OLD_PRICE_PRODUCT_LIST);
+
+                if (oldPriceProductList != null && oldPriceProductList.size() > 0) {
+                    for (ProductSell productSell : oldPriceProductList) {
+                        if (productSell.getProductId() == selectedProduct.getProductId()) {
+                            oldPriceQty = oldPriceQty + productSell.getQuantity();
+                        }
+                    }
+                }
+                if (oldPriceProductList != null && oldPriceProductList.size() > 0) {
+                    if (selectedProduct.getOldPriceQuantity() > oldPriceQty) {
+                        if (qty > (selectedProduct.getOldPriceQuantity() - oldPriceQty)) {
+                            oldPriceSell = new ProductSell(mProductId, productName, selectedProduct.getOldPriceQuantity() - oldPriceQty, selectedProduct.getOldPrice());
+                            newPriceSell = new ProductSell(mProductId, productName, qty - selectedProduct.getOldPriceQuantity() - oldPriceQty, price);
+                        } else {
+                            oldPriceSell = new ProductSell(mProductId, productName, qty, selectedProduct.getOldPrice());
+                        }
+                    } else {
+                        newPriceSell = new ProductSell(mProductId, productName, qty, price);
+                    }
+                } else {
+                    if (selectedProduct.getOldPriceQuantity() > 0) {
+                        if (qty > selectedProduct.getOldPriceQuantity()) {
+                            oldPriceSell = new ProductSell(mProductId, productName, selectedProduct.getOldPriceQuantity(), selectedProduct.getOldPrice());
+                            newPriceSell = new ProductSell(mProductId, productName, qty - selectedProduct.getOldPriceQuantity(), price);
+                        } else {
+                            oldPriceSell = new ProductSell(mProductId, productName, qty, selectedProduct.getOldPrice());
+                        }
+                    } else {
+                        newPriceSell = new ProductSell(mProductId, productName, qty, price);
+                    }
+                }
                 Intent intent = new Intent(SaleProductActivity.this, MainActivity.class);
-                intent.putExtra(Constant.EXTRA_PRODUCT_SELL, productSell);
+
+                if (oldPriceSell == null) {
+                    intent.putExtra(Constant.EXTRA_NEW_PRICE_PRODUCT, newPriceSell);
+                } else {
+                    if (newPriceSell != null) {
+                        intent.putExtra(Constant.EXTRA_OLD_PRICE_PRODUCT, oldPriceSell);
+                        intent.putExtra(Constant.EXTRA_NEW_PRICE_PRODUCT, newPriceSell);
+                    } else {
+                        intent.putExtra(Constant.EXTRA_OLD_PRICE_PRODUCT, oldPriceSell);
+                    }
+                }
                 intent.putExtra(Constant.EXTRA_BUY_PRICE, mBuyPrice);
                 setResult(SalesFragment.GET_PRODUCT_REQUEST_CODE, intent);
                 finish();
@@ -161,6 +210,7 @@ public class SaleProductActivity extends AppCompatActivity {
                         public void onClick(View view, int position, Object object) {
                             if (object != null) {
                                 StockHand stockHand = (StockHand) object;
+                                selectedProduct = mProductList.get(position);
                                 mHasQuantity = stockHand.getPurchaseQuantity() - stockHand.getSellQuantity();
                                 mBinding.productNameTextView.setText(mProductList.get(position).getProductName());
                                 mBinding.priceView.setText(String.valueOf(mProductList.get(position).getSellPrice()));

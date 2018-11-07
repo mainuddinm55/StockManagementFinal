@@ -55,7 +55,7 @@ public class SharedPref {
         String mobile = mSharedPreferences.getString(MOBILE, null);
         String status = mSharedPreferences.getString(STATUS, null);
         if (key != null && name != null && email != null && pass != null && uid != null) {
-            return new Seller(key, name, email, pass, uid, mobile,status);
+            return new Seller(key, name, email, pass, uid, mobile, status);
         } else {
             return null;
         }

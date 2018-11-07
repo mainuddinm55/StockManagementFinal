@@ -84,7 +84,7 @@ public class ProductDetailsFragment extends Fragment {
                     .into(mBinding.productImageImageView);
             mBinding.productNameTextTextView.setText(mContext.getResources().getString(R.string.product_name_text));
             mBinding.productNameTextView.setText(product.getProductName());
-            mBinding.companyNameTextTextView.setText(mContext.getResources().getString(R.string.product_company_name_text));
+            mBinding.companyNameTextTextView.setText(mContext.getResources().getString(R.string.band_text));
             mBinding.companyNameTextView.setText(product.getCompany());
             mBinding.productCodeTextTextView.setText(mContext.getResources().getString(R.string.product_code_text));
             mBinding.productCodeTextView.setText(product.getProductCode());
@@ -92,6 +92,8 @@ public class ProductDetailsFragment extends Fragment {
             mBinding.buyPriceTextView.setText(String.valueOf(product.getBuyPrice()));
             mBinding.sellPriceTextTextView.setText(mContext.getResources().getString(R.string.purchase_sell_price_text));
             mBinding.sellPriceTextView.setText(String.valueOf(product.getSellPrice()));
+            mBinding.oldSellPriceTextTextView.setText(mContext.getResources().getString(R.string.old_price_text));
+            mBinding.oldSellPriceTextView.setText(String.valueOf(product.getOldPrice() + " ( " + product.getOldPriceQuantity() + " )"));
             mBinding.productDescTextTextView.setText(mContext.getResources().getString(R.string.product_desc_text));
             mBinding.statusTextTextView.setText(mContext.getResources().getString(R.string.status_text));
             if (!product.getDescription().isEmpty()) {

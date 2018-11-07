@@ -7,11 +7,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.databinding.DataBindingUtil;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -45,17 +41,13 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.kcirque.stockmanagementfinal.Common.Constant;
-import com.kcirque.stockmanagementfinal.Common.SharedPref;
-import com.kcirque.stockmanagementfinal.Database.Model.Seller;
-import com.kcirque.stockmanagementfinal.MainActivity;
+import com.kcirque.stockmanagementfinal.Activity.MainActivity;
 import com.kcirque.stockmanagementfinal.R;
 import com.kcirque.stockmanagementfinal.databinding.FragmentSettingBinding;
 import com.rengwuxian.materialedittext.MaterialEditText;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
-import id.zelory.compressor.Compressor;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -106,7 +98,7 @@ public class SettingFragment extends Fragment {
 
         if (mUser != null) {
             mAdminRef = mRootRef.child(mUser.getUid());
-            if (!mUser.getDisplayName().isEmpty()) {
+            if (mUser.getDisplayName() != null && !mUser.getDisplayName().isEmpty()) {
                 mBinding.userNameTextView.setText(mUser.getDisplayName());
             } else {
                 mBinding.userNameTextView.setText("N/A");

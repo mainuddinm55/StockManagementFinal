@@ -45,11 +45,11 @@ public class SellerSpinnerAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         LayoutInflater layoutInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        if (convertView == null){
-            convertView = layoutInflater.inflate(R.layout.spinner_drop_down_item,null,false);
+        if (convertView == null) {
+            convertView = layoutInflater.inflate(R.layout.spinner_drop_down_item, null, false);
         }
 
-        Log.e(TAG, "getView: "+ mSellerList.size() );
+        Log.e(TAG, "getView: " + mSellerList.size());
         TextView textView = convertView.findViewById(R.id.text_view_list_item);
         textView.setText(mSellerList.get(position).getName());
         return convertView;

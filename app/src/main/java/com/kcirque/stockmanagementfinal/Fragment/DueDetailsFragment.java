@@ -5,14 +5,12 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.database.DatabaseErrorHandler;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.text.TextUtils;
 import android.util.Log;
@@ -38,11 +36,11 @@ import com.kcirque.stockmanagementfinal.Adapter.DueDetailsAdapter;
 import com.kcirque.stockmanagementfinal.Common.Constant;
 import com.kcirque.stockmanagementfinal.Common.SharedPref;
 import com.kcirque.stockmanagementfinal.Database.Model.Customer;
-import com.kcirque.stockmanagementfinal.Database.Model.Salary;
 import com.kcirque.stockmanagementfinal.Database.Model.Sales;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.Interface.FragmentLoader;
-import com.kcirque.stockmanagementfinal.MainActivity;
+import com.kcirque.stockmanagementfinal.Activity.MainActivity;
+import com.kcirque.stockmanagementfinal.Interface.RecyclerItemClickListener;
 import com.kcirque.stockmanagementfinal.R;
 import com.kcirque.stockmanagementfinal.databinding.FragmentDueDetailsBinding;
 import com.rengwuxian.materialedittext.MaterialEditText;
@@ -136,12 +134,24 @@ public class DueDetailsFragment extends Fragment {
                         if (mSalesList.size() > 0) {
                             DueDetailsAdapter adapter = new DueDetailsAdapter(mContext, mSalesList);
                             mBinding.dueListRecyclerView.setAdapter(adapter);
+                            adapter.setItemClickListener(new RecyclerItemClickListener() {
+                                @Override
+                                public void onClick(View view, int position, Object object) {
+                                    Sales sales = (Sales) object;
+                                    Bundle salesBundle = new Bundle();
+                                    salesBundle.putSerializable(Constant.EXTRA_SALES, sales);
+                                    SalesDetailsFragment fragment = new SalesDetailsFragment();
+                                    fragment.setArguments(salesBundle);
+                                    mFragmentLoader.loadFragment(fragment, true, Constant.SALES_DETAILS_FRAGMENT_TAG);
+                                }
+                            });
+
                         }
                     }
 
                     @Override
                     public void onCancelled(DatabaseError databaseError) {
-
+                        Toast.makeText(mContext, databaseError.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
             } else {

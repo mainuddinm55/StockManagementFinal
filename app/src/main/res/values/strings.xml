@@ -155,6 +155,27 @@
     <string name="APP_ID">ca-app-pub-5235443421854743~8317584001</string>
     <string name="BANNER_AD_ID">ca-app-pub-5235443421854743/9538757210</string>
     <string name="REWARDED_VIDEO_AD_ID">ca-app-pub-5235443421854743/5801981743</string>
+    <string name="supplier_text">Supplier</string>
+    <string name="due_purchase">Due</string>
+    <string name="qty_text">Quantity</string>
+    <string name="payable_text">Payable</string>
+    <string name="old_price_text">Old Price</string>
+
+    <string name="contact_us">Mobile: +8801877-100000, \t\t+8801777-888661 \nWeb: www.kcirqueit.com \nSupport: info@kcirqueit.com, support@kcirqueit.com \nAddress: House-1/C,Road- 02, Sector-03, Uttara, Dhaka-1230</string>
+    <string name="kcirqueit">KCirque IT</string>
+    <string name="instruction_text">Stock Management app. this app uses to manage you stock. you can purchase, sales, customer, supplier,product etc. this provide also sales reports,stock reports, profit loss reports erc.\n
+        \n\nInstruction:\n1. Click on menu icon and add Category.\n2. Click on Product option then click plus (+) icon then add product.\n3. Click on menu icon and go to Supplier then add Supplier
+    \n4. Click Stock In then give the information and purchase the product.\n5. Click on Customer option and add Customer. \n6. Click to Sales option for sell product. give valid information and sell product.
+    \n7. For add expense click on menu icon then go to expense then add expense. \n8. For add Seller click on menu icon then go to Seller then add Seller.\n9. For giving salary to seller click on menu icon go to salary then add salary.
+        \n10. For send message seller or admin go to message and send message.\n11.You can see Sales report (today, 7 days, last week, 30 days, last month) click on menu icon then go to sales reports.\n12.You can see daily reports(sales, purchase, expense) by click daily reports.
+    \n13. You can see total due from customer click total due. in due you see list of customer which have due. click each customer for details and pay due.\n14. For see profit loss click on profit loss option then choose type of profit loss.
+    \n15. You can export your data into excel format. click on menu icon then click Export2XL.</string>
+    <string name="item_text">Qty : Name</string>
+    <string name="print_text">Print</string>
+    <string name="print_preview_text">Print Preview</string>
+    <string name="skip_text">Skip</string>
+    <string name="support_text">Support</string>
+    <string name="about_text">About App</string>
 
     <string-array name="stock_out_type">
         <item name="today_stock_text">Today Sales Reports</item>

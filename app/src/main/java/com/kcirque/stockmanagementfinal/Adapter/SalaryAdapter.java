@@ -12,6 +12,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.kcirque.stockmanagementfinal.Database.Model.Salary;
+import com.kcirque.stockmanagementfinal.Interface.RecyclerItemClickListener;
 import com.kcirque.stockmanagementfinal.R;
 
 import java.util.ArrayList;
@@ -22,6 +23,8 @@ public class SalaryAdapter extends RecyclerView.Adapter<SalaryAdapter.SalaryHold
     private Context mContext;
     private List<Salary> mSalaryList = new ArrayList<>();
     private List<Salary> mFilteredList = new ArrayList<>();
+
+    private RecyclerItemClickListener itemClickListener;
 
     public SalaryAdapter(Context context, List<Salary> salaries) {
         this.mContext = context;
@@ -38,8 +41,18 @@ public class SalaryAdapter extends RecyclerView.Adapter<SalaryAdapter.SalaryHold
     }
 
     @Override
-    public void onBindViewHolder(@NonNull SalaryHolder salaryHolder, int i) {
-        Salary salary = mFilteredList.get(i);
+    public void onBindViewHolder(@NonNull SalaryHolder salaryHolder, final int i) {
+
+        final Salary salary = mFilteredList.get(i);
+
+        View.OnClickListener clickListener = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (itemClickListener != null) {
+                    itemClickListener.onClick(v, i, salary);
+                }
+            }
+        };
         salaryHolder.slNoTextView.setText(String.valueOf(i + 1));
         salaryHolder.sellerNameTextView.setText(salary.getEmpName());
         salaryHolder.monthTextView.setText(salary.getMonth());
@@ -50,9 +63,19 @@ public class SalaryAdapter extends RecyclerView.Adapter<SalaryAdapter.SalaryHold
                 totalSalary = totalSalary + salary1.getAmount();
             }
             salaryHolder.linearLayout.setVisibility(View.VISIBLE);
-            salaryHolder.totalTextTextView.setText("Total SalaryForRoom");
+            salaryHolder.totalTextTextView.setText("Total Salary");
             salaryHolder.totalSalaryTextView.setText(String.valueOf(totalSalary));
+
+            salaryHolder.slNoTextView.setOnClickListener(clickListener);
+            salaryHolder.sellerNameTextView.setOnClickListener(clickListener);
+            salaryHolder.monthTextView.setOnClickListener(clickListener);
+            salaryHolder.amountTextView.setOnClickListener(clickListener);
+
         }
+    }
+
+    public void setItemClickListener(RecyclerItemClickListener itemClickListener) {
+        this.itemClickListener = itemClickListener;
     }
 
     @Override

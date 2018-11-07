@@ -9,6 +9,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -58,7 +60,8 @@ public class CustomerListAdapter extends RecyclerView.Adapter<CustomerListAdapte
         customerHolder.emailTextView.setText(mCustomerList.get(i).getEmail());
         customerHolder.nameTextView.setText(mCustomerList.get(i).getCustomerName());
         customerHolder.mobileTextView.setText(mCustomerList.get(i).getMobile());
-        customerHolder.imageView.setImageResource(R.drawable.ic_user);
+        Glide.with(mContext).load(mCustomerList.get(i).getImageUrl()).apply(RequestOptions.placeholderOf(R.drawable.ic_user))
+                .into(customerHolder.imageView);
 
         customerHolder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override

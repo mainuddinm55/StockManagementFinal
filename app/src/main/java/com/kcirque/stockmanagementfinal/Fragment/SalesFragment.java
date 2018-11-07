@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -15,11 +16,13 @@ import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SearchView;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.DatePicker;
@@ -35,6 +38,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.kcirque.stockmanagementfinal.Activity.PrintPreviewActivity;
 import com.kcirque.stockmanagementfinal.Adapter.CustomerDialogAdapter;
 import com.kcirque.stockmanagementfinal.Adapter.ProductSellAdapter;
 import com.kcirque.stockmanagementfinal.Common.Constant;
@@ -42,19 +46,21 @@ import com.kcirque.stockmanagementfinal.Common.DateConverter;
 import com.kcirque.stockmanagementfinal.Common.SharedPref;
 import com.kcirque.stockmanagementfinal.Database.Model.Customer;
 import com.kcirque.stockmanagementfinal.Database.Model.DateAmountSales;
+import com.kcirque.stockmanagementfinal.Database.Model.Product;
 import com.kcirque.stockmanagementfinal.Database.Model.ProductSell;
-import com.kcirque.stockmanagementfinal.Database.Model.Profit;
 import com.kcirque.stockmanagementfinal.Database.Model.Sales;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.Database.Model.StockHand;
 import com.kcirque.stockmanagementfinal.Interface.FragmentLoader;
 import com.kcirque.stockmanagementfinal.Interface.RecyclerItemClickListener;
-import com.kcirque.stockmanagementfinal.MainActivity;
+import com.kcirque.stockmanagementfinal.Activity.MainActivity;
 import com.kcirque.stockmanagementfinal.R;
-import com.kcirque.stockmanagementfinal.SaleProductActivity;
+import com.kcirque.stockmanagementfinal.Activity.SaleProductActivity;
 import com.kcirque.stockmanagementfinal.databinding.FragmentSalesBinding;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -63,6 +69,7 @@ import java.util.List;
 public class SalesFragment extends Fragment {
 
     private static final String TAG = "SalesFragment";
+    public static final int PRINT_RESULT_CODE = 40;
     private static SalesFragment INSTANCE;
     public static final int GET_PRODUCT_REQUEST_CODE = 10;
     private FragmentSalesBinding mBinding;
@@ -76,6 +83,7 @@ public class SalesFragment extends Fragment {
 
     private List<Customer> mCustomerList = new ArrayList<>();
     private List<ProductSell> mProductSellList = new ArrayList<>();
+    private List<ProductSell> mOldPriceProduct = new ArrayList<>();
     private CustomerDialogAdapter mAdapter;
     private ProductSellAdapter mProductSellAdapter;
 
@@ -142,6 +150,7 @@ public class SalesFragment extends Fragment {
         mCustomerRef = mAdminRef.child(Constant.CUSTOMER_REF);
         mSalesRef = mAdminRef.child(Constant.SALES_REF);
         mStockRef = mAdminRef.child(Constant.STOCK_HAND_REF);
+
         mDateConverter = new DateConverter();
 
         mSalesDate = mDateConverter.getCurrentDate();
@@ -192,6 +201,9 @@ public class SalesFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, SaleProductActivity.class);
+                if (mOldPriceProduct.size() > 0) {
+                    intent.putExtra(Constant.EXTRA_OLD_PRICE_PRODUCT_LIST, (Serializable) mOldPriceProduct);
+                }
                 startActivityForResult(intent, GET_PRODUCT_REQUEST_CODE);
             }
         });
@@ -281,6 +293,11 @@ public class SalesFragment extends Fragment {
                         return;
                     }
                 }
+                if (mPaid > mTotal) {
+                    mBinding.paidAmountEdittext.setError("Paid amount must be under total");
+                    mBinding.paidAmountEdittext.requestFocus();
+                    return;
+                }
                 if (mIsMercantileCustomer && mPaid <= 0) {
                     AlertDialog.Builder warningDialog = new AlertDialog.Builder(mContext);
                     warningDialog.setTitle("Paid warning");
@@ -307,12 +324,6 @@ public class SalesFragment extends Fragment {
                 }
             }
         });
-    }
-
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        Log.e(TAG, "onActivityCreated: ");
     }
 
 
@@ -374,35 +385,44 @@ public class SalesFragment extends Fragment {
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == GET_PRODUCT_REQUEST_CODE && data != null) {
-            ProductSell productSell = (ProductSell) data.getSerializableExtra(Constant.EXTRA_PRODUCT_SELL);
-            double buyPrice = data.getDoubleExtra(Constant.EXTRA_BUY_PRICE, 0);
-            /*if (mProductSellList.size() > 0) {
-                for (ProductSell sell : mProductSellList){
-                    if (sell.getProductId()==productSell.getProductId()){
 
-                    }
+            ProductSell oldPriceProduct = (ProductSell) data.getSerializableExtra(Constant.EXTRA_OLD_PRICE_PRODUCT);
+            ProductSell newPriceProduct = (ProductSell) data.getSerializableExtra(Constant.EXTRA_NEW_PRICE_PRODUCT);
+            double buyPrice = data.getDoubleExtra(Constant.EXTRA_BUY_PRICE, 0);
+            if (oldPriceProduct != null) {
+                if (newPriceProduct != null) {
+                    mSubTotal = mSubTotal + (oldPriceProduct.getPrice() * oldPriceProduct.getQuantity()) + (newPriceProduct.getQuantity() * newPriceProduct.getPrice());
+                    mOldPriceProduct.add(oldPriceProduct);
+                    mProductSellList.add(oldPriceProduct);
+                    mProductSellList.add(newPriceProduct);
+                } else {
+                    mSubTotal = mSubTotal + (oldPriceProduct.getPrice() * oldPriceProduct.getQuantity());
+                    mOldPriceProduct.add(oldPriceProduct);
+                    mProductSellList.add(oldPriceProduct);
                 }
-            }*/
-            mSubTotal = mSubTotal + (productSell.getQuantity() * productSell.getPrice());
+            } else if (newPriceProduct != null) {
+                mSubTotal = mSubTotal + (newPriceProduct.getQuantity() * newPriceProduct.getPrice());
+                mProductSellList.add(newPriceProduct);
+            }
             mTotal = mSubTotal - mDiscount;
             mDue = mTotal - mPaid;
             mTotalStockOutAmount = mTotalStockOutAmount + buyPrice;
             mBinding.totalAmountTextview.setText(String.valueOf(mTotal));
-            mProductSellList.add(productSell);
             mBinding.subTotalAmountTextView.setText(String.valueOf(mSubTotal));
             mBinding.dueAmountTextview.setText(String.valueOf(mDue));
             mBinding.addProductTextView.setError(null);
             mBinding.addProductTextView.clearFocus();
             mProductSellAdapter.notifyDataSetChanged();
+        } else if (requestCode == PRINT_RESULT_CODE) {
+            mFragmentLoader.loadFragment(HomeFragment.getInstance(), false, Constant.HOME_FRAGMENT_TAG);
         }
     }
 
     private void sellProduct() {
         showProgressDialog();
         String key = mSalesRef.push().getKey();
-        Sales sales = new Sales(key, mCustomerId, mCustomerName, mSalesDate, mProductSellList, mSubTotal, mDiscount, mTotal, mPaid, mDue);
+        final Sales sales = new Sales(key, mCustomerId, mCustomerName, mSalesDate, mProductSellList, mSubTotal, mDiscount, mTotal, mPaid, mDue);
         mSalesRef.child(key).setValue(sales).addOnCompleteListener(new OnCompleteListener<Void>() {
-            private int sellQuantity;
 
             @Override
             public void onComplete(@NonNull Task<Void> task) {
@@ -412,21 +432,7 @@ public class SalesFragment extends Fragment {
                         mCustomerRef.child(mCustomerKey).child("due").setValue(mTotalDue);
                         mCustomerRef.child(mCustomerKey).child("dueDate").setValue(mSalesDate);
                     }
-                    for (final ProductSell productSell : mProductSellList) {
-                        mStockRef.child(String.valueOf(productSell.getProductId())).addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(DataSnapshot dataSnapshot) {
-                                StockHand stockHand = dataSnapshot.getValue(StockHand.class);
-                                sellQuantity = stockHand.getSellQuantity();
-                                mStockRef.child(String.valueOf(productSell.getProductId())).child("sellQuantity").setValue(sellQuantity + productSell.getQuantity());
-                            }
 
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
-
-                            }
-                        });
-                    }
                     DateAmountSales dateAmountSales = new DateAmountSales(mSalesDate, mTotal, mTotalStockOutAmount);
                     DatabaseReference profitRef = mAdminRef.child(Constant.PROFIT_REF);
                     DatabaseReference salesRef = profitRef.child(Constant.SALES_REF);
@@ -436,7 +442,8 @@ public class SalesFragment extends Fragment {
                             if (task.isSuccessful()) {
                                 Snackbar.make(mBinding.rootView, "Product Sell", Snackbar.LENGTH_SHORT).show();
                                 dismissProgressDialog();
-                                mFragmentLoader.loadFragment(HomeFragment.getInstance(), false, Constant.HOME_FRAGMENT_TAG);
+                                new UpdateDataTask().execute();
+                                showIsPrintDialog(sales);
                             }
                         }
                     });
@@ -450,6 +457,85 @@ public class SalesFragment extends Fragment {
                 dismissProgressDialog();
             }
         });
+
+
+    }
+
+    private void showIsPrintDialog(final Sales sales) {
+        AlertDialog.Builder warningDialog = new AlertDialog.Builder(mContext);
+        warningDialog.setTitle("Print Bill");
+        warningDialog.setMessage("Do you want to print bill");
+        warningDialog.setCancelable(false);
+        warningDialog.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+                Intent intent = new Intent(mContext, PrintPreviewActivity.class);
+                intent.putExtra(Constant.EXTRA_SALES, sales);
+                intent.putExtra(Constant.EXTRA_PRINT_PREVIEW, false);
+                startActivityForResult(intent, PRINT_RESULT_CODE);
+            }
+        });
+        warningDialog.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+                mFragmentLoader.loadFragment(HomeFragment.getInstance(), false, Constant.HOME_FRAGMENT_TAG);
+            }
+        });
+
+        warningDialog.show();
+    }
+
+    class UpdateDataTask extends AsyncTask<Void, Void, Void> {
+        private int sellQuantity;
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+
+            for (final ProductSell productSell : mProductSellList) {
+                mStockRef.child(String.valueOf(productSell.getProductId())).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        StockHand stockHand = dataSnapshot.getValue(StockHand.class);
+                        sellQuantity = stockHand.getSellQuantity();
+                        mStockRef.child(String.valueOf(productSell.getProductId())).child("sellQuantity").setValue(sellQuantity + productSell.getQuantity());
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+            }
+
+            final DatabaseReference productRef = mAdminRef.child(Constant.PRODUCT_REF);
+            Log.e(TAG, "onComplete: " + mOldPriceProduct.size());
+            for (final ProductSell productSell : mOldPriceProduct) {
+                productRef.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        for (DataSnapshot data : dataSnapshot.getChildren()) {
+                            Product product = data.getValue(Product.class);
+                            if (product != null && product.getProductId() == productSell.getProductId()) {
+                                HashMap<String, Object> hashMap = new HashMap<>();
+                                int hasQty = product.getOldPriceQuantity() - productSell.getQuantity();
+                                hashMap.put("oldPriceQuantity", hasQty);
+                                data.getRef().updateChildren(hashMap);
+                                productRef.removeEventListener(this);
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+            }
+
+            return null;
+        }
     }
 
     @Override
@@ -460,6 +546,37 @@ public class SalesFragment extends Fragment {
         mFragmentLoader = (FragmentLoader) context;
     }
 
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.print_menu, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_print) {
+            showPrintPreview();
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void showPrintPreview() {
+        if (mProductSellList.size() > 0 && mCustomerName != null) {
+            Sales sales = new Sales(null, mCustomerId, mCustomerName, mSalesDate, mProductSellList, mSubTotal, mDiscount, mTotal, mPaid, mDue);
+            Intent intent = new Intent(mContext.getApplicationContext(), PrintPreviewActivity.class);
+            intent.putExtra(Constant.EXTRA_SALES, sales);
+            intent.putExtra(Constant.EXTRA_PRINT_PREVIEW, true);
+            startActivityForResult(intent, PRINT_RESULT_CODE);
+        } else {
+            Snackbar.make(mBinding.rootView, "Please Select Product and Customer", Snackbar.LENGTH_SHORT).show();
+        }
+    }
 
     @Override
     public void onPause() {

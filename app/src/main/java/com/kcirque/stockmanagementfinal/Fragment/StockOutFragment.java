@@ -54,7 +54,7 @@ public class StockOutFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        mBinding = DataBindingUtil.inflate(inflater,R.layout.fragment_stock_out, container, false);
+        mBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_stock_out, container, false);
         return mBinding.getRoot();
     }
 
@@ -62,14 +62,14 @@ public class StockOutFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         getActivity().setTitle("Sales Reports");
         String[] stockOutType = getResources().getStringArray(R.array.stock_out_type);
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(mContext,R.layout.stock_type_list_item,stockOutType);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(mContext, R.layout.stock_type_list_item, stockOutType);
         mBinding.stockOutTypeListView.setAdapter(adapter);
 
         mBinding.stockOutTypeListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-                switch (position){
+                switch (position) {
                     case 0:
                         mType = TODAY_TYPE;
                         break;
@@ -88,10 +88,10 @@ public class StockOutFragment extends Fragment {
                 }
 
                 Bundle bundle = new Bundle();
-                bundle.putInt(Constant.EXTRA_STOCK_OUT_TYPE,mType);
+                bundle.putInt(Constant.EXTRA_STOCK_OUT_TYPE, mType);
                 StockOutReportFragment fragment = StockOutReportFragment.getInstance();
                 fragment.setArguments(bundle);
-                mFragmentLoader.loadFragment(fragment,true,Constant.STOCK_OUT_REPORT_FRAGMENT_TAG);
+                mFragmentLoader.loadFragment(fragment, true, Constant.STOCK_OUT_REPORT_FRAGMENT_TAG);
 
             }
         });

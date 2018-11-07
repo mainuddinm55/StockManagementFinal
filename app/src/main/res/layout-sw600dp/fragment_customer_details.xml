@@ -11,11 +11,19 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/customer_image"
+                android:layout_width="150dp"
+                android:layout_height="150dp"
+                android:layout_centerHorizontal="true"
+                android:padding="5dp"
+                android:src="@drawable/ic_user" />
+
             <LinearLayout
                 android:id="@+id/customer_name_layout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/product_image_card_view"
+                android:layout_below="@id/customer_image"
                 android:layout_marginTop="10dp"
                 android:orientation="horizontal">
 
@@ -184,7 +192,6 @@
             </LinearLayout>
 
             <Button
-                android:visibility="gone"
                 android:id="@+id/update_customer_btn"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -193,7 +200,8 @@
                 android:layout_margin="20dp"
                 android:background="@color/colorPrimary"
                 android:text="@string/update_customer"
-                android:textColor="@android:color/white" />
+                android:textColor="@android:color/white"
+                android:visibility="gone" />
 
         </RelativeLayout>
     </ScrollView>

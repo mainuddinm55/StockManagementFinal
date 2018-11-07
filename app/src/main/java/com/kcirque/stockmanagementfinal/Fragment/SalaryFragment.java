@@ -8,7 +8,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,7 +29,8 @@ import com.kcirque.stockmanagementfinal.Common.SharedPref;
 import com.kcirque.stockmanagementfinal.Database.Model.Salary;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.Interface.FragmentLoader;
-import com.kcirque.stockmanagementfinal.MainActivity;
+import com.kcirque.stockmanagementfinal.Activity.MainActivity;
+import com.kcirque.stockmanagementfinal.Interface.RecyclerItemClickListener;
 import com.kcirque.stockmanagementfinal.R;
 import com.kcirque.stockmanagementfinal.databinding.FragmentSalaryBinding;
 
@@ -118,6 +118,18 @@ public class SalaryFragment extends Fragment {
             mBinding.progressBar.setVisibility(View.GONE);
             Snackbar.make(mBinding.rootView, "No internet connection", Snackbar.LENGTH_SHORT).show();
         }
+
+        mAdapter.setItemClickListener(new RecyclerItemClickListener() {
+            @Override
+            public void onClick(View view, int position, Object object) {
+                Salary salary = (Salary) object;
+                Bundle bundle = new Bundle();
+                bundle.putSerializable(Constant.EXTRA_SALARY, salary);
+                SalaryDetailsFragment fragment = new SalaryDetailsFragment();
+                fragment.setArguments(bundle);
+                mFragmentLoader.loadFragment(fragment, true, Constant.SALARY_DETAILS_FRAGMENT_TAG);
+            }
+        });
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(mContext, android.R.layout.simple_spinner_dropdown_item, months);
         mBinding.monthSpinner.setAdapter(adapter);
         mBinding.monthSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {

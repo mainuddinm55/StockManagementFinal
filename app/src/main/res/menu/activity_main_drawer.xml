@@ -1,64 +1,126 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
+    <group android:id="@+id/nav_home_group">
+        <item
+            android:id="@+id/nav_home"
+            android:icon="@drawable/ic_home"
+            android:title="@string/home_text" />
+    </group>
+    <group android:id="@+id/nav_category_group">
+        <item
+            android:id="@+id/nav_category"
+            android:icon="@drawable/ic_category"
+            android:title="@string/add_category_text" />
+    </group>
 
-    <item
-        android:id="@+id/nav_home"
-        android:icon="@drawable/ic_home"
-        android:title="@string/home_text" />
-    <item
-        android:id="@+id/nav_category"
-        android:icon="@drawable/ic_category"
-        android:title="@string/add_category_text" />
-    <item
-        android:id="@+id/nav_reminder"
-        android:icon="@drawable/ic_reminder"
-        android:title="@string/reminder"
-        app:actionViewClass="android.widget.TextView" />
-    <item
-        android:id="@+id/nav_seller"
-        android:icon="@drawable/client"
-        android:title="@string/seller_text"
-        />
-    <item
-        android:id="@+id/nav_salry"
-        android:icon="@drawable/ic_salary"
-        android:title="@string/salary_text" />
+    <group android:id="@+id/nav_reminder_group">
+        <item
+            android:id="@+id/nav_reminder"
+            android:icon="@drawable/ic_reminder"
+            android:title="@string/reminder"
+            app:actionViewClass="android.widget.TextView" />
+    </group>
 
-    <item
-        android:id="@+id/nav_message"
-        android:icon="@drawable/ic_email"
-        android:title="@string/message_text"
-        app:actionViewClass="android.widget.TextView" />
-    <item
-        android:id="@+id/nav_stock_out"
-        android:icon="@drawable/ic_stock_out"
-        android:title="@string/sales_reports_text" />
 
-    <item
-        android:id="@+id/nav_daily_report"
-        android:icon="@drawable/ic_chart"
-        android:title="@string/daily_report_text" />
-    <item
-        android:id="@+id/nav_due"
-        android:icon="@drawable/ic_due"
-        android:title="@string/total_due_text" />
-    <item
-        android:id="@+id/nav_add_expense"
-        android:icon="@drawable/ic_expense"
-        android:title="@string/expense_text" />
-    <item
-        android:id="@+id/nav_settings"
-        android:icon="@drawable/ic_settings"
-        android:title="@string/action_settings" />
+    <group android:id="@+id/nav_seller_group">
+        <item
+            android:id="@+id/nav_seller"
+            android:icon="@drawable/client"
+            android:title="@string/seller_text" />
+    </group>
 
-    <item android:id="@+id/nav_export_to_xl"
-        android:title="@string/export_to_xl"
-        android:icon="@drawable/ic_excel"/>
 
-    <item
-        android:id="@+id/nav_logout"
-        android:icon="@drawable/ic_logout"
-        android:title="@string/logout_text" />
+    <group android:id="@+id/nav_supplier_group">
+        <item
+            android:id="@+id/nav_supplier"
+            android:icon="@drawable/client"
+            android:title="@string/supplier_text" />
+    </group>
+
+
+    <group android:id="@+id/nav_salary_group">
+        <item
+            android:id="@+id/nav_salry"
+            android:icon="@drawable/ic_salary"
+            android:title="@string/salary_text" />
+    </group>
+
+
+    <group android:id="@+id/nav_message_group">
+        <item
+            android:id="@+id/nav_message"
+            android:icon="@drawable/ic_email"
+            android:title="@string/message_text"
+            app:actionViewClass="android.widget.TextView" />
+    </group>
+
+
+    <group android:id="@+id/nav_stock_out_group">
+        <item
+            android:id="@+id/nav_stock_out"
+            android:icon="@drawable/ic_stock_out"
+            android:title="@string/sales_reports_text" />
+    </group>
+
+
+    <group android:id="@+id/nav_daily_report_group">
+        <item
+            android:id="@+id/nav_daily_report"
+            android:icon="@drawable/ic_chart"
+            android:title="@string/daily_report_text" />
+    </group>
+
+
+    <group android:id="@+id/nav_due_group">
+        <item
+            android:id="@+id/nav_due"
+            android:icon="@drawable/ic_due"
+            android:title="@string/total_due_text" />
+    </group>
+
+
+    <group android:id="@+id/nav_add_expense_group">
+        <item
+            android:id="@+id/nav_add_expense"
+            android:icon="@drawable/ic_expense"
+            android:title="@string/expense_text" />
+    </group>
+
+    <group android:id="@+id/nav_settings_group">
+        <item
+            android:id="@+id/nav_settings"
+            android:icon="@drawable/ic_settings"
+            android:title="@string/action_settings" />
+    </group>
+
+
+    <group android:id="@+id/nav_export_to_xl_group">
+        <item
+            android:id="@+id/nav_export_to_xl"
+            android:icon="@drawable/ic_excel"
+            android:title="@string/export_to_xl" />
+    </group>
+
+    <group android:id="@+id/nav_logout_group">
+        <item
+            android:id="@+id/nav_logout"
+            android:icon="@drawable/ic_logout"
+            android:title="@string/logout_text" />
+    </group>
+
+    <group android:id="@+id/nav_help_group">
+        <item
+            android:id="@+id/nav_help"
+            android:icon="@drawable/help"
+            android:title="@string/support_text" />
+    </group>
+  <group android:id="@+id/nav_about_group">
+        <item
+            android:id="@+id/nav_about"
+            android:icon="@drawable/instructions"
+            android:title="@string/about_text" />
+    </group>
+
 
 </menu>

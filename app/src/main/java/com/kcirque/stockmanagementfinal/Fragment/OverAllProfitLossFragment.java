@@ -20,6 +20,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -38,7 +39,7 @@ import com.kcirque.stockmanagementfinal.Database.Model.DateAmountSalary;
 import com.kcirque.stockmanagementfinal.Database.Model.DateAmountSales;
 import com.kcirque.stockmanagementfinal.Database.Model.Profit;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
-import com.kcirque.stockmanagementfinal.MainActivity;
+import com.kcirque.stockmanagementfinal.Activity.MainActivity;
 import com.kcirque.stockmanagementfinal.R;
 import com.kcirque.stockmanagementfinal.databinding.FragmentOverAllProfitLossBinding;
 
@@ -201,6 +202,7 @@ public class OverAllProfitLossFragment extends Fragment {
                 @Override
                 public void onCancelled(DatabaseError databaseError) {
                     mBinding.progressBar.setVisibility(View.GONE);
+                    Toast.makeText(mContext, databaseError.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
         } else {

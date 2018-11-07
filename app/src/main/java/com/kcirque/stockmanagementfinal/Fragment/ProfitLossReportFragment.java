@@ -7,13 +7,10 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -28,20 +25,10 @@ import com.kcirque.stockmanagementfinal.Database.Model.DateAmountCost;
 import com.kcirque.stockmanagementfinal.Database.Model.DateAmountPurchase;
 import com.kcirque.stockmanagementfinal.Database.Model.DateAmountSalary;
 import com.kcirque.stockmanagementfinal.Database.Model.DateAmountSales;
-import com.kcirque.stockmanagementfinal.Database.Model.Expense;
-import com.kcirque.stockmanagementfinal.Database.Model.ProductSell;
-import com.kcirque.stockmanagementfinal.Database.Model.Profit;
-import com.kcirque.stockmanagementfinal.Database.Model.Purchase;
-import com.kcirque.stockmanagementfinal.Database.Model.Salary;
-import com.kcirque.stockmanagementfinal.Database.Model.Sales;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
-import com.kcirque.stockmanagementfinal.Database.Model.StockHand;
-import com.kcirque.stockmanagementfinal.MainActivity;
+import com.kcirque.stockmanagementfinal.Activity.MainActivity;
 import com.kcirque.stockmanagementfinal.R;
 import com.kcirque.stockmanagementfinal.databinding.FragmentProfitLossReportBinding;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -106,7 +93,7 @@ public class ProfitLossReportFragment extends Fragment {
         DatabaseReference salesRef = profitRef.child(Constant.SALES_REF);
         DatabaseReference purchaseRef = profitRef.child(Constant.PURCHASE_REF);
         DatabaseReference costRef = profitRef.child(Constant.COST_REF);
-        final DatabaseReference salaryRef = profitRef.child(Constant.SALES_REF);
+        final DatabaseReference salaryRef = profitRef.child(Constant.SALARY_REF);
         Bundle bundle = getArguments();
         if (bundle != null) {
             mProfitType = bundle.getInt(Constant.EXTRA_PROFIT_LOSS_TYPE);

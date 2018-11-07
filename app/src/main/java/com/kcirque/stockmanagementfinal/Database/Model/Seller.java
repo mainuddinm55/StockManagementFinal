@@ -10,6 +10,7 @@ public class Seller implements Serializable {
     private String adminUid;
     private String mobile;
     private String status;
+    private String imageUrl;
 
     public Seller(String key, String name, String email, String password, String adminUid, String mobile, String status) {
         this.key = key;
@@ -79,5 +80,13 @@ public class Seller implements Serializable {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }

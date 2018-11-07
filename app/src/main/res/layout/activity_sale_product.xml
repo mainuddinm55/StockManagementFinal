@@ -7,7 +7,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        tools:context=".SaleProductActivity">
+        tools:context=".Activity.SaleProductActivity">
 
         <android.support.design.widget.AppBarLayout
             android:layout_width="match_parent"
@@ -84,6 +84,7 @@
                 android:textAlignment="viewStart"
                 android:textSize="16sp"
                 android:hint="@string/quantity_text" />
+
             <TextView
                 android:id="@+id/stock_hand_text_view"
                 android:layout_width="0dp"

@@ -16,7 +16,7 @@
             android:padding="5dp"
             android:layout_width="80dp"
             android:layout_height="80dp"
-            tools:src="@drawable/ic_user"/>
+            tools:src="@drawable/ic_user" />
 
         <LinearLayout
             android:padding="5dp"
@@ -32,6 +32,7 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                 tools:text="@string/customer_name_text" />
+
             <TextView
                 android:id="@+id/customer_mobile_textview"
                 android:padding="2dp"
@@ -39,6 +40,7 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="@style/TextAppearance.AppCompat.Small"
                 tools:text="@string/customer_name_text" />
+
             <TextView
                 android:id="@+id/customer_email_textview"
                 android:padding="2dp"
@@ -64,7 +66,8 @@
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:gravity="center"
-                tools:text="@string/deposit_text"/>
+                tools:text="@string/deposit_text" />
+
             <TextView
                 android:id="@+id/debit_amount_text_view"
                 android:textAppearance="@style/TextAppearance.AppCompat.Small"
@@ -72,7 +75,7 @@
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:textAlignment="center"
-                tools:text="@string/deposit_text"/>
+                tools:text="@string/deposit_text" />
 
         </LinearLayout>
     </LinearLayout>

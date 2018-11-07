@@ -2,7 +2,7 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context=".ChatActivity">
+    tools:context=".Activity.ChatActivity">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -60,6 +60,10 @@
             android:padding="5dp">
 
             <EditText
+                android:layout_toStartOf="@id/pic_btn"
+                android:singleLine="false"
+                android:layout_toLeftOf="@id/pic_btn"
+                android:inputType="textMultiLine"
                 android:id="@+id/message_edit_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -86,7 +90,7 @@
                 android:layout_toStartOf="@id/send_btn"
                 android:layout_toLeftOf="@id/send_btn"
                 android:contentDescription="@string/send_msg"
-                android:background="@drawable/placeholder"/>
+                android:background="@drawable/placeholder" />
         </RelativeLayout>
     </RelativeLayout>
 </layout>

@@ -2,8 +2,12 @@ package com.kcirque.stockmanagementfinal.Fragment;
 
 
 import android.app.ProgressDialog;
+import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.databinding.DataBindingUtil;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -13,32 +17,44 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.MimeTypeMap;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.kcirque.stockmanagementfinal.Common.Constant;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.Interface.FragmentLoader;
-import com.kcirque.stockmanagementfinal.MainActivity;
+import com.kcirque.stockmanagementfinal.Activity.MainActivity;
 import com.kcirque.stockmanagementfinal.R;
 import com.kcirque.stockmanagementfinal.databinding.FragmentSellerAddBinding;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
+
+import static android.app.Activity.RESULT_OK;
 
 /**
  * A simple {@link Fragment} subclass.
  */
 public class SellerAddFragment extends Fragment {
 
+    private static final int TAKE_PHOTO_REQUEST_CODE = 30;
     private static SellerAddFragment INSTANCE;
     private static final String TAG = "Add Seller";
     private FragmentSellerAddBinding mBinding;
@@ -51,6 +67,17 @@ public class SellerAddFragment extends Fragment {
     private ProgressDialog progressDialog;
     private String mStatus = "Active";
     private Seller mSeller;
+    private View.OnClickListener changeImageClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.setType("image/*");
+            startActivityForResult(intent, TAKE_PHOTO_REQUEST_CODE);
+        }
+    };
+    private Uri mImageUri;
+    private DatabaseReference sellerRef;
+    private Bundle bundle;
 
     public static synchronized SellerAddFragment getInstance() {
         if (INSTANCE == null) {
@@ -66,6 +93,12 @@ public class SellerAddFragment extends Fragment {
 
 
     @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.e(TAG, "onDestroy: ");
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
@@ -78,7 +111,7 @@ public class SellerAddFragment extends Fragment {
         final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
         if (user != null) {
-            Bundle bundle = getArguments();
+            bundle = getArguments();
             if (bundle != null) {
                 mSeller = (Seller) bundle.getSerializable(Constant.EXTRA_SELLER);
                 getActivity().setTitle("Update Seller");
@@ -87,10 +120,13 @@ public class SellerAddFragment extends Fragment {
                 mBinding.sellerEmailEditText.setText(mSeller.getEmail());
                 mBinding.passwordLayout.setVisibility(View.GONE);
                 mBinding.confirmPasswordLayout.setVisibility(View.GONE);
+                Glide.with(mContext).load(mSeller.getImageUrl()).apply(RequestOptions.placeholderOf(R.drawable.ic_user))
+                        .into(mBinding.sellerImage);
                 mBinding.statusRadioGroup.check(mSeller.getStatus().equals("Active") ? R.id.active_radio_btn : R.id.deactivate_radio_btn);
                 mBinding.addSellerBtn.setText("Update");
             } else {
                 getActivity().setTitle("Add a Seller");
+
             }
             mBinding.statusRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
                 @Override
@@ -109,7 +145,15 @@ public class SellerAddFragment extends Fragment {
                     }
                 }
             });
+            mBinding.changeImageBtn.setOnClickListener(changeImageClickListener);
+            mBinding.sellerImage.setOnClickListener(changeImageClickListener);
         }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.e(TAG, "onResume: ");
     }
 
     private void updateSeller() {
@@ -147,6 +191,9 @@ public class SellerAddFragment extends Fragment {
                         public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
                             dismissProgressDialog();
                             Toast.makeText(mContext, "Seller Updated", Toast.LENGTH_SHORT).show();
+                            if (mImageUri != null) {
+                                new UploadTask(mSeller.getKey()).doInBackground(mImageUri);
+                            }
                             mFragmentLoader.loadFragment(SellerFragment.getInstance(), true, Constant.SELLER_FRAGMENT_TAG);
                         }
                     }
@@ -173,8 +220,8 @@ public class SellerAddFragment extends Fragment {
             mSellerEmail = mBinding.sellerEmailEditText.getText().toString();
             mSellerMobile = mBinding.sellerMobileEditText.getText().toString();
             DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
-            DatabaseReference sellerRef = rootRef.child(Constant.SELLER_REF);
-            String key = sellerRef.push().getKey();
+            sellerRef = rootRef.child(Constant.SELLER_REF);
+            final String key = sellerRef.push().getKey();
             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
             String uId = user.getUid();
 
@@ -187,6 +234,9 @@ public class SellerAddFragment extends Fragment {
                         if (task.isSuccessful()) {
                             dismissProgressDialog();
                             Toast.makeText(mContext, "Seller Added", Toast.LENGTH_SHORT).show();
+                            if (mImageUri != null) {
+                                new UploadTask(key).doInBackground(mImageUri);
+                            }
                             mFragmentLoader.loadFragment(SellerFragment.getInstance(), true, Constant.SELLER_FRAGMENT_TAG);
                         }
                     }
@@ -234,13 +284,18 @@ public class SellerAddFragment extends Fragment {
     }
 
     @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == TAKE_PHOTO_REQUEST_CODE && resultCode == RESULT_OK) {
+            mImageUri = data.getData();
+            Glide.with(mContext).load(mImageUri).apply(RequestOptions.placeholderOf(R.drawable.ic_user))
+                    .into(mBinding.sellerImage);
+        }
+    }
+
+    @Override
     public void onPause() {
         super.onPause();
-        mBinding.sellerNameEditText.setText(null);
-        mBinding.sellerEmailEditText.setText(null);
-        mBinding.confirmPasswordEditText.setText(null);
-        mBinding.sellerPasswordEditText.setText(null);
-        mBinding.sellerMobileEditText.setText(null);
     }
 
     private void showProgressDialog() {
@@ -253,5 +308,42 @@ public class SellerAddFragment extends Fragment {
     private void dismissProgressDialog() {
         if (progressDialog != null)
             progressDialog.dismiss();
+    }
+
+    private String getFileExtension(Uri uri) {
+        ContentResolver cR = mContext.getContentResolver();
+        MimeTypeMap mime = MimeTypeMap.getSingleton();
+        return mime.getExtensionFromMimeType(cR.getType(uri));
+    }
+
+    class UploadTask extends AsyncTask<Uri, Void, Void> {
+        private final String sellerKey;
+
+        public UploadTask(String sellerKey) {
+            this.sellerKey = sellerKey;
+        }
+
+        @Override
+        protected Void doInBackground(Uri... uris) {
+            StorageReference mStorageRef = FirebaseStorage.getInstance().getReference(Constant.SELLER_REF);
+            String fileName = new SimpleDateFormat("yyyyMMdd_HHmmssSSS").format(new Date());
+            StorageReference fileReference = mStorageRef.child(fileName + "." + getFileExtension(uris[0]));
+            fileReference.putFile(uris[0]).addOnSuccessListener(new OnSuccessListener<com.google.firebase.storage.UploadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(com.google.firebase.storage.UploadTask.TaskSnapshot taskSnapshot) {
+                    String imageUrl = taskSnapshot.getDownloadUrl().toString();
+                    HashMap<String, Object> hashMap = new HashMap<>();
+                    hashMap.put("imageUrl", imageUrl);
+                    sellerRef.child(sellerKey).updateChildren(hashMap);
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Log.e(TAG, "onFailure: " + e.getMessage());
+                }
+            });
+
+            return null;
+        }
     }
 }

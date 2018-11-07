@@ -40,7 +40,7 @@
         tools:text="@string/sell_qty_text"
         android:textAlignment="center"
         android:textColor="@android:color/darker_gray"
-        android:textAppearance="@style/TextAppearance.AppCompat.Large"/>
+        android:textAppearance="@style/TextAppearance.AppCompat.Large" />
 
     <TextView
         android:id="@+id/total_sell_amount_text_view"

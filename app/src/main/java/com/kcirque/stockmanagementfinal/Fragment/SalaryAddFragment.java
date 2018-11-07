@@ -31,11 +31,10 @@ import com.kcirque.stockmanagementfinal.Adapter.SellerSpinnerAdapter;
 import com.kcirque.stockmanagementfinal.Common.Constant;
 import com.kcirque.stockmanagementfinal.Common.DateConverter;
 import com.kcirque.stockmanagementfinal.Database.Model.DateAmountSalary;
-import com.kcirque.stockmanagementfinal.Database.Model.Profit;
 import com.kcirque.stockmanagementfinal.Database.Model.Salary;
 import com.kcirque.stockmanagementfinal.Database.Model.Seller;
 import com.kcirque.stockmanagementfinal.Interface.FragmentLoader;
-import com.kcirque.stockmanagementfinal.MainActivity;
+import com.kcirque.stockmanagementfinal.Activity.MainActivity;
 import com.kcirque.stockmanagementfinal.R;
 import com.kcirque.stockmanagementfinal.databinding.FragmentSalaryAddBinding;
 
@@ -86,7 +85,7 @@ public class SalaryAddFragment extends Fragment {
         mDateConverter = new DateConverter();
         FirebaseAuth auth = FirebaseAuth.getInstance();
         final FirebaseUser user = auth.getCurrentUser();
-        getActivity().setTitle("Employee SalaryForRoom");
+        getActivity().setTitle("Employee Salary");
         DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference(Constant.STOCK_MGT_REF);
         final DatabaseReference adminRef;
         adminRef = rootRef.child(user.getUid());
