@@ -1,4 +1,4 @@
-# Inventory Management
+# Inventory Management App
 
 Demo
 
