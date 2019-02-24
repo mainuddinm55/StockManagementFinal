@@ -1,5 +1,7 @@
 # StockManagementFinal
 
 Demo
-Email: 
-Password: 
+
+Email: admin@gmail.com  
+
+Password: 123456
