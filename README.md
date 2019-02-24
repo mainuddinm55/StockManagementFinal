@@ -1,0 +1,5 @@
+# StockManagementFinal
+
+Demo
+Email: 
+Password: 
