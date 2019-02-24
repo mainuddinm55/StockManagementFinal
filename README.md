@@ -1,4 +1,4 @@
-# StockManagementFinal
+# Inventory Management
 
 Demo
 
