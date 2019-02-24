@@ -39,7 +39,9 @@ import com.ajts.androidmads.library.SQLiteToExcel;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
+import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.InterstitialAd;
 import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.reward.RewardItem;
 import com.google.android.gms.ads.reward.RewardedVideoAd;
@@ -106,7 +108,7 @@ import uk.co.chrisjenx.calligraphy.CalligraphyConfig;
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, FragmentLoader, RewardedVideoAdListener {
+        implements NavigationView.OnNavigationItemSelectedListener, FragmentLoader {
 
     private static final String TAG = "MainActivity";
     private static final int MESSAGE_READ_CODE = 10;
@@ -139,7 +141,7 @@ public class MainActivity extends AppCompatActivity
     private int mReminderCount = 2;
     private ProgressDialog progressDialog;
     private String contactUs = "Mobile : +8801777-888661\nWeb: www.kcirqueit.com\nThank you";
-    private RewardedVideoAd mRewardedVideoAd;
+    private InterstitialAd mInterstitialAd;
 
 
     @Override
@@ -154,9 +156,37 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         MobileAds.initialize(this, getResources().getString(R.string.APP_ID));
 
-        mRewardedVideoAd = MobileAds.getRewardedVideoAdInstance(this);
-        mRewardedVideoAd.setRewardedVideoAdListener(this);
-        loadRewardedVideoAd();
+        mInterstitialAd = new InterstitialAd(this);
+        mInterstitialAd.setAdUnitId(getResources().getString(R.string.INTERSTITIAL_AD_ID));
+        mInterstitialAd.loadAd(new AdRequest.Builder().build());
+
+        mInterstitialAd.setAdListener(new AdListener() {
+            @Override
+            public void onAdLoaded() {
+                // Code to be executed when an ad finishes loading.
+                mInterstitialAd.show();
+            }
+
+            @Override
+            public void onAdFailedToLoad(int errorCode) {
+                // Code to be executed when an ad request fails.
+            }
+
+            @Override
+            public void onAdOpened() {
+                // Code to be executed when the ad is displayed.
+            }
+
+            @Override
+            public void onAdLeftApplication() {
+                // Code to be executed when the user has left the app.
+            }
+
+            @Override
+            public void onAdClosed() {
+                // Code to be executed when when the interstitial ad is closed.
+            }
+        });
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -303,15 +333,9 @@ public class MainActivity extends AppCompatActivity
 
         checkReminder();
 
-        showRewardedVideo();
 
     }
 
-    private void showRewardedVideo() {
-        if (mRewardedVideoAd.isLoaded()) {
-            mRewardedVideoAd.show();
-        }
-    }
 
     private void checkReminder() {
         mStockRef.addValueEventListener(new ValueEventListener() {
@@ -478,6 +502,9 @@ public class MainActivity extends AppCompatActivity
                 tag = Constant.EXPENSE_FRAGMENT_TAG;
                 break;
             case R.id.nav_settings:
+                if (mInterstitialAd.isLoaded()) {
+                    mInterstitialAd.show();
+                }
                 fragment = SettingFragment.getInstance();
                 tag = Constant.SETTING_FRAGMENT_TAG;
                 break;
@@ -689,8 +716,9 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onPause() {
-        mChatRef.removeEventListener(listener);
-        mRewardedVideoAd.pause(this);
+        if (listener != null) {
+            mChatRef.removeEventListener(listener);
+        }
         super.onPause();
 
     }
@@ -698,7 +726,6 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         unreadMessage();
-        mRewardedVideoAd.resume(this);
         super.onResume();
     }
 
@@ -711,7 +738,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mRewardedVideoAd.destroy(this);
+
     }
 
     public static boolean isNetworkAvailable(Context context) {
@@ -721,50 +748,6 @@ public class MainActivity extends AppCompatActivity
         return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
-    @Override
-    public void onRewardedVideoAdLoaded() {
-        showRewardedVideo();
-    }
-
-    @Override
-    public void onRewardedVideoAdOpened() {
-
-    }
-
-    @Override
-    public void onRewardedVideoStarted() {
-
-    }
-
-    @Override
-    public void onRewardedVideoAdClosed() {
-
-    }
-
-    @Override
-    public void onRewarded(RewardItem rewardItem) {
-
-    }
-
-    @Override
-    public void onRewardedVideoAdLeftApplication() {
-
-    }
-
-    @Override
-    public void onRewardedVideoAdFailedToLoad(int i) {
-
-    }
-
-    @Override
-    public void onRewardedVideoCompleted() {
-
-    }
-
-    private void loadRewardedVideoAd() {
-        mRewardedVideoAd.loadAd(getResources().getString(R.string.REWARDED_VIDEO_AD_ID),
-                new AdRequest.Builder().build());
-    }
 
     private class ExportXL implements Runnable {
         private Context mContext;

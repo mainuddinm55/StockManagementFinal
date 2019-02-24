@@ -155,6 +155,7 @@
     <string name="APP_ID">ca-app-pub-5235443421854743~8317584001</string>
     <string name="BANNER_AD_ID">ca-app-pub-5235443421854743/9538757210</string>
     <string name="REWARDED_VIDEO_AD_ID">ca-app-pub-5235443421854743/5801981743</string>
+    <string name="INTERSTITIAL_AD_ID">ca-app-pub-5235443421854743/2872566075</string>
     <string name="supplier_text">Supplier</string>
     <string name="due_purchase">Due</string>
     <string name="qty_text">Quantity</string>

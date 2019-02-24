@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:ads="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".Fragment.SettingFragment">
 
@@ -28,64 +29,73 @@
             android:contentDescription="@string/login" />
 
         <TextView
-            android:layout_marginBottom="5dp"
             android:id="@+id/user_name_text_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/logo_image_view"
             android:layout_marginTop="30dp"
+            android:layout_marginBottom="5dp"
             android:background="@android:color/white"
-            android:foreground="?attr/selectableItemBackground"
             android:clickable="true"
             android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
             android:padding="15dp"
             android:text="@string/sample_user_text"
             android:textAppearance="@style/TextAppearance.AppCompat.Large" />
 
         <TextView
-            android:layout_marginBottom="5dp"
-            android:layout_marginTop="5dp"
             android:id="@+id/company_name_text_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/user_name_text_view"
-            android:foreground="?attr/selectableItemBackground"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="5dp"
             android:background="@android:color/white"
             android:clickable="true"
             android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
             android:padding="15dp"
             android:text="@string/product_company_name_text"
             android:textAppearance="@style/TextAppearance.AppCompat.Large" />
 
         <TextView
-            android:layout_marginBottom="5dp"
-            android:layout_marginTop="5dp"
             android:id="@+id/change_password_text_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/company_name_text_view"
-            android:foreground="?attr/selectableItemBackground"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="5dp"
             android:background="@android:color/white"
             android:clickable="true"
             android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
             android:padding="15dp"
             android:text="@string/change_password_text"
             android:textAppearance="@style/TextAppearance.AppCompat.Large" />
 
         <TextView
-            android:layout_marginBottom="5dp"
-            android:layout_marginTop="5dp"
             android:id="@+id/set_reminder_text_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/change_password_text_view"
-            android:foreground="?attr/selectableItemBackground"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="5dp"
+            android:background="@android:color/white"
             android:clickable="true"
             android:focusable="true"
-            android:background="@android:color/white"
+            android:foreground="?attr/selectableItemBackground"
             android:padding="15dp"
             android:text="@string/reminder_count_text"
             android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+
+        <com.google.android.gms.ads.AdView
+            android:id="@+id/banner_ad_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            ads:adSize="BANNER"
+            ads:adUnitId="@string/BANNER_AD_ID" />
 
     </RelativeLayout>
 </layout>
